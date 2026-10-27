@@ -1,0 +1,8 @@
+{
+  "type": "module",
+  "scripts": {
+    "build": "node scripts/build.mjs",
+    "test": "node --test",
+    "check": "node --test && node scripts/build.mjs && node scripts/check-links.mjs && node scripts/check-budgets.mjs"
+  }
+}
