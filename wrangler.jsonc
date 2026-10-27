@@ -21,6 +21,8 @@
   "env": {
     "staging": {
       "name": "fitmagra-staging",
+      // Staging lives only on its workers.dev hostname, behind Cloudflare Access (runbook step 3).
+      "workers_dev": true,
       "vars": { "ENVIRONMENT": "staging", "BILLING_PROVIDER": "stub" },
       "r2_buckets": [{ "binding": "FILES", "bucket_name": "fitmagra-files-staging" }],
       "d1_databases": [
