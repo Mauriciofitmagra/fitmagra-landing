@@ -1,0 +1,16 @@
+// Assets-only Worker for now: every path is a file from dist/ (built by `node scripts/build.mjs`).
+// The member-area Worker code, D1 and R2 bindings arrive in milestone M4. Roberto runs every deploy.
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "fitmagra",
+  "compatibility_date": "2026-10-27",
+  "assets": {
+    "directory": "./dist",
+    "not_found_handling": "404-page"
+  },
+  "env": {
+    "staging": {
+      "name": "fitmagra-staging"
+    }
+  }
+}
