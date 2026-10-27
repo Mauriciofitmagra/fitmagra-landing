@@ -1,16 +1,28 @@
-// Assets-only Worker for now: every path is a file from dist/ (built by `node scripts/build.mjs`).
-// The member-area Worker code, D1 and R2 bindings arrive in milestone M4. Roberto runs every deploy.
+// One Worker: static files from dist/ (built by `node scripts/build.mjs`) plus the member-area code.
+// Only the run_worker_first paths invoke the Worker; every other path is served as a file.
+// database_id values are placeholders until Roberto creates the databases (spec Q1). Roberto runs every deploy.
 {
   "$schema": "node_modules/wrangler/config-schema.json",
   "name": "fitmagra",
+  "main": "worker/index.ts",
   "compatibility_date": "2026-10-27",
   "assets": {
     "directory": "./dist",
-    "not_found_handling": "404-page"
+    "binding": "ASSETS",
+    "not_found_handling": "404-page",
+    "run_worker_first": ["/entrar/*", "/salir/*", "/app/*", "/admin/*", "/api/*"]
   },
+  "vars": { "ENVIRONMENT": "production" },
+  "d1_databases": [
+    { "binding": "DB", "database_name": "fitmagra", "database_id": "REPLACE_WITH_PRODUCTION_D1_ID", "migrations_dir": "migrations" }
+  ],
   "env": {
     "staging": {
-      "name": "fitmagra-staging"
+      "name": "fitmagra-staging",
+      "vars": { "ENVIRONMENT": "staging" },
+      "d1_databases": [
+        { "binding": "DB", "database_name": "fitmagra-staging", "database_id": "REPLACE_WITH_STAGING_D1_ID", "migrations_dir": "migrations" }
+      ]
     }
   }
 }

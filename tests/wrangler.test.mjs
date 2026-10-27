@@ -13,5 +13,12 @@ test('wrangler.jsonc serves dist/ as static assets and holds no account ids or s
   assert.match(config.compatibility_date, /^\d{4}-\d{2}-\d{2}$/);
   assert.equal(config.env.staging.name, 'fitmagra-staging');
   assert.equal(config.account_id, undefined);
+  assert.equal(config.main, 'worker/index.ts');
+  assert.deepEqual(config.assets.run_worker_first, ['/entrar/*', '/salir/*', '/app/*', '/admin/*', '/api/*']);
+  assert.equal(config.d1_databases[0].binding, 'DB');
+  assert.equal(config.d1_databases[0].migrations_dir, 'migrations');
+  assert.equal(config.env.staging.d1_databases[0].database_name, 'fitmagra-staging');
+  assert.equal(config.vars.ENVIRONMENT, 'production');
+  assert.equal(config.env.staging.vars.ENVIRONMENT, 'staging');
   assert.doesNotMatch(raw, /secret|token|api_key/i);
 });
