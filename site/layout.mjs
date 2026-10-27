@@ -28,7 +28,7 @@ const alternates = (alts) => Object.entries(alts)
 const navLinks = (t, alts = HOME) => {
   const other = t.lang === 'es' ? 'en' : 'es';
   return `${t.nav.links.map(([href, label]) => `<a href="${t.path}${href}">${esc(label)}</a>`).join('\n')}
-<a href="${alts[other]}" hreflang="${other}">${esc(t.nav.other[1])}</a>`;
+<a href="${alts[other] ?? HOME[other]}" hreflang="${other}">${esc(t.nav.other[1])}</a>`;
 };
 
 const footer = (t, alts) => `<footer class="footer">
@@ -53,7 +53,7 @@ ${navLinks(t, alts)}
 </div>
 </footer>`;
 
-export function layout(t, { title = t.meta.title, description = t.meta.description, body, index = true, alts = HOME }) {
+export function layout(t, { title = t.meta.title, description = t.meta.description, body, index = true, alts = HOME, head = '' }) {
   return `<!doctype html>
 <html lang="${t.lang}">
 <head>
@@ -61,7 +61,8 @@ export function layout(t, { title = t.meta.title, description = t.meta.descripti
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>${esc(title)}</title>
 <meta name="description" content="${esc(description)}">
-${index ? `<link rel="canonical" href="${alts[t.lang]}">\n${alternates(alts)}\n<link rel="alternate" hreflang="x-default" href="${alts.es}">` : '<meta name="robots" content="noindex">'}
+${index ? `<link rel="canonical" href="${alts[t.lang]}">\n${alternates(alts)}\n<link rel="alternate" hreflang="x-default" href="${alts.es ?? alts[t.lang]}">` : '<meta name="robots" content="noindex">'}
+${head}
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Montserrat:wght@500;800&display=swap">

@@ -131,7 +131,7 @@ export const strings = {
       title: 'FitMagra | Tu plan de entrenamiento y nutrición con Mauricio Sánchez',
       description: 'Mauricio Sánchez diseña tu entrenamiento y tu alimentación con tu nombre y los ajusta contigo cada semana. Valoración de 30 minutos sin costo.',
     },
-    nav: { home: 'Inicio', links: [['#metodo', 'Método'], ['historias/', 'Historias'], ['#planes', 'Planes'], ['#preguntas', 'Preguntas']], other: ['/en/', 'English'], skip: 'Saltar al contenido' },
+    nav: { home: 'Inicio', links: [['#metodo', 'Método'], ['historias/', 'Historias'], ['#planes', 'Planes'], ['blog/', 'Blog']], other: ['/en/', 'English'], skip: 'Saltar al contenido' },
     action: 'Agenda tu valoración',
     actionText: 'Hola, quiero agendar mi valoración gratuita',
     hero: {
@@ -177,6 +177,17 @@ export const strings = {
       disclaimer: 'Los resultados varían según adherencia y condición inicial.',
       translated: null,
       closing: 'Tu historia empieza con 30 minutos de valoración, sin costo.',
+    },
+    blog: {
+      path: '/blog/',
+      title: 'Blog | FitMagra',
+      description: 'Artículos de Mauricio Sánchez sobre entrenamiento, nutrición y cómo leer tu plan.',
+      heading: ['Blog'],
+      empty: 'Mauricio está escribiendo. Los primeros artículos llegan pronto.',
+      rss: 'Suscríbete por RSS',
+      published: 'Publicado el',
+      back: 'Volver al blog',
+      dateLocale: 'es-CO',
     },
     about: {
       lines: ['Mauricio Sánchez,', 'coach desde 2017.'],
@@ -234,7 +245,7 @@ export const strings = {
       title: 'FitMagra | Your training and nutrition plan with Mauricio Sánchez',
       description: 'Mauricio Sánchez designs your training and nutrition with your name on them and adjusts them with you every week. Free 30-minute assessment.',
     },
-    nav: { home: 'Home', links: [['#metodo', 'Method'], ['stories/', 'Stories'], ['#planes', 'Plans'], ['#preguntas', 'Questions']], other: ['/', 'Español'], skip: 'Skip to content' },
+    nav: { home: 'Home', links: [['#metodo', 'Method'], ['stories/', 'Stories'], ['#planes', 'Plans'], ['blog/', 'Blog']], other: ['/', 'Español'], skip: 'Skip to content' },
     action: 'Book your assessment',
     actionText: "Hi, I'd like to book my free assessment",
     hero: {
@@ -280,6 +291,17 @@ export const strings = {
       disclaimer: 'Results vary with adherence and starting point.',
       translated: 'Translated from Spanish',
       closing: 'Your story starts with a free 30-minute assessment.',
+    },
+    blog: {
+      path: '/en/blog/',
+      title: 'Blog | FitMagra',
+      description: 'Articles by Mauricio Sánchez on training, nutrition and how to read your plan.',
+      heading: ['Blog'],
+      empty: 'Mauricio is writing. The first articles arrive soon.',
+      rss: 'Subscribe by RSS',
+      published: 'Published on',
+      back: 'Back to the blog',
+      dateLocale: 'en-US',
     },
     about: {
       lines: ['Mauricio Sánchez,', 'coach since 2017.'],
