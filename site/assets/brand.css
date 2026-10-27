@@ -219,6 +219,22 @@ details:not([open]) > :not(summary) { display: none; }
 .player audio { width: 100%; max-width: 320px; }
 @media (min-width: 900px) { .footer-grid { grid-template-columns: 4fr 2fr 3fr 3fr; } }
 
+/* Historias: one black field, photographs at uneven sizes, quotes between them */
+.stories-head { display: grid; gap: var(--s5); padding: var(--s7) var(--margin) var(--s6); }
+.stories-grid { display: grid; grid-template-columns: 1fr; gap: var(--s5); padding: 0 var(--margin) var(--s7); align-items: start; }
+.story-photo img { width: 100%; height: auto; background: var(--white); }
+.story-photo figcaption { margin-top: var(--s2); font-weight: 800; }
+.story-quote { display: grid; gap: var(--s3); padding: var(--pad); background: var(--fit); color: var(--black); }
+.story-quote blockquote { max-width: 32ch; }
+.stories-video { display: grid; gap: var(--s4); padding: var(--s7) var(--margin); background: var(--fit); color: var(--black); }
+.stories-video video { width: 100%; max-width: 960px; aspect-ratio: 16 / 9; background: var(--black); }
+@media (min-width: 900px) {
+  .stories-grid { grid-template-columns: repeat(12, 1fr); }
+  .story-photo { grid-column: span 4; }
+  .story-wide { grid-column: span 8; }
+  .story-quote { grid-column: span 6; }
+}
+
 /* Motion: transform and opacity only; content stays visible where unsupported or reduced */
 @keyframes rise { from { opacity: 0; transform: translateY(32px); } }
 @keyframes shutter { to { transform: scaleY(0); } }

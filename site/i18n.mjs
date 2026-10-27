@@ -131,7 +131,7 @@ export const strings = {
       title: 'FitMagra | Tu plan de entrenamiento y nutrición con Mauricio Sánchez',
       description: 'Mauricio Sánchez diseña tu entrenamiento y tu alimentación con tu nombre y los ajusta contigo cada semana. Valoración de 30 minutos sin costo.',
     },
-    nav: { home: 'Inicio', links: [['#metodo', 'Método'], ['#planes', 'Planes'], ['#preguntas', 'Preguntas']], other: ['/en/', 'English'], skip: 'Saltar al contenido' },
+    nav: { home: 'Inicio', links: [['#metodo', 'Método'], ['historias/', 'Historias'], ['#planes', 'Planes'], ['#preguntas', 'Preguntas']], other: ['/en/', 'English'], skip: 'Saltar al contenido' },
     action: 'Agenda tu valoración',
     actionText: 'Hola, quiero agendar mi valoración gratuita',
     hero: {
@@ -167,6 +167,16 @@ export const strings = {
     proof: {
       countries: ['Colombia', 'México', 'Estados Unidos', 'España', 'Argentina', 'Chile', 'Ecuador', 'Perú', 'Venezuela', 'Brasil', 'Uruguay', 'Costa Rica', 'Panamá', 'Guatemala'],
       sentence: 'Personas en estos 14 países han entrenado con un plan FitMagra.',
+      link: 'Ver historias',
+    },
+    stories: {
+      path: '/historias/',
+      title: 'Historias | FitMagra',
+      description: 'Fotos de antes y después y testimonios de clientes de FitMagra. Los resultados varían según adherencia y condición inicial.',
+      heading: ['Historias', 'reales'],
+      disclaimer: 'Los resultados varían según adherencia y condición inicial.',
+      translated: null,
+      closing: 'Tu historia empieza con 30 minutos de valoración, sin costo.',
     },
     about: {
       lines: ['Mauricio Sánchez,', 'coach desde 2017.'],
@@ -224,7 +234,7 @@ export const strings = {
       title: 'FitMagra | Your training and nutrition plan with Mauricio Sánchez',
       description: 'Mauricio Sánchez designs your training and nutrition with your name on them and adjusts them with you every week. Free 30-minute assessment.',
     },
-    nav: { home: 'Home', links: [['#metodo', 'Method'], ['#planes', 'Plans'], ['#preguntas', 'Questions']], other: ['/', 'Español'], skip: 'Skip to content' },
+    nav: { home: 'Home', links: [['#metodo', 'Method'], ['stories/', 'Stories'], ['#planes', 'Plans'], ['#preguntas', 'Questions']], other: ['/', 'Español'], skip: 'Skip to content' },
     action: 'Book your assessment',
     actionText: "Hi, I'd like to book my free assessment",
     hero: {
@@ -260,6 +270,16 @@ export const strings = {
     proof: {
       countries: ['Colombia', 'Mexico', 'United States', 'Spain', 'Argentina', 'Chile', 'Ecuador', 'Peru', 'Venezuela', 'Brazil', 'Uruguay', 'Costa Rica', 'Panama', 'Guatemala'],
       sentence: 'People in these 14 countries have trained with a FitMagra plan.',
+      link: 'See their stories',
+    },
+    stories: {
+      path: '/en/stories/',
+      title: 'Stories | FitMagra',
+      description: 'Before and after photos and testimonials from FitMagra clients. Results vary with adherence and starting point.',
+      heading: ['Real', 'stories'],
+      disclaimer: 'Results vary with adherence and starting point.',
+      translated: 'Translated from Spanish',
+      closing: 'Your story starts with a free 30-minute assessment.',
     },
     about: {
       lines: ['Mauricio Sánchez,', 'coach since 2017.'],

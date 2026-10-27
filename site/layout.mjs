@@ -19,19 +19,24 @@ export const img = (file, alt, cls = '', lazy = true) => {
 };
 
 // ponytail: root-relative canonical and hreflang until the production domain is known (spec Q1).
-const alternates = Object.values(strings)
-  .map((s) => `<link rel="alternate" hreflang="${s.lang}" href="${s.path}">`)
+// `alts` maps each language to this page's URL in that language.
+const HOME = { es: strings.es.path, en: strings.en.path };
+const alternates = (alts) => Object.entries(alts)
+  .map(([lang, href]) => `<link rel="alternate" hreflang="${lang}" href="${href}">`)
   .join('\n');
 
-const navLinks = (t) => `${t.nav.links.map(([href, label]) => `<a href="${t.path}${href}">${esc(label)}</a>`).join('\n')}
-<a href="${t.nav.other[0]}" hreflang="${t.lang === 'es' ? 'en' : 'es'}">${esc(t.nav.other[1])}</a>`;
+const navLinks = (t, alts = HOME) => {
+  const other = t.lang === 'es' ? 'en' : 'es';
+  return `${t.nav.links.map(([href, label]) => `<a href="${t.path}${href}">${esc(label)}</a>`).join('\n')}
+<a href="${alts[other]}" hreflang="${other}">${esc(t.nav.other[1])}</a>`;
+};
 
-const footer = (t) => `<footer class="footer">
+const footer = (t, alts) => `<footer class="footer">
 ${img('neon.jpg', t.footer.neonAlt, 'neon')}
 <div class="footer-grid">
 <p class="statement">${esc(t.footer.slogan)}</p>
 <nav aria-label="${esc(t.nav.home)}">
-${navLinks(t)}
+${navLinks(t, alts)}
 </nav>
 <address>
 <h2>${esc(t.footer.contact)}</h2>
@@ -48,15 +53,15 @@ ${navLinks(t)}
 </div>
 </footer>`;
 
-export function layout(t, { title = t.meta.title, body, index = true }) {
+export function layout(t, { title = t.meta.title, description = t.meta.description, body, index = true, alts = HOME }) {
   return `<!doctype html>
 <html lang="${t.lang}">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>${esc(title)}</title>
-<meta name="description" content="${esc(t.meta.description)}">
-${index ? `<link rel="canonical" href="${t.path}">\n${alternates}\n<link rel="alternate" hreflang="x-default" href="/">` : '<meta name="robots" content="noindex">'}
+<meta name="description" content="${esc(description)}">
+${index ? `<link rel="canonical" href="${alts[t.lang]}">\n${alternates(alts)}\n<link rel="alternate" hreflang="x-default" href="${alts.es}">` : '<meta name="robots" content="noindex">'}
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Montserrat:wght@500;800&display=swap">
@@ -67,14 +72,14 @@ ${index ? `<link rel="canonical" href="${t.path}">\n${alternates}\n<link rel="al
 <header class="nav">
 <a class="nav-logo" href="${t.path}">${img('logo-oficial-600.png', 'FitMagra Systems', '', false)}</a>
 <nav aria-label="${esc(t.nav.home)}">
-${navLinks(t)}
+${navLinks(t, alts)}
 </nav>
 <a class="button" href="${wa(t.actionText)}">${esc(t.action)}</a>
 </header>
 <main id="contenido">
 ${body}
 </main>
-${footer(t)}
+${footer(t, alts)}
 </body>
 </html>
 `;
