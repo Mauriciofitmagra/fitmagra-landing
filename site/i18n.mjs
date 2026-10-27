@@ -1,6 +1,11 @@
 export const WHATSAPP = '573153614260';
 export const USD_RATE = 4000;
 export const wa = (text) => `https://wa.me/${WHATSAPP}?text=${encodeURIComponent(text)}`;
+export const CONTACT = {
+  phone: '+57 315 361 4260',
+  email: 'Fitmagrasystems@gmail.com',
+  facebook: 'https://www.facebook.com/FitmagraOficial/',
+};
 
 const PLANS_ES = [
   {
@@ -164,7 +169,7 @@ export const strings = {
       sentence: 'Personas en estos 14 países han entrenado con un plan FitMagra.',
     },
     about: {
-      lines: ['Mauricio Sánchez,', 'tu coach desde 2017.'],
+      lines: ['Mauricio Sánchez,', 'coach desde 2017.'],
       photoAlt: 'Mauricio Sánchez en un estudio de pilates',
       rosarioAlt: 'Universidad del Rosario',
       blocks: [
@@ -175,9 +180,9 @@ export const strings = {
     how: {
       heading: 'Cómo empezamos',
       steps: [
-        ['Valoración', '30 minutos por WhatsApp o video para conocer tu punto de partida. No cuesta nada.', 'coach-black.jpg', 'Mauricio Sánchez de pie con ropa negra'],
-        ['Tu plan', 'Entrenamiento, alimentación y suplementación con tu nombre, listos en 1 a 3 días hábiles.', 'coach-pilates.jpg', 'Mauricio Sánchez preparando una sesión'],
-        ['Ajuste semanal', 'Revisamos tu peso, tus entrenos y tus fotos, y el plan cambia según tu respuesta.', 't-mes.jpg', 'Seguimiento de un cliente después de un mes de plan'],
+        ['Valoración', '30 minutos por WhatsApp o video para conocer tu punto de partida. No cuesta nada.', 'coach-black-800.jpg', 'Mauricio Sánchez de pie con ropa negra'],
+        ['Tu plan', 'Entrenamiento, alimentación y suplementación con tu nombre, listos en 1 a 3 días hábiles.', 'coach-pilates-640.jpg', 'Mauricio Sánchez preparando una sesión'],
+        ['Ajuste semanal', 'Revisamos tu peso, tus entrenos y tus fotos, y el plan cambia según tu respuesta.', 't-mes-640.jpg', 'Seguimiento de un cliente después de un mes de plan'],
       ],
     },
     pricing: {
@@ -206,6 +211,7 @@ export const strings = {
       neonAlt: 'Letrero de neón de FitMagra en el estudio',
       slogan: 'Renueva tu mente. Cambia tu destino.',
       contact: 'Contacto',
+      place: 'Bogotá, Colombia',
       music: 'FitMagra Vibes, la música del estudio',
       rights: '© 2026 FitMagra Systems',
     },
@@ -256,7 +262,7 @@ export const strings = {
       sentence: 'People in these 14 countries have trained with a FitMagra plan.',
     },
     about: {
-      lines: ['Mauricio Sánchez,', 'your coach since 2017.'],
+      lines: ['Mauricio Sánchez,', 'coach since 2017.'],
       photoAlt: 'Mauricio Sánchez in a pilates studio',
       rosarioAlt: 'Universidad del Rosario',
       blocks: [
@@ -267,9 +273,9 @@ export const strings = {
     how: {
       heading: 'How we start',
       steps: [
-        ['Assessment', '30 minutes on WhatsApp or video to learn where you are starting from. It costs nothing.', 'coach-black.jpg', 'Mauricio Sánchez standing in black workout clothes'],
-        ['Your plan', 'Training, nutrition and supplements with your name on them, ready in 1 to 3 business days.', 'coach-pilates.jpg', 'Mauricio Sánchez setting up a session'],
-        ['Weekly check-in', 'We review your weight, your workouts and your photos, and the plan changes with how you respond.', 't-mes.jpg', 'A client check-in after one month on the plan'],
+        ['Assessment', '30 minutes on WhatsApp or video to learn where you are starting from. It costs nothing.', 'coach-black-800.jpg', 'Mauricio Sánchez standing in black workout clothes'],
+        ['Your plan', 'Training, nutrition and supplements with your name on them, ready in 1 to 3 business days.', 'coach-pilates-640.jpg', 'Mauricio Sánchez setting up a session'],
+        ['Weekly check-in', 'We review your weight, your workouts and your photos, and the plan changes with how you respond.', 't-mes-640.jpg', 'A client check-in after one month on the plan'],
       ],
     },
     pricing: {
@@ -298,6 +304,7 @@ export const strings = {
       neonAlt: 'FitMagra neon sign in the studio',
       slogan: 'Renew your mind. Change your destiny.',
       contact: 'Contact',
+      place: 'Bogotá, Colombia',
       music: 'FitMagra Vibes, the studio playlist',
       rights: '© 2026 FitMagra Systems',
     },
