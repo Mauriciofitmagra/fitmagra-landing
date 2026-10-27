@@ -29,6 +29,7 @@ export async function setup({ consented = true } = {}) {
   for (const [id, role] of [['admin1', 'admin'], ['ana', 'member'], ['beto', 'member']]) {
     await env.DB.prepare("INSERT INTO users (id, email, name, role, status, password_hash, consent_version, consent_at, created_at, updated_at) VALUES (?, ?, ?, ?, 'active', ?, ?, ?, 0, 0)")
       .bind(id, `${id}@x.co`, id, role, hash, consented ? 'test' : null, consented ? 1 : null).run();
+    if (role === 'member') await env.DB.prepare("INSERT INTO subscriptions (user_id, plan, status, current_period_end, updated_at) VALUES (?, 'elite', 'active', '2099-01-01', 0)").bind(id).run();
   }
   return env;
 }

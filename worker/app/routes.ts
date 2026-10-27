@@ -6,6 +6,7 @@ import { verifyPassword, hashPassword } from '../auth/passwords.ts';
 import { checkFile, fileKey, findFile, stream, PHOTO, type Bucket } from '../files.ts';
 import { LOGS, type LogKind, parseEntry, isDate } from './logs.ts';
 import { appPage, entryForm, entryTable, consentView, coachView, CONSENT_VERSION } from './views.ts';
+import { billingSection } from '../billing/routes.ts';
 
 // Members live in 14 countries; the default date follows Bogotá, where the coach works. They can change it.
 export const today = (now: number): string => new Date(now * 1000).toLocaleDateString('en-CA', { timeZone: 'America/Bogota' });
@@ -140,8 +141,9 @@ export async function file(db: DB, files: Bucket, s: Session, id: string): Promi
 
 export const coach = (s: Session): Response => html(coachView(s));
 
-export const account = (s: Session, error = '', status = 200): Response => html(appPage('Cuenta', '/app/cuenta/', `<h1 class="app-title">Tu cuenta</h1>
+export const account = async (db: DB, s: Session, now: number, error = '', status = 200): Promise<Response> => html(appPage('Cuenta', '/app/cuenta/', `<h1 class="app-title">Tu cuenta</h1>
 <p>${esc(s.name)}, ${esc(s.email)}</p>
+${await billingSection(db, s, today(now))}
 <h2 class="app-subtitle">Cambiar contraseña</h2>
 ${error ? `<p class="notice" role="alert">${esc(error)}</p>` : ''}
 <form method="post" action="/app/cuenta/clave/" class="app-form">
@@ -155,9 +157,9 @@ ${error ? `<p class="notice" role="alert">${esc(error)}</p>` : ''}
 export async function changePassword(request: Request, db: DB, s: Session, now: number): Promise<Response> {
   const { current = '', password = '', confirm = '' } = await form(request);
   const stored = await db.prepare('SELECT password_hash FROM users WHERE id = ?').bind(s.userId).first<string>('password_hash');
-  if (!stored || !(await verifyPassword(current, stored))) return account(s, 'La contraseña actual no es correcta.', 400);
-  if (password.length < 10) return account(s, 'La contraseña nueva necesita 10 caracteres o más.', 400);
-  if (password !== confirm) return account(s, 'Las dos contraseñas no coinciden.', 400);
+  if (!stored || !(await verifyPassword(current, stored))) return account(db, s, now, 'La contraseña actual no es correcta.', 400);
+  if (password.length < 10) return account(db, s, now, 'La contraseña nueva necesita 10 caracteres o más.', 400);
+  if (password !== confirm) return account(db, s, now, 'Las dos contraseñas no coinciden.', 400);
   await db.prepare('UPDATE users SET password_hash = ?, updated_at = ? WHERE id = ?').bind(await hashPassword(password), now, s.userId).run();
   return redirect('/app/cuenta/');
 }

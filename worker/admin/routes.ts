@@ -7,6 +7,9 @@ import { page, messageView } from '../views.ts';
 import { checkFile, fileKey, PDF, type Bucket } from '../files.ts';
 import { LOGS, type LogKind } from '../app/logs.ts';
 import { entryTable } from '../app/views.ts';
+import { adminBillingForm } from '../billing/routes.ts';
+import { PLANS, isPlan } from '../billing/plans.ts';
+import { today } from '../app/routes.ts';
 
 const audit = (db: DB, actor: Session, action: string, target: string | null, now: number, detail: string | null = null) =>
   db.prepare('INSERT INTO audit_log (actor_id, action, target_user_id, at, detail) VALUES (?, ?, ?, ?, ?)').bind(actor.userId, action, target, now, detail);
@@ -23,6 +26,7 @@ ${m.status === 'deactivated'
     : `<form method="post" action="/admin/miembros/${esc(m.id)}/desactivar/"><button class="link">Desactivar</button></form>`}
 </td></tr>`).join('\n');
   return html(page('Miembros', `<h1 class="app-title">Miembros</h1>
+<p><a href="/admin/facturacion/">Facturación</a></p>
 <table class="table"><thead><tr><th>Nombre</th><th>Correo</th><th>Rol</th><th>Estado</th><th></th></tr></thead><tbody>
 ${rows}
 </tbody></table>
@@ -31,6 +35,8 @@ ${rows}
 <label class="field"><span>Nombre</span><input name="name" required></label>
 <label class="field"><span>Correo</span><input name="email" type="email" required></label>
 <label class="field"><span>Rol</span><select name="role"><option value="member">Miembro</option><option value="admin">Admin</option></select></label>
+<label class="field"><span>Plan</span><select name="plan">${Object.entries(PLANS).map(([k, p]) => `<option value="${k}">${p.name}</option>`).join('')}</select></label>
+<label class="field"><span>WhatsApp, con indicativo</span><input name="phone" inputmode="tel" placeholder="+57 300 000 0000"></label>
 <button class="button">Crear y generar invitación</button>
 </form>`, session));
 }
@@ -45,15 +51,18 @@ const linkView = (request: Request, session: Session, title: string, token: stri
 };
 
 export async function create(request: Request, db: DB, session: Session, now: number): Promise<Response> {
-  const { name = '', email = '', role = 'member' } = await form(request);
-  if (!name.trim() || !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email.trim()) || !['member', 'admin'].includes(role)) {
+  const { name = '', email = '', role = 'member', plan = '', phone = '' } = await form(request);
+  const digits = phone.replace(/\D/g, '');
+  if (!name.trim() || !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email.trim()) || !['member', 'admin'].includes(role) || (role === 'member' && !isPlan(plan)) || (digits && (digits.length < 8 || digits.length > 15))) {
     return html(messageView('Datos incompletos', 'Revisa el nombre, el correo y el rol.', session), 400);
   }
   const id = crypto.randomUUID();
   try {
     await db.batch([
-      db.prepare("INSERT INTO users (id, email, name, role, status, created_at, updated_at) VALUES (?, ?, ?, ?, 'invited', ?, ?)").bind(id, email.trim(), name.trim(), role, now, now),
-      audit(db, session, 'member.create', id, now, role),
+      db.prepare("INSERT INTO users (id, email, name, role, status, phone, created_at, updated_at) VALUES (?, ?, ?, ?, 'invited', ?, ?, ?)").bind(id, email.trim(), name.trim(), role, digits || null, now, now),
+      // Every member starts with an assigned plan and a pending subscription (spec 11, 13).
+      ...(role === 'member' ? [db.prepare("INSERT INTO subscriptions (user_id, plan, status, updated_at) VALUES (?, ?, 'pending', ?)").bind(id, plan, now)] : []),
+      audit(db, session, 'member.create', id, now, role === 'member' ? `member, ${plan}` : role),
     ]);
   } catch {
     return html(messageView('Correo en uso', 'Ya existe una cuenta con ese correo.', session), 409);
@@ -61,7 +70,7 @@ export async function create(request: Request, db: DB, session: Session, now: nu
   return linkView(request, session, 'Invitación creada', await issueToken(db, { userId: id, purpose: 'invite', now }), 'invite');
 }
 
-export async function detail(db: DB, session: Session, id: string): Promise<Response> {
+export async function detail(db: DB, session: Session, id: string, now: number): Promise<Response> {
   const m = await db.prepare('SELECT id, name, email, role, status FROM users WHERE id = ?').bind(id).first<Member>();
   if (!m) return html(messageView('No existe', 'Ese miembro no existe.', session), 404);
   const rows = async (kind: LogKind) => (await db.prepare(`SELECT * FROM ${kind.table} WHERE user_id = ? ORDER BY ${kind.dateCol} DESC LIMIT 50`).bind(id).all<Record<string, unknown>>()).results;
@@ -71,6 +80,7 @@ export async function detail(db: DB, session: Session, id: string): Promise<Resp
   const num = (name: string, label: string, value: unknown) => `<label class="field"><span>${label}</span><input name="${name}" inputmode="numeric" value="${esc(value ?? '')}" required></label>`;
   return html(page(m.name, `<h1 class="app-title">${esc(m.name)}</h1>
 <p>${esc(m.email)}, ${esc(m.role)}, ${esc(m.status)}</p>
+${await adminBillingForm(db, id, today(now))}
 <h2 class="app-subtitle">Planes en PDF</h2>
 <ul>${docs.map((d) => `<li><a href="/app/archivos/${esc(d.id)}">${esc(d.title)}</a> (${d.kind === 'training_plan' ? 'entrenamiento' : 'nutrición'})</li>`).join('')}</ul>
 <form method="post" action="/admin/miembros/${esc(id)}/documentos/" enctype="multipart/form-data" class="app-form">

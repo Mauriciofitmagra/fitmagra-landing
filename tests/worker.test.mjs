@@ -14,6 +14,7 @@ const setup = async () => {
   for (const [id, role] of [['admin1', 'admin'], ['mem1', 'member']]) {
     await env.DB.prepare("INSERT INTO users (id, email, name, role, status, password_hash, consent_version, consent_at, created_at, updated_at) VALUES (?, ?, ?, ?, 'active', ?, 'test', 1, 0, 0)")
       .bind(id, `${id}@x.co`, id, role, hash).run();
+    if (role === 'member') await env.DB.prepare("INSERT INTO subscriptions (user_id, plan, status, current_period_end, updated_at) VALUES (?, 'elite', 'active', '2099-01-01', 0)").bind(id).run();
   }
   return env;
 };
@@ -91,7 +92,7 @@ test('members are sent to login without a session and get 403 on admin routes', 
 test('an admin provisions a member, the invite link sets a password once, and the member logs in', async () => {
   const env = await setup();
   const admin = cookieOf(await login(env, 'admin1@x.co'));
-  const created = await worker.fetch(req('/admin/miembros/', { method: 'POST', cookie: admin, form: { name: 'Laura G.', email: 'laura@x.co', role: 'member' } }), env);
+  const created = await worker.fetch(req('/admin/miembros/', { method: 'POST', cookie: admin, form: { name: 'Laura G.', email: 'laura@x.co', role: 'member', plan: 'elite' } }), env);
   assert.equal(created.status, 200);
   const link = (await created.text()).match(/\/entrar\/clave\/\?t=([\w-]+)&amp;p=invite/);
   assert.ok(link, 'invite link shown once');
