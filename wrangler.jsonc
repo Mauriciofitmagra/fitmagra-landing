@@ -13,6 +13,8 @@
     "run_worker_first": ["/entrar/*", "/salir/*", "/app/*", "/admin/*", "/api/*"]
   },
   "vars": { "ENVIRONMENT": "production" },
+  // Private bucket: no public access and no custom domain. Files are read only through /app/archivos/ (spec 11.2).
+  "r2_buckets": [{ "binding": "FILES", "bucket_name": "fitmagra-files" }],
   "d1_databases": [
     { "binding": "DB", "database_name": "fitmagra", "database_id": "REPLACE_WITH_PRODUCTION_D1_ID", "migrations_dir": "migrations" }
   ],
@@ -20,6 +22,7 @@
     "staging": {
       "name": "fitmagra-staging",
       "vars": { "ENVIRONMENT": "staging" },
+      "r2_buckets": [{ "binding": "FILES", "bucket_name": "fitmagra-files-staging" }],
       "d1_databases": [
         { "binding": "DB", "database_name": "fitmagra-staging", "database_id": "REPLACE_WITH_STAGING_D1_ID", "migrations_dir": "migrations" }
       ]

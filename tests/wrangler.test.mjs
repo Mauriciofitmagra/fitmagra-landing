@@ -18,6 +18,8 @@ test('wrangler.jsonc serves dist/ as static assets and holds no account ids or s
   assert.equal(config.d1_databases[0].binding, 'DB');
   assert.equal(config.d1_databases[0].migrations_dir, 'migrations');
   assert.equal(config.env.staging.d1_databases[0].database_name, 'fitmagra-staging');
+  assert.deepEqual(config.r2_buckets, [{ binding: 'FILES', bucket_name: 'fitmagra-files' }]);
+  assert.deepEqual(config.env.staging.r2_buckets, [{ binding: 'FILES', bucket_name: 'fitmagra-files-staging' }]);
   assert.equal(config.vars.ENVIRONMENT, 'production');
   assert.equal(config.env.staging.vars.ENVIRONMENT, 'staging');
   assert.doesNotMatch(raw, /secret|token|api_key/i);
