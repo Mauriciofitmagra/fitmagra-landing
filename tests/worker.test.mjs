@@ -12,7 +12,7 @@ const setup = async () => {
   const env = { DB: d1(), ASSETS, ENVIRONMENT: 'test' };
   const hash = await hashPassword('clave-segura-1');
   for (const [id, role] of [['admin1', 'admin'], ['mem1', 'member']]) {
-    await env.DB.prepare("INSERT INTO users (id, email, name, role, status, password_hash, created_at, updated_at) VALUES (?, ?, ?, ?, 'active', ?, 0, 0)")
+    await env.DB.prepare("INSERT INTO users (id, email, name, role, status, password_hash, consent_version, consent_at, created_at, updated_at) VALUES (?, ?, ?, ?, 'active', ?, 'test', 1, 0, 0)")
       .bind(id, `${id}@x.co`, id, role, hash).run();
   }
   return env;
