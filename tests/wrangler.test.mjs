@@ -22,5 +22,7 @@ test('wrangler.jsonc serves dist/ as static assets and holds no account ids or s
   assert.deepEqual(config.env.staging.r2_buckets, [{ binding: 'FILES', bucket_name: 'fitmagra-files-staging' }]);
   assert.equal(config.vars.ENVIRONMENT, 'production');
   assert.equal(config.env.staging.vars.ENVIRONMENT, 'staging');
+  assert.equal(config.env.staging.vars.BILLING_PROVIDER, 'stub');
+  assert.equal(config.vars.BILLING_PROVIDER, undefined, 'no billing provider in production until Roberto picks one');
   assert.doesNotMatch(raw, /secret|token|api_key/i);
 });

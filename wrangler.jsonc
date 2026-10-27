@@ -21,7 +21,7 @@
   "env": {
     "staging": {
       "name": "fitmagra-staging",
-      "vars": { "ENVIRONMENT": "staging" },
+      "vars": { "ENVIRONMENT": "staging", "BILLING_PROVIDER": "stub" },
       "r2_buckets": [{ "binding": "FILES", "bucket_name": "fitmagra-files-staging" }],
       "d1_databases": [
         { "binding": "DB", "database_name": "fitmagra-staging", "database_id": "REPLACE_WITH_STAGING_D1_ID", "migrations_dir": "migrations" }
