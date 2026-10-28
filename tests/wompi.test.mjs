@@ -68,3 +68,19 @@ test('Wompi transaction lookup uses the private key and rejects mismatched respo
     await assert.rejects(lookupTransaction('prod', 'prv_prod_example', 'tx-1'));
   } finally { globalThis.fetch = original; }
 });
+
+test('link payment lookup requires an authoritative match to the requested payment link', async () => {
+  const { lookupLinkTransaction } = await import('../worker/billing/wompi.ts');
+  const original = globalThis.fetch;
+  const data = { id: 'tx-1', reference: 'ref-1', status: 'APPROVED', amount_in_cents: 1234500, currency: 'COP', payment_link_id: 'VdTCSO', customer_email: 'ana@example.test', finalized_at: '2026-10-28T12:00:00Z' };
+  try {
+    globalThis.fetch = async () => Response.json({ data });
+    assert.deepEqual(await lookupLinkTransaction('test', 'prv_test_example', 'tx-1', 'VdTCSO'), { id: 'tx-1', reference: 'ref-1', status: 'APPROVED', amountCents: 1234500, currency: 'COP', paymentLinkId: 'VdTCSO', customerEmail: 'ana@example.test', finalizedAt: '2026-10-28T12:00:00Z' });
+    globalThis.fetch = async () => Response.json({ data: { ...data, payment_link_id: 'other' } });
+    await assert.rejects(lookupLinkTransaction('test', 'prv_test_example', 'tx-1', 'VdTCSO'));
+    globalThis.fetch = async () => Response.json({ data: { ...data, payment_link_id: undefined } });
+    await assert.rejects(lookupLinkTransaction('test', 'prv_test_example', 'tx-1', 'VdTCSO'));
+    globalThis.fetch = async () => Response.json({ data: { ...data, finalized_at: 'invalid' } });
+    await assert.rejects(lookupLinkTransaction('test', 'prv_test_example', 'tx-1', 'VdTCSO'));
+  } finally { globalThis.fetch = original; }
+});

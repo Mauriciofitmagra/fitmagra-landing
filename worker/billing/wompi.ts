@@ -66,10 +66,23 @@ export async function merchantPolicies(environment: WompiEnvironment, publicKey:
 }
 
 // A lookup alone is not settlement: compare it with the saved purchase and merchant before crediting.
-export async function lookupTransaction(environment: WompiEnvironment, privateKey: string, id: string): Promise<{ id: string; reference: string; status: string; amountCents: number; currency: string }> {
+async function transactionData(environment: WompiEnvironment, privateKey: string, id: string): Promise<ObjectValue> {
   const base = apiUrl(environment, privateKey, 'prv');
   if (!/^[a-zA-Z0-9_-]{1,255}$/.test(id)) throw new Error('Invalid Wompi transaction ID');
   const data = await responseData(await fetch(`${base}/transactions/${id}`, { headers: { Authorization: `Bearer ${privateKey}`, Accept: 'application/json' }, redirect: 'error' }));
   if (data.id !== id || typeof data.reference !== 'string' || !data.reference || typeof data.status !== 'string' || !['PENDING', 'APPROVED', 'DECLINED', 'VOIDED', 'ERROR'].includes(data.status) || !Number.isSafeInteger(data.amount_in_cents) || (data.amount_in_cents as number) <= 0 || data.currency !== 'COP') throw new Error('Invalid Wompi transaction');
-  return { id, reference: data.reference, status: data.status, amountCents: data.amount_in_cents as number, currency: data.currency };
+  return data;
+}
+
+export async function lookupTransaction(environment: WompiEnvironment, privateKey: string, id: string): Promise<{ id: string; reference: string; status: string; amountCents: number; currency: string }> {
+  const data = await transactionData(environment, privateKey, id);
+  return { id, reference: data.reference as string, status: data.status as string, amountCents: data.amount_in_cents as number, currency: data.currency as string };
+}
+
+// Do not associate a payment with a link unless the provider's server response identifies that link.
+export async function lookupLinkTransaction(environment: WompiEnvironment, privateKey: string, id: string, linkId: string): Promise<{ id: string; reference: string; status: string; amountCents: number; currency: string; paymentLinkId: string; customerEmail: string | null; finalizedAt: string | null }> {
+  if (!/^[a-zA-Z0-9_-]{1,255}$/.test(linkId)) throw new Error('Invalid payment link ID');
+  const data = await transactionData(environment, privateKey, id);
+  if (data.payment_link_id !== linkId || (data.customer_email != null && (typeof data.customer_email !== 'string' || data.customer_email.length > 320)) || (data.finalized_at != null && (typeof data.finalized_at !== 'string' || !Number.isFinite(Date.parse(data.finalized_at))))) throw new Error('Invalid link transaction');
+  return { id, reference: data.reference as string, status: data.status as string, amountCents: data.amount_in_cents as number, currency: data.currency as string, paymentLinkId: linkId, customerEmail: data.customer_email as string | null ?? null, finalizedAt: data.finalized_at as string | null ?? null };
 }
