@@ -16,6 +16,10 @@ test('parses the fields and the body', () => {
 
 test('draft defaults to false and parses true', () => {
   assert.equal(parsePost(post(`${valid}\ndraft: true`), 'es/x.md').draft, true);
+  assert.equal(parsePost(post(`${valid}\ndraft: false`), 'es/x.md').draft, false);
+  for (const value of ['yes', 'True', '', '[true]']) {
+    assert.throws(() => parsePost(post(`${valid}\ndraft: ${value}`), 'es/x.md'), /es\/x\.md: draft must be true or false/);
+  }
 });
 
 test('names the file and field when something is wrong', () => {
