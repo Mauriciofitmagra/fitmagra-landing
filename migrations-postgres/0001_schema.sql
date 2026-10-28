@@ -131,6 +131,7 @@ CREATE TABLE subscriptions (
   current_period_end TEXT,
   grace_until TEXT,
   cancel_at_period_end INTEGER NOT NULL DEFAULT 0 CHECK (cancel_at_period_end IN (0, 1)),
+  revision INTEGER NOT NULL DEFAULT 0,
   provider TEXT,
   provider_ref TEXT,
   updated_at BIGINT NOT NULL

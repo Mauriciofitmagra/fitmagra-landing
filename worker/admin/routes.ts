@@ -65,7 +65,7 @@ export async function create(request: Request, db: DB, session: Session, now: nu
       audit(db, session, 'member.create', id, now, role === 'member' ? `member, ${plan}` : role),
     ]);
   } catch (error) {
-    if (String(error).includes('UNIQUE constraint failed: users.email')) return html(messageView('Correo en uso', 'Ya existe una cuenta con ese correo.', session), 409);
+    if (String(error).includes('UNIQUE constraint failed: users.email') || (typeof error === 'object' && error !== null && 'code' in error && error.code === '23505' && 'constraint' in error && error.constraint === 'users_email_unique')) return html(messageView('Correo en uso', 'Ya existe una cuenta con ese correo.', session), 409);
     throw error;
   }
   return linkView(request, session, 'Invitación creada', token, 'invite');
@@ -150,6 +150,7 @@ export async function setTargets(request: Request, db: DB, session: Session, now
   const fields = ['kcal', 'protein', 'carbs', 'fat'];
   const v = fields.map((k) => Number(f[k]));
   if (fields.some((k) => !(f[k] ?? '').trim()) || v.some((n) => !Number.isInteger(n))) return html(messageView('Metas no válidas', 'Escribe números enteros.', session), 400);
+  if (v.some((n, i) => n < [800, 0, 0, 0][i] || n > [8000, 600, 1200, 400][i])) return html(messageView('Metas fuera de rango', 'Revisa los valores: kcal entre 800 y 8000.', session), 400);
   try {
     const [saved] = await db.batch([
       db.prepare(`INSERT INTO nutrition_targets (user_id, kcal, protein_g, carbs_g, fat_g, updated_at)
@@ -161,7 +162,7 @@ export async function setTargets(request: Request, db: DB, session: Session, now
     ]);
     if (!saved.meta.changes) return html(messageView('Borrado en curso', 'Las metas no se guardaron. Vuelve a intentarlo más tarde.', session), 409);
   } catch (error) {
-    if (String(error).includes('CHECK constraint failed')) return html(messageView('Metas fuera de rango', 'Revisa los valores: kcal entre 800 y 8000.', session), 400);
+    if (String(error).includes('CHECK constraint failed') || (typeof error === 'object' && error !== null && 'code' in error && error.code === '23514' && 'table' in error && error.table === 'nutrition_targets')) return html(messageView('Metas fuera de rango', 'Revisa los valores: kcal entre 800 y 8000.', session), 400);
     throw error;
   }
   return redirect(`/admin/miembros/${id}/`);

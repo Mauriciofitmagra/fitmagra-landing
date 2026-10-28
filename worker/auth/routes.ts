@@ -22,7 +22,7 @@ export async function login(request: Request, db: DB, now: number): Promise<Resp
   if (await failures(db, emailKey, now) >= LIMITS.email || await failures(db, ipKey, now) >= LIMITS.ip) {
     return html(loginView(GENERIC), 429);
   }
-  const user = await db.prepare("SELECT id, password_hash, auth_revision FROM users WHERE email = ? AND status = 'active'")
+  const user = await db.prepare("SELECT id, password_hash, auth_revision FROM users WHERE lower(email) = lower(?) AND status = 'active'")
     .bind(email.trim()).first<{ id: string; password_hash: string | null; auth_revision: string }>();
   if (!user?.password_hash || !(await verifyPassword(password, user.password_hash))) {
     const record = db.prepare('INSERT INTO login_failures (key, at) VALUES (?, ?)');
