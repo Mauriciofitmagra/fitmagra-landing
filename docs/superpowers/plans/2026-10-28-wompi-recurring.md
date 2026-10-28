@@ -16,6 +16,7 @@ Roberto selected automatic recurring charges. FitMagra continues to allow admin-
 
 ## Current blockers and provider details
 
+- Roberto supplied `https://checkout.wompi.co/l/VdTCSO` as an active payment link. Its checkout URL returned HTTP 200 on 2026-10-28, but its amount, merchant, terms, enabled methods and recurring capabilities have not been verified. Do not treat availability of the link as proof of recurring authorization or automatic payment settlement.
 - Wompi's [payment-source documentation](https://docs.wompi.co/docs/colombia/fuentes-de-pago/) describes tokenized automatic payments, while its [3RI guide](https://docs.wompi.co/docs/colombia/fuentes-de-pago-3ds/) says merchant activation and card-network support vary. Merchant eligibility is not yet confirmed.
 - Wompi's [acceptance guide](https://docs.wompi.co/docs/colombia/tokens-de-aceptacion/) requires explicit acceptance of two current policies for direct API collection. The former merchant endpoint is scheduled for retirement on 2026-10-31.
 - The existing manual-payment route writes its audit after settlement; a failed audit and retry could duplicate credit. It remains unreachable and must be redesigned or removed before being enabled.
