@@ -103,3 +103,14 @@ test('public plans do not advertise unsupported blood-type diets or body resets'
     assert.doesNotMatch(html, /tipo de sangre|blood type|limpieza corporal|body cleansing|reset de ejes hormonales|reset of hormonal axes|72 h de reset|72 h reset|biodecomposición genética|genetic biodecomposition/i);
   }
 });
+
+test('calculator asks for the visitor’s own inputs before showing an estimate', () => {
+  for (const lang of ['es', 'en']) {
+    const t = strings[lang];
+    const html = readFileSync(join(outDir, t.path, 'index.html'), 'utf8');
+    const form = html.match(/<form class="eq-form"[\s\S]*?<\/form>/)[0];
+    for (const field of ['ageYears', 'weightKg', 'heightCm']) assert.match(form, new RegExp(`name="${field}"[^>]*value=""[^>]*required`));
+    assert.doesNotMatch(form, /name="sex"[^>]*checked/);
+    assert.match(form, /name="sex"[^>]*required/);
+  }
+});

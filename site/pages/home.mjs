@@ -24,12 +24,12 @@ const equations = (t) => `<section class="equations" id="metodo" data-needs-fat=
 <h2 class="display">${esc(t.eq.heading)}</h2>
 <form class="eq-form" hidden>
 <fieldset><legend>${esc(t.eq.sex)}</legend>
-<label><input type="radio" name="sex" value="female" checked> ${esc(t.eq.female)}</label>
-<label><input type="radio" name="sex" value="male"> ${esc(t.eq.male)}</label>
+<label><input type="radio" name="sex" value="female" required> ${esc(t.eq.female)}</label>
+<label><input type="radio" name="sex" value="male" required> ${esc(t.eq.male)}</label>
 </fieldset>
-${field('ageYears', t.eq.age, 30, 'min="18" max="100" required')}
-${field('weightKg', t.eq.weight, 70, 'min="30" max="300" step="any" required')}
-${field('heightCm', t.eq.height, 168, 'min="120" max="230" step="any" required')}
+${field('ageYears', t.eq.age, '', 'min="18" max="100" required')}
+${field('weightKg', t.eq.weight, '', 'min="30" max="300" step="any" required')}
+${field('heightCm', t.eq.height, '', 'min="120" max="230" step="any" required')}
 ${field('bodyFatPct', t.eq.fat, '', 'min="3" max="70" step="any"')}
 </form>
 <ul class="eq-results" hidden aria-live="polite">

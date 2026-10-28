@@ -125,12 +125,12 @@ main > section { position: relative; padding: var(--pad) var(--margin); }
 
 /* Live equations: green field */
 .equations { background: var(--fit); color: var(--black); display: grid; gap: var(--s5); }
-.eq-form { display: grid; gap: var(--s3); grid-template-columns: 1fr 1fr; max-width: 720px; }
+.eq-form { display: grid; gap: var(--s3); grid-template-columns: repeat(2, minmax(0, 1fr)); max-width: 720px; }
 .eq-form fieldset { grid-column: 1 / -1; display: flex; gap: var(--s4); border: 0; padding: 0; margin: 0; }
 .eq-form legend { padding: 0; margin-bottom: var(--s2); }
-.eq-form label { display: grid; gap: var(--s2); }
+.eq-form label { display: grid; gap: var(--s2); min-width: 0; }
 .eq-form fieldset label { display: flex; align-items: center; gap: var(--s2); min-height: 44px; }
-.eq-form input[type="number"] { min-height: 56px; padding: 0 var(--s3); border: 2px solid var(--black); background: var(--white); color: var(--black); }
+.eq-form input[type="number"] { width: 100%; min-width: 0; min-height: 56px; padding: 0 var(--s3); border: 2px solid var(--black); background: var(--white); color: var(--black); }
 .eq-form input[type="radio"] { width: 24px; height: 24px; accent-color: var(--black); }
 .eq-results { list-style: none; display: grid; gap: var(--s3); grid-template-columns: 1fr; }
 .eq-results .plate { background: var(--black); color: var(--white); padding: var(--s4) var(--s5); display: grid; gap: var(--s2); }
