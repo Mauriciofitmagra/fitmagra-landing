@@ -34,6 +34,7 @@
 }
 
 *, *::before, *::after { box-sizing: border-box; }
+[hidden] { display: none !important; }
 html { -webkit-text-size-adjust: 100%; }
 body {
   margin: 0;
@@ -88,7 +89,7 @@ main > section { position: relative; padding: var(--pad) var(--margin); }
 .nav nav a { text-decoration: none; }
 .nav nav a:hover { text-decoration: underline; }
 .nav .button { margin-left: auto; min-height: 48px; font-size: var(--step-small); }
-@media (min-width: 900px) {
+@media (min-width: 1200px) {
   .nav-logo img { width: 200px; }
   .nav nav { order: 0; width: auto; margin-left: auto; }
   .nav .button { margin-left: 0; }

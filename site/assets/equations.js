@@ -9,12 +9,12 @@ const format = new Intl.NumberFormat(lang === 'es' ? 'es-CO' : 'en-US');
 function render() {
   const data = Object.fromEntries(new FormData(form));
   let result = null;
-  try { result = bmr(data); } catch { /* an empty or partial field: show the prompt */ }
+  try { if (form.checkValidity()) result = bmr(data); } catch { /* an empty or partial field: show the prompt */ }
   const adult = Number(data.ageYears) >= 18;
   for (const out of outputs) {
     const value = result?.[out.dataset.eq];
     out.textContent = value != null ? format.format(value)
-      : !result ? empty
+      : !result ? (Number(data.ageYears) > 0 && !adult ? adultsOnly : empty)
       : !adult ? adultsOnly
       : needsFat;
     out.classList.toggle('eq-missing', value == null);

@@ -63,3 +63,28 @@ test('browser equations script imports the shared logic', () => {
   assert.match(js, /from '\.\/equations\.mjs'/);
   assert.ok(existsSync(join(outDir, 'assets/equations.mjs')));
 });
+
+test('hidden calculator controls stay hidden until JavaScript enables them', () => {
+  const css = readFileSync(join(outDir, 'assets/brand.css'), 'utf8');
+  assert.match(css, /\[hidden\]\s*\{\s*display:\s*none\s*!important\s*;/);
+});
+
+test('calculator does not display estimates for out-of-range inputs', async () => {
+  const output = { dataset: { eq: 'mifflinStJeor' }, textContent: '', classList: { toggle() {} } };
+  const form = { hidden: true, checkValidity: () => false, addEventListener() {} };
+  const results = { hidden: true };
+  const section = { dataset: { needsFat: 'fat', adultsOnly: 'adults', empty: 'Enter your details', lang: 'en' },
+    querySelector: (selector) => ({ '.eq-form': form, '.eq-results': results, '.formulas': { remove() {} } })[selector],
+    querySelectorAll: () => [output] };
+  const oldDocument = globalThis.document;
+  const oldFormData = globalThis.FormData;
+  globalThis.document = { getElementById: () => section };
+  globalThis.FormData = class { *[Symbol.iterator]() { yield* Object.entries({ sex: 'male', ageYears: '30', weightKg: '999', heightCm: '180', bodyFatPct: '' }); } };
+  try {
+    await import(`${new URL(`file://${outDir}/assets/equations.js`).href}?invalid`);
+    assert.equal(output.textContent, 'Enter your details');
+  } finally {
+    globalThis.document = oldDocument;
+    globalThis.FormData = oldFormData;
+  }
+});

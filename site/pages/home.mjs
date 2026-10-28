@@ -27,10 +27,10 @@ const equations = (t) => `<section class="equations" id="metodo" data-needs-fat=
 <label><input type="radio" name="sex" value="female" checked> ${esc(t.eq.female)}</label>
 <label><input type="radio" name="sex" value="male"> ${esc(t.eq.male)}</label>
 </fieldset>
-${field('ageYears', t.eq.age, 30, 'min="18" max="100"')}
-${field('weightKg', t.eq.weight, 70, 'min="30" max="300"')}
-${field('heightCm', t.eq.height, 168, 'min="120" max="230"')}
-${field('bodyFatPct', t.eq.fat, '', 'min="3" max="70"')}
+${field('ageYears', t.eq.age, 30, 'min="18" max="100" required')}
+${field('weightKg', t.eq.weight, 70, 'min="30" max="300" step="any" required')}
+${field('heightCm', t.eq.height, 168, 'min="120" max="230" step="any" required')}
+${field('bodyFatPct', t.eq.fat, '', 'min="3" max="70" step="any"')}
 </form>
 <ul class="eq-results" hidden aria-live="polite">
 ${EQUATIONS.map((k) => `<li class="plate"><output data-eq="${k}" class="eq-value"></output><span>${esc(t.eq.unit)}, ${esc(t.eq.names[k])}</span></li>`).join('\n')}
