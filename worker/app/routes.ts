@@ -3,7 +3,7 @@ import type { Session } from '../auth/sessions.ts';
 import { html, redirect, form, esc } from '../http.ts';
 import { messageView } from '../views.ts';
 import { verifyPassword, hashPassword } from '../auth/passwords.ts';
-import { checkFile, fileKey, findFile, stream, PHOTO, type Bucket } from '../files.ts';
+import { checkFile, fileKey, beginUpload, discardUpload, findFile, stream, PHOTO, type Bucket } from '../files.ts';
 import { LOGS, type LogKind, parseEntry, isDate } from './logs.ts';
 import { appPage, entryForm, entryTable, consentView, coachView } from './views.ts';
 import { CONSENT_VERSION } from './consent.ts';
@@ -121,9 +121,19 @@ export async function photoAdd(request: Request, db: DB, files: Bucket, s: Sessi
   const checked = await checkFile(data.get('file'), PHOTO);
   if (!checked.ok) return photos(db, s, now, checked.error, checked.status);
   const key = fileKey(s.userId, 'photos', checked.type === 'image/webp' ? 'webp' : 'jpg');
+  if (!await beginUpload(db, s.userId, s.dataRevision, key, now)) return html(messageView('Borrado en curso', 'La cuenta cambió. Vuelve a intentarlo más tarde.', s), 409);
   await files.put(key, checked.bytes, { httpMetadata: { contentType: checked.type } });
-  await db.prepare('INSERT INTO photos (id, user_id, taken_on, pose, r2_key, content_type, bytes, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?)')
-    .bind(crypto.randomUUID(), s.userId, date, pose, key, checked.type, checked.bytes.byteLength, now).run();
+  const [inserted] = await db.batch([
+    db.prepare(`INSERT INTO photos (id, user_id, taken_on, pose, r2_key, content_type, bytes, created_at)
+      SELECT ?, id, ?, ?, ?, ?, ?, ? FROM users WHERE id = ? AND data_revision = ? AND data_erasing = 0
+      AND EXISTS (SELECT 1 FROM upload_intents WHERE r2_key = ? AND user_id = ?)`)
+      .bind(crypto.randomUUID(), date, pose, key, checked.type, checked.bytes.byteLength, now, s.userId, s.dataRevision, key, s.userId),
+    db.prepare('DELETE FROM upload_intents WHERE r2_key = ? AND EXISTS (SELECT 1 FROM photos WHERE r2_key = ?)').bind(key, key),
+  ]);
+  if (!inserted.meta.changes) {
+    await discardUpload(db, files, key);
+    return html(messageView('Borrado en curso', 'La foto no se guardó. Vuelve a intentarlo más tarde.', s), 409);
+  }
   return redirect('/app/fotos/');
 }
 

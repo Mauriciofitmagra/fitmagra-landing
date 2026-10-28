@@ -28,6 +28,18 @@ export async function checkFile(file: unknown, kind: Kind): Promise<Checked> {
 
 export const fileKey = (userId: string, folder: 'photos' | 'docs', ext: string): string => `u/${userId}/${folder}/${crypto.randomUUID()}.${ext}`;
 
+export async function beginUpload(db: DB, userId: string, revision: string, key: string, now: number): Promise<boolean> {
+  const result = await db.prepare(`INSERT INTO upload_intents (r2_key, user_id, created_at)
+    SELECT ?, id, ? FROM users WHERE id = ? AND data_revision = ? AND data_erasing = 0`)
+    .bind(key, now, userId, revision).run();
+  return result.meta.changes === 1;
+}
+
+export async function discardUpload(db: DB, files: Bucket, key: string): Promise<void> {
+  await files.delete(key);
+  await db.prepare('DELETE FROM upload_intents WHERE r2_key = ?').bind(key).run();
+}
+
 // Finds a photo or document by id. A member gets only their own; an admin gets any. Otherwise null, so ids leak nothing.
 export async function findFile(db: DB, session: Session, id: string): Promise<{ r2_key: string; content_type: string } | null> {
   const owner = session.role === 'admin' ? '' : ' AND user_id = ?';

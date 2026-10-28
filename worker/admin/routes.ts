@@ -3,7 +3,7 @@ import type { Session } from '../auth/sessions.ts';
 import { randomToken, sha256Hex, INVITE_TTL, RESET_TTL, type TokenPurpose } from '../auth/tokens.ts';
 import { html, redirect, form, esc } from '../http.ts';
 import { page, messageView } from '../views.ts';
-import { checkFile, fileKey, PDF, type Bucket } from '../files.ts';
+import { checkFile, fileKey, beginUpload, discardUpload, PDF, type Bucket } from '../files.ts';
 import { LOGS, type LogKind } from '../app/logs.ts';
 import { entryTable } from '../app/views.ts';
 import { PLANS, isPlan } from '../billing/plans.ts';
@@ -109,8 +109,8 @@ ${num('kcal', 'kcal', t?.kcal)}${num('protein', 'Proteína (g)', t?.protein_g)}$
 }
 
 export async function uploadDocument(request: Request, db: DB, files: Bucket, session: Session, now: number, id: string): Promise<Response> {
-  const exists = await db.prepare('SELECT id FROM users WHERE id = ?').bind(id).first();
-  if (!exists) return html(messageView('No existe', 'Ese miembro no existe.', session), 404);
+  const member = await db.prepare('SELECT data_revision FROM users WHERE id = ?').bind(id).first<{ data_revision: string }>();
+  if (!member) return html(messageView('No existe', 'Ese miembro no existe.', session), 404);
   const data = await request.formData();
   const kind = String(data.get('kind') ?? '');
   const title = String(data.get('title') ?? '').trim().slice(0, 120);
@@ -118,11 +118,21 @@ export async function uploadDocument(request: Request, db: DB, files: Bucket, se
   const checked = await checkFile(data.get('file'), PDF);
   if (!checked.ok) return html(messageView('Archivo rechazado', checked.error, session), checked.status);
   const key = fileKey(id, 'docs', 'pdf');
+  if (!await beginUpload(db, id, member.data_revision, key, now)) return html(messageView('Borrado en curso', 'La cuenta cambió. Vuelve a intentarlo más tarde.', session), 409);
   await files.put(key, checked.bytes, { httpMetadata: { contentType: 'application/pdf' } });
-  await db.batch([
-    db.prepare('INSERT INTO documents (id, user_id, kind, title, r2_key, bytes, published_at) VALUES (?, ?, ?, ?, ?, ?, ?)').bind(crypto.randomUUID(), id, kind, title, key, checked.bytes.byteLength, now),
-    audit(db, session, 'document.upload', id, now, kind),
+  const [inserted] = await db.batch([
+    db.prepare(`INSERT INTO documents (id, user_id, kind, title, r2_key, bytes, published_at)
+      SELECT ?, id, ?, ?, ?, ?, ? FROM users WHERE id = ? AND data_revision = ? AND data_erasing = 0
+      AND EXISTS (SELECT 1 FROM upload_intents WHERE r2_key = ? AND user_id = ?)`)
+      .bind(crypto.randomUUID(), kind, title, key, checked.bytes.byteLength, now, id, member.data_revision, key, id),
+    db.prepare('DELETE FROM upload_intents WHERE r2_key = ? AND EXISTS (SELECT 1 FROM documents WHERE r2_key = ?)').bind(key, key),
+    db.prepare("INSERT INTO audit_log (actor_id, action, target_user_id, at, detail) SELECT ?, 'document.upload', ?, ?, ? WHERE EXISTS (SELECT 1 FROM documents WHERE r2_key = ?)")
+      .bind(session.userId, id, now, kind, key),
   ]);
+  if (!inserted.meta.changes) {
+    await discardUpload(db, files, key);
+    return html(messageView('Borrado en curso', 'El plan no se guardó. Vuelve a intentarlo más tarde.', session), 409);
+  }
   return redirect(`/admin/miembros/${id}/`);
 }
 

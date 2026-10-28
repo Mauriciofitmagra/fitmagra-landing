@@ -73,6 +73,7 @@ async function route(request: Request, env: Env): Promise<Response> {
   if (guard !== 'public' && !session) return redirect('/entrar/');
   const isAdmin = session?.role === 'admin';
   if ((guard === 'account' || guard === 'member') && !session!.consented && !isAdmin) return redirect('/app/consentimiento/');
+  if ((guard === 'account' || guard === 'member') && session!.erasing && !isAdmin) return html(messageView('Borrado en curso', 'Tu información está en proceso de borrado. Contacta a Mauricio si necesitas ayuda.', session), 409);
   if (guard === 'admin' && !isAdmin) return html(messageView('Sin acceso', 'Esta sección es solo para administradores.', session), 403);
   const ctx = { request, env, now, session, params: path.exec(url.pathname)!.slice(1) };
   return handler(ctx);

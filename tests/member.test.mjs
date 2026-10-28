@@ -209,3 +209,63 @@ test('a member must accept the current consent version', async () => {
   await send(env, '/app/consentimiento/', { method: 'POST', cookie: ana, form: { accept: 'yes' } });
   assert.equal((await send(env, '/app/peso/', { cookie: ana })).status, 200);
 });
+
+test('a failed photo database write leaves a durable upload intent', async () => {
+  const env = await setup();
+  const ana = await login(env, 'ana');
+  env.DB.raw.exec("CREATE TRIGGER fail_photo BEFORE INSERT ON photos BEGIN SELECT RAISE(ABORT, 'photo failed'); END");
+  await assert.rejects(upload(env, '/app/fotos/', ana, { bytes: JPEG, type: 'image/jpeg', fields: { date: '2026-10-21', pose: 'front' } }), /photo failed/);
+  assert.ok(await env.DB.prepare("SELECT name FROM sqlite_master WHERE type = 'table' AND name = 'upload_intents'").first());
+  const intents = (await env.DB.prepare("SELECT r2_key FROM upload_intents WHERE user_id = 'ana'").all()).results;
+  assert.equal(intents.length, 1);
+  assert.ok(env.FILES.objects.has(intents[0].r2_key));
+});
+
+test('an uncertain object write retains its upload intent', async () => {
+  const env = await setup();
+  const ana = await login(env, 'ana');
+  const put = env.FILES.put;
+  env.FILES.put = async (...args) => { await put(...args); throw new Error('uncertain R2 write'); };
+  await assert.rejects(upload(env, '/app/fotos/', ana, { bytes: JPEG, type: 'image/jpeg', fields: { date: '2026-10-21', pose: 'front' } }), /uncertain R2 write/);
+  assert.ok(await env.DB.prepare("SELECT name FROM sqlite_master WHERE type = 'table' AND name = 'upload_intents'").first());
+  const intents = (await env.DB.prepare("SELECT r2_key FROM upload_intents WHERE user_id = 'ana'").all()).results;
+  assert.equal(intents.length, 1);
+  assert.ok(env.FILES.objects.has(intents[0].r2_key));
+});
+
+test('a failed document database write leaves a durable upload intent', async () => {
+  const env = await setup();
+  const admin = await login(env, 'admin1');
+  env.DB.raw.exec("CREATE TRIGGER fail_document BEFORE INSERT ON documents BEGIN SELECT RAISE(ABORT, 'document failed'); END");
+  await assert.rejects(upload(env, '/admin/miembros/ana/documentos/', admin, { bytes: PDF, type: 'application/pdf', fields: { kind: 'training_plan', title: 'Plan' } }), /document failed/);
+  assert.ok(await env.DB.prepare("SELECT name FROM sqlite_master WHERE type = 'table' AND name = 'upload_intents'").first());
+  const intents = (await env.DB.prepare("SELECT r2_key FROM upload_intents WHERE user_id = 'ana'").all()).results;
+  assert.equal(intents.length, 1);
+  assert.ok(env.FILES.objects.has(intents[0].r2_key));
+});
+
+test('a committed upload survives a lost database response', async () => {
+  const env = await setup();
+  const ana = await login(env, 'ana');
+  const batch = env.DB.batch;
+  env.DB.batch = async (statements) => { await batch(statements); throw new Error('response lost'); };
+  await assert.rejects(upload(env, '/app/fotos/', ana, { bytes: JPEG, type: 'image/jpeg', fields: { date: '2026-10-21', pose: 'front' } }), /response lost/);
+  const photo = await env.DB.prepare("SELECT r2_key FROM photos WHERE user_id = 'ana'").first();
+  assert.ok(photo && env.FILES.objects.has(photo.r2_key));
+  assert.equal((await env.DB.prepare("SELECT count(*) n FROM upload_intents WHERE user_id = 'ana'").first()).n, 0);
+});
+
+test('an upload completed after the erasure fence removes its confirmed object', async () => {
+  const env = await setup();
+  const ana = await login(env, 'ana');
+  const put = env.FILES.put;
+  env.FILES.put = async (...args) => {
+    await put(...args);
+    await env.DB.prepare("UPDATE users SET data_revision = 'new', data_erasing = 1 WHERE id = 'ana'").run();
+  };
+  const response = await upload(env, '/app/fotos/', ana, { bytes: JPEG, type: 'image/jpeg', fields: { date: '2026-10-21', pose: 'front' } });
+  assert.equal(response.status, 409);
+  assert.equal(env.FILES.objects.size, 0);
+  assert.equal((await env.DB.prepare("SELECT count(*) n FROM upload_intents WHERE user_id = 'ana'").first()).n, 0);
+  assert.equal((await ids(env, 'photos', 'ana')).length, 0);
+});
