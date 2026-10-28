@@ -61,6 +61,26 @@ test('a repeated event id changes nothing', async () => {
   assert.equal((await applyEvent(env.DB, { ...ev, providerEventId: 'evt-3', userId: 'nobody' }, '2026-11-11', 4)).outcome, 'unknown_member');
 });
 
+test('concurrent distinct successful events do not lose an extension', async () => {
+  const env = await setup();
+  await setSub(env, 'ana', 'pending');
+  const event = (id) => ({ provider: 'stub', providerEventId: id, userId: 'ana', event: { kind: 'payment_succeeded', months: 1 }, amountCop: 400000 });
+  const results = await Promise.all([applyEvent(env.DB, event('evt-a'), '2026-11-10', 1), applyEvent(env.DB, event('evt-b'), '2026-11-10', 1)]);
+  assert.deepEqual(results.map((r) => r.outcome), ['applied', 'applied']);
+  assert.equal((await subOf(env, 'ana')).current_period_end, '2027-01-10');
+  assert.equal((await env.DB.prepare('SELECT count(*) n FROM payments').first()).n, 2);
+});
+
+test('concurrent delivery of one event records only one payment', async () => {
+  const env = await setup();
+  await setSub(env, 'ana', 'pending');
+  const event = { provider: 'stub', providerEventId: 'same-event', userId: 'ana', event: { kind: 'payment_succeeded', months: 1 }, amountCop: 400000 };
+  const results = await Promise.all([applyEvent(env.DB, event, '2026-11-10', 1), applyEvent(env.DB, event, '2026-11-10', 1)]);
+  assert.deepEqual(results.map((r) => r.outcome).sort(), ['applied', 'duplicate']);
+  assert.equal((await subOf(env, 'ana')).current_period_end, '2026-12-10');
+  assert.equal((await env.DB.prepare('SELECT count(*) n FROM payments').first()).n, 1);
+});
+
 test('an illegal event is recorded as rejected and the subscription does not move', async () => {
   const env = await setup();
   await setSub(env, 'ana', 'pending');
