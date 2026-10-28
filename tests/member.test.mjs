@@ -532,3 +532,25 @@ test('a failed password-change transaction preserves the old password and sessio
   assert.equal((await send(env, '/entrar/', { method: 'POST', form: { email: 'ana@x.co', password: PASSWORD } })).status, 303);
   assert.equal((await send(env, '/entrar/', { method: 'POST', form: { email: 'ana@x.co', password: NEW_PASSWORD } })).status, 401);
 });
+
+test('deleting a meal returns to that meal’s day', async () => {
+  const env = await setup();
+  const ana = await login(env, 'ana');
+  await send(env, '/app/nutricion/', { method: 'POST', cookie: ana, form: { date: '2025-01-12', meal: 'lunch', description: 'Arroz' } });
+  const [id] = await ids(env, 'nutrition_logs', 'ana');
+  const res = await send(env, `/app/nutricion/${id}/borrar/`, { method: 'POST', cookie: ana });
+  assert.equal(res.status, 303);
+  assert.equal(res.headers.get('location'), '/app/nutricion/?fecha=2025-01-12');
+  assert.match(await (await send(env, res.headers.get('location'), { cookie: ana })).text(), /Tu día, 2025-01-12/);
+});
+
+test('delete controls identify their record for screen-reader users', async () => {
+  const env = await setup();
+  const ana = await login(env, 'ana');
+  await send(env, '/app/nutricion/', { method: 'POST', cookie: ana, form: { date: '2025-01-12', meal: 'lunch', description: 'Arroz & pollo' } });
+  await upload(env, '/app/fotos/', ana, { bytes: JPEG, type: 'image/jpeg', fields: { date: '2025-01-12', pose: 'front' } });
+  const nutrition = await (await send(env, '/app/nutricion/?fecha=2025-01-12', { cookie: ana })).text();
+  const photos = await (await send(env, '/app/fotos/', { cookie: ana })).text();
+  assert.match(nutrition, /aria-label="Borrar.*2025-01-12.*Arroz &amp; pollo"/);
+  assert.match(photos, /aria-label="Borrar foto Frente del 2025-01-12"/);
+});

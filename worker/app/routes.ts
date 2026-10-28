@@ -63,8 +63,8 @@ export async function logAdd(request: Request, db: DB, key: keyof typeof LOGS, s
 // Deleting someone else's row matches nothing and returns 404, the same as a row that does not exist.
 export async function logDelete(db: DB, key: keyof typeof LOGS, s: Session, id: string): Promise<Response> {
   const kind = LOGS[key];
-  const r = await db.prepare(`DELETE FROM ${kind.table} WHERE id = ? AND user_id = ?`).bind(id, s.userId).run();
-  return r.meta.changes ? redirect(kind.path) : html(messageView('No encontrado', 'Ese registro no existe.', s), 404);
+  const row = await db.prepare(`DELETE FROM ${kind.table} WHERE id = ? AND user_id = ? RETURNING ${kind.dateCol} AS day`).bind(id, s.userId).first<{ day: string }>();
+  return row ? redirect(key === 'nutrition' ? `${kind.path}?fecha=${encodeURIComponent(row.day)}` : kind.path) : html(messageView('No encontrado', 'Ese registro no existe.', s), 404);
 }
 
 export async function nutrition(request: Request, db: DB, s: Session, now: number, error = '', status = 200, values: Record<string, string> = {}): Promise<Response> {
@@ -112,7 +112,7 @@ ${error ? `<p class="notice" role="alert">${esc(error)}</p>` : ''}
 </form>
 <script src="/assets/resize.js" defer></script>
 <ul class="photo-grid">${results.map((p) => `<li><img src="/app/archivos/${esc(p.id)}" alt="Foto ${esc(poses[p.pose] ?? p.pose)} del ${esc(p.taken_on)}" loading="lazy"><span>${esc(p.taken_on)}, ${esc(poses[p.pose] ?? p.pose)}</span>
-<form method="post" action="/app/fotos/${esc(p.id)}/borrar/"><button class="link">Borrar</button></form></li>`).join('\n')}</ul>`, s), status);
+<form method="post" action="/app/fotos/${esc(p.id)}/borrar/"><button class="link" aria-label="Borrar foto ${esc(poses[p.pose] ?? p.pose)} del ${esc(p.taken_on)}">Borrar</button></form></li>`).join('\n')}</ul>`, s), status);
 }
 
 export async function photoAdd(request: Request, db: DB, files: Bucket, s: Session, now: number): Promise<Response> {
