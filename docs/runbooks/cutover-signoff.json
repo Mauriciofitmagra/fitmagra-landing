@@ -2,6 +2,7 @@
   "vercel": { "by": null, "date": null, "decision": null, "liveSiteChecked": null, "note": "Gate 0 in docs/runbooks/cloudflare-cutover.md. decision is \"cloudflare\" or \"keep-vercel\"." },
   "legalReview": null,
   "privateStorage": null,
+  "retentionReview": null,
   "secretsSet": null,
   "tasteInspector": null,
   "stagingSmokeTest": null,

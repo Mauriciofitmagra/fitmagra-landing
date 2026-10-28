@@ -138,6 +138,12 @@ After the Worker is deployed and the release checks pass, **Roberto runs**:
 - DIAN electronic invoicing (spec Q4).
 - Email for invites and reminders (spec Q16).
 
+### Retention policy before launch
+
+The design proposes deleting photos 90 days after deactivation, with exceptions, but the current Worker does not schedule or perform that retention deletion. The draft privacy policy leaves retention periods for counsel to decide. Deactivation currently only blocks access; it does not remove photos. Do not publish a retention promise or sign off launch until counsel and Mauricio approve the policy and the matching deletion and exception process is implemented and verified.
+
+Roberto or Mauricio records `retentionReview` in `cutover-signoff.json` with `by`, `date`, `policy`, `implementation` and `contentHash`. The hash must match the reviewed legal content and consent screen, as for `legalReview`. A sign-off is not a substitute for implementing or testing the approved process. The existing manual erasure flow deletes all member tracking data and files on request; it is not an automatic photo-retention process.
+
 ### Pending private-data erasure
 
 An erasure can remain pending if an upload or a database/storage operation has an uncertain outcome. The affected member cannot use the member area until it is resolved. An administrator can reopen the member page and retry; do not start a new request or declare the data erased while the page says it is pending.

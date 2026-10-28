@@ -91,6 +91,11 @@ export function checkCutover({ root, env = process.env }) {
       }
       return true;
     }),
+    item('retention-review', 'Approved retention policy has an implemented procedure', () => {
+      const review = signoff().retentionReview;
+      if (!signedOff(review) || typeof review.policy !== 'string' || !review.policy.trim() || typeof review.implementation !== 'string' || !review.implementation.trim() || review.contentHash !== legalContentHash(root)) return 'record the approved retention policy, verified procedure, and matching legal content hash';
+      return true;
+    }),
     item('private-storage', 'Private storage and old Worker writes reconciled', () => {
       const review = signoff().privateStorage;
       if (!signedOff(review) || !['new-empty', 'reconciled'].includes(review.state) || typeof review.evidence !== 'string' || !review.evidence.trim()) return 'record the private-storage state and evidence with a human sign-off';
