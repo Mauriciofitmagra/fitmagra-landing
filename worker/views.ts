@@ -16,11 +16,12 @@ export function page(title: string, body: string, session: Session | null = null
 <link rel="stylesheet" href="/assets/app.css">
 </head>
 <body class="app">
+<a class="skip" href="#contenido">Saltar al contenido</a>
 <header class="app-bar">
 <a href="${session ? '/app/' : '/'}"><img src="/media/logo-oficial-600.png" width="600" height="162" alt="FitMagra Systems"></a>
 ${session ? `<nav>${session.role === 'admin' ? '<a href="/admin/">Admin</a>' : ''}<form method="post" action="/salir/"><button class="link">Salir</button></form></nav>` : ''}
 </header>
-<main class="app-main">
+<main id="contenido" class="app-main">
 ${body}
 </main>
 </body>

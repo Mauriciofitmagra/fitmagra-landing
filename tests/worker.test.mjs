@@ -33,6 +33,17 @@ test('public paths fall through to static assets', async () => {
   assert.equal(await (await worker.fetch(req('/historias/'), env)).text(), 'asset /historias/');
 });
 
+test('login, member and admin pages offer a skip link to the main content', async () => {
+  const env = await setup();
+  const member = cookieOf(await login(env, 'mem1@x.co'));
+  const admin = cookieOf(await login(env, 'admin1@x.co'));
+  for (const [path, cookie] of [['/entrar/', undefined], ['/app/', member], ['/admin/', admin]]) {
+    const body = await (await worker.fetch(req(path, { cookie }), env)).text();
+    assert.match(body, /<a class="skip" href="#contenido">Saltar al contenido<\/a>/);
+    assert.match(body, /<main id="contenido" class="app-main">/);
+  }
+});
+
 test('there is no signup route', async () => {
   const env = await setup();
   for (const [path, method] of [['/registro/', 'GET'], ['/api/signup', 'POST'], ['/entrar/registro/', 'GET']]) {
