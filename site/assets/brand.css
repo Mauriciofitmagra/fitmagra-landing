@@ -82,15 +82,15 @@ main > section { position: relative; padding: var(--pad) var(--margin); }
 .plate { border-radius: var(--plate-radius); }
 
 /* Navigation */
-.nav { display: flex; align-items: center; gap: var(--s4); padding: var(--s3) var(--margin); background: var(--black); }
+.nav { display: flex; flex-wrap: wrap; align-items: center; gap: var(--s4); padding: var(--s3) var(--margin); background: var(--black); }
 .nav-logo img { width: 160px; }
-.nav nav { display: none; gap: var(--s4); margin-left: auto; }
+.nav nav { display: flex; flex-wrap: wrap; order: 2; width: 100%; gap: var(--s3) var(--s4); }
 .nav nav a { text-decoration: none; }
 .nav nav a:hover { text-decoration: underline; }
 .nav .button { margin-left: auto; min-height: 48px; font-size: var(--step-small); }
 @media (min-width: 900px) {
   .nav-logo img { width: 200px; }
-  .nav nav { display: flex; }
+  .nav nav { order: 0; width: auto; margin-left: auto; }
   .nav .button { margin-left: 0; }
 }
 

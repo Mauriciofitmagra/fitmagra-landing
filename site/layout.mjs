@@ -27,6 +27,7 @@ const alternates = (alts, siteUrl) => Object.entries(alts)
 const navLinks = (t, alts = HOME) => {
   const other = t.lang === 'es' ? 'en' : 'es';
   return `${t.nav.links.map(([href, label]) => `<a href="${t.path}${href}">${esc(label)}</a>`).join('\n')}
+<a href="/entrar/">${esc(t.nav.login)}</a>
 <a href="${alts[other] ?? HOME[other]}" hreflang="${other}">${esc(t.nav.other[1])}</a>`;
 };
 

@@ -20,7 +20,7 @@ const isExternal = (ref) => /^([a-z][a-z0-9+.-]*:|\/\/)/i.test(ref);
 
 // Maps a reference on `page` to a file path relative to dir, or null for external refs.
 export function resolveRef(dir, page, ref) {
-  if (isExternal(ref)) return null;
+  if (isExternal(ref) || ref === '/entrar/') return null; // Served by the Worker, not a static file.
   const path = ref.split('#')[0].split('?')[0];
   if (path === '') return page;
   let target = path.startsWith('/') ? path.slice(1) : posix.join(posix.dirname(page), path);

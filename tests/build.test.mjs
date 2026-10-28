@@ -33,3 +33,9 @@ for (const [lang, html, headline] of [['es', es, 'Tu plan,'], ['en', en, 'Your p
     assert.ok(!/4[.,]8\s*★|1\.016\.013\.376/.test(html), 'rating or ID number');
   });
 }
+
+test('both languages expose the member login and mobile navigation', () => {
+  for (const html of [es, en]) assert.match(html, /<a href="\/entrar\/">/);
+  const css = readFileSync(join(outDir, 'assets/brand.css'), 'utf8');
+  assert.doesNotMatch(css, /\.nav nav\s*\{[^}]*display:\s*none/);
+});
