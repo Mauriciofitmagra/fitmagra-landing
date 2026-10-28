@@ -81,7 +81,7 @@ export async function override(request: Request, db: DB, s: Session, id: string,
     const days = Number(f.days);
     if (!Number.isInteger(days) || days < 1 || days > 30) return html(messageView('Días no válidos', 'Entre 1 y 30 días.', s), 400);
     await db.batch([
-      db.prepare("UPDATE subscriptions SET status = CASE WHEN status = 'active' THEN 'active' ELSE 'past_due' END, grace_until = ?, updated_at = ? WHERE user_id = ?").bind(addDays(today, days), now, id),
+      db.prepare("UPDATE subscriptions SET status = CASE WHEN status = 'active' THEN 'active' ELSE 'past_due' END, grace_until = ?, updated_at = ?, revision = revision + 1 WHERE user_id = ?").bind(addDays(today, days), now, id),
       audit(db, s, 'billing.extend_grace', id, now, `${days} days: ${reason}`),
     ]);
   } else if (f.action === 'cancel_now') {
@@ -90,7 +90,7 @@ export async function override(request: Request, db: DB, s: Session, id: string,
     await audit(db, s, 'billing.cancel_now', id, now, reason).run();
   } else if (f.action === 'set_plan' && isPlan(f.plan ?? '')) {
     await db.batch([
-      db.prepare('UPDATE subscriptions SET plan = ?, updated_at = ? WHERE user_id = ?').bind(f.plan, now, id),
+      db.prepare('UPDATE subscriptions SET plan = ?, updated_at = ?, revision = revision + 1 WHERE user_id = ?').bind(f.plan, now, id),
       audit(db, s, 'billing.set_plan', id, now, `${f.plan}: ${reason}`),
     ]);
   } else {

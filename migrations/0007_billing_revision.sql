@@ -1,0 +1,1 @@
+ALTER TABLE subscriptions ADD COLUMN revision INTEGER NOT NULL DEFAULT 0;
