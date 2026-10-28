@@ -53,15 +53,15 @@ export async function build({
 
   const pair = (key) => ({ es: strings.es[key].path, en: strings.en[key].path });
   for (const t of Object.values(strings)) {
-    write(t.path, layout(t, { body: home(t) }));
-    write(t.stories.path, layout(t, { title: t.stories.title, description: t.stories.description, alts: pair('stories'), body: stories(t, storyData) }));
-    write(t.blog.path, layout(t, { title: t.blog.title, description: t.blog.description, alts: pair('blog'), body: listing(t, posts[t.lang]) }));
+    write(t.path, layout(t, { siteUrl, body: home(t) }));
+    write(t.stories.path, layout(t, { siteUrl, title: t.stories.title, description: t.stories.description, alts: pair('stories'), body: stories(t, storyData) }));
+    write(t.blog.path, layout(t, { siteUrl, title: t.blog.title, description: t.blog.description, alts: pair('blog'), body: listing(t, posts[t.lang]) }));
     write(`${t.blog.path}rss.xml`, rss(t, posts[t.lang], siteUrl));
     const other = t.lang === 'es' ? strings.en : strings.es;
     for (const p of posts[t.lang]) {
       const twin = p.translation && posts[other.lang].find((q) => q.slug === p.translation);
       const alts = { [t.lang]: postPath(t, p), ...(twin ? { [other.lang]: postPath(other, twin) } : {}) };
-      write(postPath(t, p), layout(t, { title: `${p.title} | FitMagra`, description: p.description, alts, head: postHead(t, p, siteUrl), body: post(t, p) }));
+      write(postPath(t, p), layout(t, { siteUrl, title: `${p.title} | FitMagra`, description: p.description, alts, head: postHead(t, p, siteUrl), body: post(t, p) }));
     }
   }
 

@@ -25,8 +25,8 @@ test('post page has title, rendered body, canonical, hreflang to its translation
   const html = read(full, 'blog/como-leer-tu-plan/index.html');
   assert.match(html, /<h1[^>]*>Cómo leer tu plan<\/h1>/);
   assert.ok(html.includes('<strong>cuatro ecuaciones</strong>'));
-  assert.ok(html.includes('<link rel="canonical" href="/blog/como-leer-tu-plan/">'));
-  assert.ok(html.includes('<link rel="alternate" hreflang="en" href="/en/blog/how-to-read-your-plan/">'));
+  assert.ok(html.includes(`<link rel="canonical" href="${site}/blog/como-leer-tu-plan/">`));
+  assert.ok(html.includes(`<link rel="alternate" hreflang="en" href="${site}/en/blog/how-to-read-your-plan/">`));
   assert.ok(html.includes(`<meta property="og:url" content="${site}/blog/como-leer-tu-plan/">`));
   assert.ok(html.includes('<meta property="og:type" content="article">'));
   const ld = JSON.parse(html.match(/<script type="application\/ld\+json">([\s\S]*?)<\/script>/)[1]);

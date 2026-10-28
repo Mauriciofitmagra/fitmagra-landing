@@ -7,7 +7,7 @@ import { build, unverifiedConsent } from '../scripts/build.mjs';
 
 const stories = JSON.parse(readFileSync(new URL('../content/stories.json', import.meta.url), 'utf8'));
 const outDir = mkdtempSync(join(tmpdir(), 'fitmagra-stories-'));
-await build({ outDir, log: () => {} });
+await build({ outDir, siteUrl: 'https://fitmagra.test', log: () => {} });
 const page = (p) => readFileSync(join(outDir, p), 'utf8');
 
 for (const [lang, path, twin] of [['es', 'historias/index.html', '/en/stories/'], ['en', 'en/stories/index.html', '/historias/']]) {
@@ -20,8 +20,8 @@ for (const [lang, path, twin] of [['es', 'historias/index.html', '/en/stories/']
 
   test(`${lang} stories page links its own canonical and its twin`, () => {
     const html = page(path);
-    assert.match(html, new RegExp(`<link rel="canonical" href="/${path.replace('index.html', '')}"`));
-    assert.ok(html.includes(`href="${twin}"`), twin);
+    assert.match(html, new RegExp(`<link rel="canonical" href="https://fitmagra.test/${path.replace('index.html', '')}"`));
+    assert.ok(html.includes(`href="https://fitmagra.test${twin}"`), twin);
   });
 }
 

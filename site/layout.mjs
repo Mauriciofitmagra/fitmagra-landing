@@ -18,11 +18,10 @@ export const img = (file, alt, cls = '', lazy = true) => {
   return `<img${cls && ` class="${cls}"`} src="/media/${file}" width="${w}" height="${h}" alt="${esc(alt)}"${lazy ? ' loading="lazy" decoding="async"' : ''}>`;
 };
 
-// ponytail: root-relative canonical and hreflang until the production domain is known (spec Q1).
 // `alts` maps each language to this page's URL in that language.
 const HOME = { es: strings.es.path, en: strings.en.path };
-const alternates = (alts) => Object.entries(alts)
-  .map(([lang, href]) => `<link rel="alternate" hreflang="${lang}" href="${href}">`)
+const alternates = (alts, siteUrl) => Object.entries(alts)
+  .map(([lang, href]) => `<link rel="alternate" hreflang="${lang}" href="${esc(siteUrl + href)}">`)
   .join('\n');
 
 const navLinks = (t, alts = HOME) => {
@@ -53,7 +52,7 @@ ${navLinks(t, alts)}
 </div>
 </footer>`;
 
-export function layout(t, { title = t.meta.title, description = t.meta.description, body, index = true, alts = HOME, head = '' }) {
+export function layout(t, { title = t.meta.title, description = t.meta.description, body, index = true, alts = HOME, head = '', siteUrl = 'https://fitmagra.invalid' }) {
   return `<!doctype html>
 <html lang="${t.lang}">
 <head>
@@ -61,7 +60,7 @@ export function layout(t, { title = t.meta.title, description = t.meta.descripti
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>${esc(title)}</title>
 <meta name="description" content="${esc(description)}">
-${index ? `<link rel="canonical" href="${alts[t.lang]}">\n${alternates(alts)}\n<link rel="alternate" hreflang="x-default" href="${alts.es ?? alts[t.lang]}">` : '<meta name="robots" content="noindex">'}
+${index ? `<link rel="canonical" href="${esc(siteUrl + alts[t.lang])}">\n${alternates(alts, siteUrl)}\n<link rel="alternate" hreflang="x-default" href="${esc(siteUrl + (alts.es ?? alts[t.lang]))}">` : '<meta name="robots" content="noindex">'}
 ${head}
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
