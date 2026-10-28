@@ -137,17 +137,25 @@ export async function uploadDocument(request: Request, db: DB, files: Bucket, se
 }
 
 export async function setTargets(request: Request, db: DB, session: Session, now: number, id: string): Promise<Response> {
+  const member = await db.prepare('SELECT data_revision FROM users WHERE id = ?').bind(id).first<{ data_revision: string }>();
+  if (!member) return html(messageView('No existe', 'Ese miembro no existe.', session), 404);
   const f = await form(request);
-  const v = ['kcal', 'protein', 'carbs', 'fat'].map((k) => Number(f[k]));
-  if (v.some((n) => !Number.isInteger(n))) return html(messageView('Metas no válidas', 'Escribe números enteros.', session), 400);
+  const fields = ['kcal', 'protein', 'carbs', 'fat'];
+  const v = fields.map((k) => Number(f[k]));
+  if (fields.some((k) => !(f[k] ?? '').trim()) || v.some((n) => !Number.isInteger(n))) return html(messageView('Metas no válidas', 'Escribe números enteros.', session), 400);
   try {
-    await db.batch([
-      db.prepare(`INSERT INTO nutrition_targets (user_id, kcal, protein_g, carbs_g, fat_g, updated_at) VALUES (?, ?, ?, ?, ?, ?)
-        ON CONFLICT(user_id) DO UPDATE SET kcal = excluded.kcal, protein_g = excluded.protein_g, carbs_g = excluded.carbs_g, fat_g = excluded.fat_g, updated_at = excluded.updated_at`).bind(id, ...v, now),
-      audit(db, session, 'nutrition.targets', id, now, v.join('/')),
+    const [saved] = await db.batch([
+      db.prepare(`INSERT INTO nutrition_targets (user_id, kcal, protein_g, carbs_g, fat_g, updated_at)
+        SELECT id, ?, ?, ?, ?, ? FROM users WHERE id = ? AND data_revision = ? AND data_erasing = 0
+        ON CONFLICT(user_id) DO UPDATE SET kcal = excluded.kcal, protein_g = excluded.protein_g, carbs_g = excluded.carbs_g, fat_g = excluded.fat_g, updated_at = excluded.updated_at`)
+        .bind(...v, now, id, member.data_revision),
+      db.prepare("INSERT INTO audit_log (actor_id, action, target_user_id, at, detail) SELECT ?, 'nutrition.targets', ?, ?, ? WHERE EXISTS (SELECT 1 FROM users WHERE id = ? AND data_revision = ? AND data_erasing = 0)")
+        .bind(session.userId, id, now, v.join('/'), id, member.data_revision),
     ]);
-  } catch {
-    return html(messageView('Metas fuera de rango', 'Revisa los valores: kcal entre 800 y 8000.', session), 400);
+    if (!saved.meta.changes) return html(messageView('Borrado en curso', 'Las metas no se guardaron. Vuelve a intentarlo más tarde.', session), 409);
+  } catch (error) {
+    if (String(error).includes('CHECK constraint failed')) return html(messageView('Metas fuera de rango', 'Revisa los valores: kcal entre 800 y 8000.', session), 400);
+    throw error;
   }
   return redirect(`/admin/miembros/${id}/`);
 }

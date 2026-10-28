@@ -53,8 +53,10 @@ export async function logAdd(request: Request, db: DB, key: keyof typeof LOGS, s
   const parsed = parseEntry(kind, values);
   if ('error' in parsed) return key === 'nutrition' ? nutrition(request, db, s, now, parsed.error, 400, values) : logScreen(db, kind, s, now, parsed.error, 400, values);
   const cols = Object.keys(parsed.values);
-  await db.prepare(`INSERT INTO ${kind.table} (id, user_id, ${cols.join(', ')}) VALUES (?, ?, ${cols.map(() => '?').join(', ')})`)
-    .bind(crypto.randomUUID(), s.userId, ...Object.values(parsed.values)).run();
+  const saved = await db.prepare(`INSERT INTO ${kind.table} (id, user_id, ${cols.join(', ')})
+    SELECT ?, id, ${cols.map(() => '?').join(', ')} FROM users WHERE id = ? AND data_revision = ? AND data_erasing = 0`)
+    .bind(crypto.randomUUID(), ...Object.values(parsed.values), s.userId, s.dataRevision).run();
+  if (!saved.meta.changes) return html(messageView('Borrado en curso', 'El registro no se guardó. Vuelve a intentarlo más tarde.', s), 409);
   return redirect(key === 'nutrition' ? `${kind.path}?fecha=${parsed.values[kind.dateCol]}` : kind.path);
 }
 

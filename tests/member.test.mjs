@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { setup, send, login, upload, JPEG, PNG, PDF, PASSWORD, NEW_PASSWORD } from './helpers.mjs';
+import { setup, send, login, upload, req, JPEG, PNG, PDF, PASSWORD, NEW_PASSWORD } from './helpers.mjs';
 
 const ids = async (env, table, user) => (await env.DB.prepare(`SELECT id FROM ${table} WHERE user_id = ?`).bind(user).all()).results.map((r) => r.id);
 
@@ -268,4 +268,38 @@ test('an upload completed after the erasure fence removes its confirmed object',
   assert.equal(env.FILES.objects.size, 0);
   assert.equal((await env.DB.prepare("SELECT count(*) n FROM upload_intents WHERE user_id = 'ana'").first()).n, 0);
   assert.equal((await ids(env, 'photos', 'ana')).length, 0);
+});
+
+test('a member log request started before erasure cannot save afterward', async () => {
+  const env = await setup();
+  const cookie = await login(env, 'ana');
+  const { readSession } = await import('../worker/auth/sessions.ts');
+  const { logAdd } = await import('../worker/app/routes.ts');
+  const now = Math.floor(Date.now() / 1000);
+  const session = await readSession(env.DB, { token: cookie.split('=')[1], now });
+  await env.DB.prepare("UPDATE users SET data_revision = 'after-erasure' WHERE id = 'ana'").run();
+  const request = req('/app/peso/', { method: 'POST', form: { date: '2026-10-20', kg: '72.5' } });
+  const response = await logAdd(request, env.DB, 'weights', session, now);
+  assert.equal(response.status, 409);
+  assert.equal((await ids(env, 'weights', 'ana')).length, 0);
+});
+
+test('a stale admin nutrition update cannot write or audit after erasure', async () => {
+  for (const existing of [false, true]) {
+    const env = await setup();
+    const cookie = await login(env, 'admin1');
+    if (existing) await env.DB.prepare("INSERT INTO nutrition_targets (user_id, kcal, protein_g, carbs_g, fat_g, updated_at) VALUES ('ana', 1800, 100, 200, 60, 0)").run();
+    const { readSession } = await import('../worker/auth/sessions.ts');
+    const { setTargets } = await import('../worker/admin/routes.ts');
+    const now = Math.floor(Date.now() / 1000);
+    const session = await readSession(env.DB, { token: cookie.split('=')[1], now });
+    const request = req('/admin/miembros/ana/metas/', { method: 'POST', form: { kcal: '2000', protein: '120', carbs: '200', fat: '70' } });
+    const read = request.formData.bind(request);
+    request.formData = async () => { const data = await read(); await env.DB.prepare("UPDATE users SET data_revision = 'after-erasure' WHERE id = 'ana'").run(); return data; };
+    const response = await setTargets(request, env.DB, session, now, 'ana');
+    assert.equal(response.status, 409);
+    const target = await env.DB.prepare("SELECT kcal FROM nutrition_targets WHERE user_id = 'ana'").first();
+    assert.equal(target?.kcal ?? null, existing ? 1800 : null);
+    assert.equal((await env.DB.prepare("SELECT count(*) n FROM audit_log WHERE action = 'nutrition.targets'").first()).n, 0);
+  }
 });
