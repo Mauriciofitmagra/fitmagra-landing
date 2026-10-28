@@ -39,3 +39,10 @@ test('both languages expose the member login and mobile navigation', () => {
   const css = readFileSync(join(outDir, 'assets/brand.css'), 'utf8');
   assert.doesNotMatch(css, /\.nav nav\s*\{[^}]*display:\s*none/);
 });
+
+test('public pages include share metadata with absolute URLs', () => {
+  assert.match(es, /<meta property="og:type" content="website">/);
+  assert.match(es, /<meta property="og:url" content="https:\/\/fitmagra\.invalid\/">/);
+  assert.match(en, /<meta property="og:url" content="https:\/\/fitmagra\.invalid\/en\/">/);
+  assert.match(es, /<meta property="og:image" content="https:\/\/fitmagra\.invalid\/media\/coach-black-800\.jpg">/);
+});

@@ -63,7 +63,12 @@ export function layout(t, { title = t.meta.title, description = t.meta.descripti
 <title>${esc(title)}</title>
 <meta name="description" content="${esc(description)}">
 ${index ? `<link rel="canonical" href="${esc(siteUrl + alts[t.lang])}">\n${alternates(alts, siteUrl)}\n<link rel="alternate" hreflang="x-default" href="${esc(siteUrl + (alts.es ?? alts[t.lang]))}">` : '<meta name="robots" content="noindex">'}
-${head}
+${head || (index ? `<meta property="og:type" content="website">
+<meta property="og:title" content="${esc(title)}">
+<meta property="og:description" content="${esc(description)}">
+<meta property="og:url" content="${esc(siteUrl + alts[t.lang])}">
+<meta property="og:image" content="${esc(siteUrl)}/media/coach-black-800.jpg">
+<meta name="twitter:card" content="summary_large_image">` : '')}
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Montserrat:wght@500;800&display=swap">
