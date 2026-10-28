@@ -2,6 +2,8 @@
 
 How FitMagra moves from today's hosting to one Cloudflare Worker (spec section 14). Nothing in this file has been run. Every command below is marked **Roberto runs**. An agent may prepare a pull request for the repo side of a step. It never runs a deploy, a `wrangler` command against a Cloudflare account, a `vercel` command, or a DNS change.
 
+For local verification, use Node 24 or newer, run `npm ci`, then `npm run check`. The check type-checks the Worker against Cloudflare bindings and runs the tests, static build, link checks and page budgets. The build itself has no runtime dependencies.
+
 The checklist script decides whether cutover may happen:
 
 ```text
