@@ -48,6 +48,11 @@ for (const t of Object.values(strings)) {
     assert.match(html, /src="\/media\/neon\.jpg"/);
   });
 
+  test(`${t.lang} home says payments are coming soon`, () => {
+    assert.match(html, t.lang === 'es' ? /Pagos: próximamente/ : /Payments: coming soon/);
+    assert.doesNotMatch(html, /SumUp|Nequi|Daviplata/);
+  });
+
   test(`${t.lang} home avoids banned claims and accounts`, () => {
     for (const bad of ['MagraMind 24/7', '24/7 MagraMind', '4.8', '1.016.013.376', '—']) assert.ok(!html.includes(bad), bad);
   });
