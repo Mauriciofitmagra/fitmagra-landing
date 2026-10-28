@@ -198,3 +198,14 @@ test('invalid log entries retain submitted values and reject impossible dates', 
   assert.match(mealHtml, /value="dinner" selected/);
   assert.match(mealHtml, /name="description"[^>]*value="Arroz"/);
 });
+
+test('a member must accept the current consent version', async () => {
+  const env = await setup();
+  const ana = await login(env, 'ana');
+  await env.DB.prepare("UPDATE users SET consent_version = 'older-version' WHERE id = 'ana'").run();
+  const response = await send(env, '/app/peso/', { cookie: ana });
+  assert.equal(response.status, 303);
+  assert.equal(response.headers.get('location'), '/app/consentimiento/');
+  await send(env, '/app/consentimiento/', { method: 'POST', cookie: ana, form: { accept: 'yes' } });
+  assert.equal((await send(env, '/app/peso/', { cookie: ana })).status, 200);
+});

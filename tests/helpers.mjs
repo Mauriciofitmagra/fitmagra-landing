@@ -1,6 +1,7 @@
 import { d1 } from './d1-sqlite.mjs';
 import worker from '../worker/index.ts';
 import { hashPassword } from '../worker/auth/passwords.ts';
+import { CONSENT_VERSION } from '../worker/app/consent.ts';
 
 export const ORIGIN = 'https://fitmagra.test';
 // Made-up passwords for test users in an in-memory database. Not credentials.
@@ -28,7 +29,7 @@ export async function setup({ consented = true } = {}) {
   const hash = await hashPassword(PASSWORD);
   for (const [id, role] of [['admin1', 'admin'], ['ana', 'member'], ['beto', 'member']]) {
     await env.DB.prepare("INSERT INTO users (id, email, name, role, status, password_hash, consent_version, consent_at, created_at, updated_at) VALUES (?, ?, ?, ?, 'active', ?, ?, ?, 0, 0)")
-      .bind(id, `${id}@x.co`, id, role, hash, consented ? 'test' : null, consented ? 1 : null).run();
+      .bind(id, `${id}@x.co`, id, role, hash, consented ? CONSENT_VERSION : null, consented ? 1 : null).run();
     if (role === 'member') await env.DB.prepare("INSERT INTO subscriptions (user_id, plan, status, current_period_end, updated_at) VALUES (?, 'elite', 'active', '2099-01-01', 0)").bind(id).run();
   }
   return env;

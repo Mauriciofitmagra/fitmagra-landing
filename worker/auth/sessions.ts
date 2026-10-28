@@ -1,4 +1,5 @@
 import type { DB } from '../db.ts';
+import { CONSENT_VERSION } from '../app/consent.ts';
 import { randomToken, sha256Hex } from './tokens.ts';
 
 export const SESSION_TTL = 30 * 24 * 3600;
@@ -24,7 +25,7 @@ export async function readSession(db: DB, { token, now }: { token: string; now: 
   if (now - (row.expires_at - SESSION_TTL) >= RENEW_AFTER) {
     await db.prepare('UPDATE sessions SET expires_at = ? WHERE token_hash = ?').bind(now + SESSION_TTL, hash).run();
   }
-  return { userId: row.id, name: row.name, email: row.email, role: row.role, consented: row.consent_version !== null };
+  return { userId: row.id, name: row.name, email: row.email, role: row.role, consented: row.consent_version === CONSENT_VERSION };
 }
 
 export const endSession = async (db: DB, token: string): Promise<void> => {

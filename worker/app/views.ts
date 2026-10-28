@@ -3,7 +3,7 @@ import { page } from '../views.ts';
 import type { Session } from '../auth/sessions.ts';
 import { type LogKind, type Field, display } from './logs.ts';
 
-export const CONSENT_VERSION = '2026-10-27-borrador';
+import { CONSENT_VERSION } from './consent.ts';
 
 const TABS: [string, string][] = [
   ['/app/', 'Inicio'], ['/app/peso/', 'Peso'], ['/app/entrenos/', 'Entrenos'], ['/app/fotos/', 'Fotos'],

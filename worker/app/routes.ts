@@ -5,7 +5,8 @@ import { messageView } from '../views.ts';
 import { verifyPassword, hashPassword } from '../auth/passwords.ts';
 import { checkFile, fileKey, findFile, stream, PHOTO, type Bucket } from '../files.ts';
 import { LOGS, type LogKind, parseEntry, isDate } from './logs.ts';
-import { appPage, entryForm, entryTable, consentView, coachView, CONSENT_VERSION } from './views.ts';
+import { appPage, entryForm, entryTable, consentView, coachView } from './views.ts';
+import { CONSENT_VERSION } from './consent.ts';
 import { billingSection } from '../billing/routes.ts';
 
 // Members live in 14 countries; the default date follows Bogotá, where the coach works. They can change it.
