@@ -28,13 +28,15 @@ test('Wompi history totals only approved recorded amounts and escapes payer deta
   const insert = env.DB.prepare('INSERT INTO wompi_link_payments (transaction_id, link_id, payer_name, payer_email, status, amount_cents, currency, occurred_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?)');
   await insert.bind('a', 'VdTCSO', '<script>alert(1)</script>', 'payer@example.test', 'APPROVED', 123456, 'COP', '2026-10-28').run();
   await insert.bind('b', 'VdTCSO', 'Another', 'another@example.test', 'PENDING', 999999, 'COP', '2026-10-27').run();
-  await insert.bind('c', 'VdTCSO', 'Third', 'third@example.test', 'APPROVED', 100, 'COP', '2026-10-26').run();
+  await insert.bind('c', 'VPOS_h9q1ew', 'Third', 'third@example.test', 'APPROVED', 100, 'COP', '2026-10-26').run();
   await insert.bind('d', 'other-link', 'Excluded', 'excluded@example.test', 'APPROVED', 999999, 'COP', '2026-10-25').run();
   const res = await send(env, path, { cookie: admin });
   const body = await res.text();
   assert.match(body, /1\.235,56/);
   assert.match(body, /Aprobado/);
   assert.match(body, /Pendiente/);
+  assert.match(body, /VPOS_h9q1ew/);
+  assert.match(body, /ambos enlaces/);
   assert.doesNotMatch(body, /excluded@example\.test/);
   assert.match(body, /&lt;script&gt;alert\(1\)&lt;\/script&gt;/);
   assert.doesNotMatch(body, /<script>alert/);

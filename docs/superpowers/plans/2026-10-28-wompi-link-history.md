@@ -1,12 +1,12 @@
 # Historial privado del enlace Wompi
 
-Roberto quiere consultar en la aplicación el historial y el total recaudado del enlace `VdTCSO`, junto con la identidad disponible de cada pagador. Solo los administradores deben acceder a estos datos.
+Roberto quiere consultar en la aplicación el historial y el total recaudado de los enlaces `VdTCSO` y `VPOS_h9q1ew`, junto con la identidad disponible de cada pagador. Solo los administradores deben acceder a estos datos.
 
 ## Estado
 
 La vista y la tabla son una base local de solo lectura: no reciben eventos ni importan pagos. La sincronización está desconectada y el historial no es completo. No se debe presentar un total vacío como si reflejara lo recaudado en Wompi. El total mostrado cuando existan registros es bruto de pagos aprobados y no representa liquidaciones netas, comisiones ni devoluciones.
 
-El endpoint público de Wompi identificó el enlace como `fitmagra systems`, activo y de uso múltiple el 2026-10-28. No demuestra pagos, pagadores ni autorización de cobros recurrentes. [Links de pago](https://docs.wompi.co/docs/colombia/links-de-pago/)
+El endpoint público de Wompi identificó `VdTCSO` como `fitmagra systems` y `VPOS_h9q1ew` como `Datáfono Virtual`; ambos estaban activos, admitían varios pagos y tenían la misma llave pública de comercio el 2026-10-28. Roberto informó haber pagado al segundo enlace. Esto no verifica la transacción, pagador ni autorización de cobros recurrentes. [Links de pago](https://docs.wompi.co/docs/colombia/links-de-pago/)
 
 ## Trabajo pendiente
 
