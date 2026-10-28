@@ -50,6 +50,7 @@ export async function build({
   rmSync(outDir, { recursive: true, force: true });
   mkdirSync(outDir, { recursive: true });
   cpSync(join(root, 'site/assets'), join(outDir, 'assets'), { recursive: true });
+  cpSync(join(root, 'site/_headers'), join(outDir, '_headers'));
   cpSync(join(root, 'site/media'), join(outDir, 'media'), { recursive: true,
     filter: (path) => !/^(stories|t-.*|testimonial-video\.mp4)$/.test(basename(path)) });
   cpSync(join(root, 'lib/equations.mjs'), join(outDir, 'assets/equations.mjs'));

@@ -1,12 +1,15 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { readFileSync, readdirSync } from 'node:fs';
+import { readFileSync, readdirSync, mkdtempSync, rmSync } from 'node:fs';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
 import { randomUUID } from 'node:crypto';
 import { fileURLToPath } from 'node:url';
 import { build } from 'esbuild';
 import { Miniflare, convertV4MiniflareOptions } from 'miniflare';
 import { hashPassword } from '../worker/auth/passwords.ts';
 import { stripJsonc } from '../scripts/check-cutover.mjs';
+import { build as buildSite } from '../scripts/build.mjs';
 
 const root = new URL('../', import.meta.url);
 const base = 'https://fitmagra.test';
@@ -70,5 +73,29 @@ test('Worker runtime supports invitation, unpaid member access, private files an
     assert.equal((await db.prepare('SELECT count(*) AS n FROM weights WHERE user_id = ?').bind(member.id).first()).n, 0);
   } finally {
     await mf.dispose();
+  }
+});
+
+test('static Worker assets serve security headers and localized 404 pages', async () => {
+  const directory = mkdtempSync(join(tmpdir(), 'fitmagra-static-'));
+  await buildSite({ outDir: directory, siteUrl: base });
+  const config = JSON.parse(stripJsonc(readFileSync(new URL('../wrangler.jsonc', import.meta.url), 'utf8')));
+  const mf = new Miniflare(convertV4MiniflareOptions({ modules: true, script: 'export default { fetch() { return new Response("worker"); } }', compatibilityDate: config.compatibility_date, assets: { directory, assetConfig: { not_found_handling: '404-page' } }, cf: false, telemetry: { enabled: false } }));
+  try {
+    for (const path of ['/', '/en/']) {
+      const res = await mf.dispatchFetch(base + path, { headers: { accept: 'text/html' } });
+      assert.equal(res.status, 200);
+      assert.match(res.headers.get('content-security-policy'), /default-src 'self'/);
+      assert.match(res.headers.get('content-security-policy'), /img-src 'self' https: data: blob:/);
+      assert.equal(res.headers.get('x-content-type-options'), 'nosniff');
+      assert.equal(res.headers.get('referrer-policy'), 'strict-origin-when-cross-origin');
+    }
+    const missing = await mf.dispatchFetch(base + '/en/missing/', { headers: { accept: 'text/html' } });
+    assert.equal(missing.status, 404);
+    assert.equal(missing.headers.get('x-content-type-options'), 'nosniff');
+    assert.match(await missing.text(), /This page does not exist/);
+  } finally {
+    await mf.dispose();
+    rmSync(directory, { recursive: true, force: true });
   }
 });

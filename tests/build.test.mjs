@@ -78,3 +78,15 @@ test('public navigation landmarks and audio player have descriptive names in bot
     assert.match(html, /<audio[^>]+aria-label="[^"]+"/);
   }
 });
+
+test('static assets include Cloudflare security headers without disabling public caching', () => {
+  const headers = readFileSync(join(outDir, '_headers'), 'utf8');
+  assert.match(headers, /^\/\*\n/m);
+  assert.match(headers, /Content-Security-Policy: .*default-src 'self'.*fonts\.googleapis\.com.*fonts\.gstatic\.com/);
+  assert.match(headers, /img-src 'self' https: data: blob:/);
+  assert.match(headers, /Strict-Transport-Security: max-age=31536000; includeSubDomains/);
+  assert.match(headers, /X-Content-Type-Options: nosniff/);
+  assert.match(headers, /Referrer-Policy: strict-origin-when-cross-origin/);
+  assert.match(headers, /Permissions-Policy: camera=\(\), microphone=\(\), geolocation=\(\)/);
+  assert.doesNotMatch(headers, /Cache-Control:.*no-store/i);
+});
