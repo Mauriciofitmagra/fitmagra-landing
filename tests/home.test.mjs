@@ -88,3 +88,11 @@ test('calculator does not display estimates for out-of-range inputs', async () =
     globalThis.FormData = oldFormData;
   }
 });
+
+test('the country list is shown once and does not move continuously', () => {
+  const html = readFileSync(join(outDir, 'index.html'), 'utf8');
+  const band = html.match(/<section class="proof"[\s\S]*?<\/section>/)[0];
+  assert.equal((band.match(/<li>Colombia<\/li>/g) ?? []).length, 1);
+  const css = readFileSync(join(outDir, 'assets/brand.css'), 'utf8');
+  assert.doesNotMatch(css, /\.proof-track\s*\{[^}]*animation\s*:/);
+});

@@ -45,9 +45,9 @@ ${EQUATIONS.map((k) => `<tr><th scope="row">${esc(t.eq.names[k])}</th><td>${esc(
 <script type="module" src="/assets/equations.js"></script>
 </section>`;
 
-const countries = (t, hidden = false) => `<ul${hidden ? ' aria-hidden="true"' : ''}>${t.proof.countries.map((c) => `<li>${esc(c)}</li>`).join('')}</ul>`;
+const countries = (t) => `<ul>${t.proof.countries.map((c) => `<li>${esc(c)}</li>`).join('')}</ul>`;
 const proof = (t) => `<section class="proof" id="proof">
-<div class="proof-track">${countries(t)}${countries(t, true)}</div>
+<div class="proof-track">${countries(t)}</div>
 <p class="statement">${esc(t.proof.sentence)} <a href="${t.stories.path}">${esc(t.proof.link)}</a></p>
 </section>`;
 
