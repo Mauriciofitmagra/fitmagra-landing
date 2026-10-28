@@ -175,3 +175,148 @@ test('login provides a usable WhatsApp contact link for invitations and resets',
   const html = await (await worker.fetch(req('/entrar/'), env)).text();
   assert.match(html, /href="https:\/\/wa\.me\/573153614260/);
 });
+
+test('a failed password update leaves the reset link usable', async () => {
+  const env = await setup();
+  const { issueToken } = await import('../worker/auth/tokens.ts');
+  const token = await issueToken(env.DB, { userId: 'mem1', purpose: 'reset', now: Math.floor(Date.now() / 1000) });
+  env.DB.raw.exec("CREATE TRIGGER fail_password BEFORE UPDATE OF password_hash ON users BEGIN SELECT RAISE(ABORT, 'write failed'); END");
+  const data = { t: token, p: 'reset', password: 'una-clave-nueva-1', confirm: 'una-clave-nueva-1' };
+  await assert.rejects(worker.fetch(req('/entrar/clave/', { method: 'POST', form: data }), env), /write failed/);
+  assert.equal((await env.DB.prepare('SELECT used_at FROM auth_tokens WHERE purpose = ?').bind('reset').first()).used_at, null);
+  env.DB.raw.exec('DROP TRIGGER fail_password');
+  assert.equal((await worker.fetch(req('/entrar/clave/', { method: 'POST', form: data }), env)).status, 303);
+  assert.equal((await worker.fetch(req('/entrar/clave/', { method: 'POST', form: data }), env)).status, 400);
+});
+
+test('two simultaneous uses of a reset link change the password only once', async () => {
+  const env = await setup();
+  const { issueToken } = await import('../worker/auth/tokens.ts');
+  const token = await issueToken(env.DB, { userId: 'mem1', purpose: 'reset', now: Math.floor(Date.now() / 1000) });
+  const submit = (password) => worker.fetch(req('/entrar/clave/', { method: 'POST', form: { t: token, p: 'reset', password, confirm: password } }), env);
+  const results = await Promise.all([submit('una-clave-nueva-1'), submit('una-clave-nueva-2')]);
+  assert.deepEqual(results.map((r) => r.status).sort(), [303, 400]);
+});
+
+test('a failed session insert leaves a reset link usable', async () => {
+  const env = await setup();
+  const { issueToken } = await import('../worker/auth/tokens.ts');
+  const token = await issueToken(env.DB, { userId: 'mem1', purpose: 'reset', now: Math.floor(Date.now() / 1000) });
+  const data = { t: token, p: 'reset', password: 'una-clave-nueva-1', confirm: 'una-clave-nueva-1' };
+  env.DB.raw.exec("CREATE TRIGGER fail_session BEFORE INSERT ON sessions BEGIN SELECT RAISE(ABORT, 'session failed'); END");
+  await assert.rejects(worker.fetch(req('/entrar/clave/', { method: 'POST', form: data }), env), /session failed/);
+  assert.equal((await env.DB.prepare('SELECT used_at FROM auth_tokens WHERE purpose = ?').bind('reset').first()).used_at, null);
+  env.DB.raw.exec('DROP TRIGGER fail_session');
+  assert.equal((await worker.fetch(req('/entrar/clave/', { method: 'POST', form: data }), env)).status, 303);
+});
+
+test('deactivation invalidates old reset links even after reactivation', async () => {
+  const env = await setup();
+  const { issueToken } = await import('../worker/auth/tokens.ts');
+  const token = await issueToken(env.DB, { userId: 'mem1', purpose: 'reset', now: Math.floor(Date.now() / 1000) });
+  const admin = cookieOf(await login(env, 'admin1@x.co'));
+  await worker.fetch(req('/admin/miembros/mem1/desactivar/', { method: 'POST', cookie: admin }), env);
+  await worker.fetch(req('/admin/miembros/mem1/reactivar/', { method: 'POST', cookie: admin }), env);
+  const data = { t: token, p: 'reset', password: 'una-clave-nueva-1', confirm: 'una-clave-nueva-1' };
+  assert.equal((await worker.fetch(req('/entrar/clave/', { method: 'POST', form: data }), env)).status, 400);
+});
+
+test('reactivating an account revokes its existing sessions', async () => {
+  const env = await setup();
+  const oldCookie = cookieOf(await login(env, 'mem1@x.co'));
+  const admin = cookieOf(await login(env, 'admin1@x.co'));
+  await worker.fetch(req('/admin/miembros/mem1/reactivar/', { method: 'POST', cookie: admin }), env);
+  const { sha256Hex } = await import('../worker/auth/tokens.ts');
+  const tokenHash = await sha256Hex(oldCookie.split('=')[1]);
+  assert.equal(await env.DB.prepare('SELECT token_hash FROM sessions WHERE token_hash = ?').bind(tokenHash).first(), null);
+});
+
+test('a delayed reset request cannot issue a link after the account password changes', async () => {
+  const env = await setup();
+  const admin = cookieOf(await login(env, 'admin1@x.co'));
+  const batch = env.DB.batch;
+  env.DB.batch = async (statements) => {
+    await env.DB.prepare("UPDATE users SET password_hash = 'changed' WHERE id = 'mem1'").run();
+    return batch(statements);
+  };
+  const response = await worker.fetch(req('/admin/miembros/mem1/reset/', { method: 'POST', cookie: admin }), env);
+  assert.equal(response.status, 409);
+  assert.equal((await env.DB.prepare("SELECT count(*) n FROM auth_tokens WHERE user_id = 'mem1'").first()).n, 0);
+});
+
+test('invited accounts offer a replacement invitation', async () => {
+  const env = await setup();
+  await env.DB.prepare("UPDATE users SET status = 'invited', password_hash = NULL WHERE id = 'mem1'").run();
+  const admin = cookieOf(await login(env, 'admin1@x.co'));
+  const html = await (await worker.fetch(req('/admin/', { cookie: admin }), env)).text();
+  assert.match(html, /action="\/admin\/miembros\/mem1\/reactivar\/"[^>]*><button class="link">Nueva invitación/);
+});
+
+test('a delayed reactivation cannot undo a newer deactivation', async () => {
+  const env = await setup();
+  const admin = cookieOf(await login(env, 'admin1@x.co'));
+  const batch = env.DB.batch;
+  env.DB.batch = async (statements) => {
+    await env.DB.prepare("UPDATE users SET status = 'deactivated' WHERE id = 'mem1'").run();
+    return batch(statements);
+  };
+  const response = await worker.fetch(req('/admin/miembros/mem1/reactivar/', { method: 'POST', cookie: admin }), env);
+  assert.equal(response.status, 409);
+  assert.equal((await env.DB.prepare("SELECT status FROM users WHERE id = 'mem1'").first()).status, 'deactivated');
+});
+
+test('account creation does not disguise database failures as duplicate email', async () => {
+  const env = await setup();
+  const admin = cookieOf(await login(env, 'admin1@x.co'));
+  env.DB.raw.exec("CREATE TRIGGER fail_audit BEFORE INSERT ON audit_log BEGIN SELECT RAISE(ABORT, 'audit failed'); END");
+  const form = { name: 'Laura', email: 'laura@x.co', role: 'member', plan: 'elite' };
+  await assert.rejects(worker.fetch(req('/admin/miembros/', { method: 'POST', cookie: admin, form }), env), /audit failed/);
+  assert.equal(await env.DB.prepare("SELECT id FROM users WHERE email = 'laura@x.co'").first(), null);
+});
+
+test('a delayed reset does not invalidate a newer reset link', async () => {
+  const env = await setup();
+  const admin = cookieOf(await login(env, 'admin1@x.co'));
+  const batch = env.DB.batch;
+  env.DB.batch = async (statements) => {
+    await env.DB.prepare("UPDATE users SET auth_revision = 'newer' WHERE id = 'mem1'").run();
+    await env.DB.prepare("INSERT INTO auth_tokens (token_hash, user_id, purpose, expires_at) VALUES ('newer-link', 'mem1', 'reset', 9999999999)").run();
+    return batch(statements);
+  };
+  const response = await worker.fetch(req('/admin/miembros/mem1/reset/', { method: 'POST', cookie: admin }), env);
+  assert.equal(response.status, 409);
+  assert.ok(await env.DB.prepare("SELECT token_hash FROM auth_tokens WHERE token_hash = 'newer-link'").first());
+});
+
+test('login verified before an admin reset cannot create a session afterward', async () => {
+  const env = await setup();
+  const admin = cookieOf(await login(env, 'admin1@x.co'));
+  const account = await env.DB.prepare("SELECT password_hash, auth_revision FROM users WHERE id = 'mem1'").first();
+  assert.equal((await worker.fetch(req('/admin/miembros/mem1/reset/', { method: 'POST', cookie: admin }), env)).status, 200);
+  const { createSession } = await import('../worker/auth/sessions.ts');
+  assert.equal(await createSession(env.DB, { userId: 'mem1', now: Math.floor(Date.now() / 1000), passwordHash: account.password_hash, authRevision: account.auth_revision }), null);
+});
+
+test('a delayed account action cannot overwrite a newer password', async () => {
+  const env = await setup();
+  const admin = cookieOf(await login(env, 'admin1@x.co'));
+  const batch = env.DB.batch;
+  env.DB.batch = async (statements) => {
+    await env.DB.prepare("UPDATE users SET password_hash = 'newer-password' WHERE id = 'mem1'").run();
+    return batch(statements);
+  };
+  const response = await worker.fetch(req('/admin/miembros/mem1/reactivar/', { method: 'POST', cookie: admin }), env);
+  assert.equal(response.status, 409);
+  assert.equal((await env.DB.prepare("SELECT password_hash FROM users WHERE id = 'mem1'").first()).password_hash, 'newer-password');
+});
+
+test('using a password link invalidates other previously issued links', async () => {
+  const env = await setup();
+  const { issueToken } = await import('../worker/auth/tokens.ts');
+  const now = Math.floor(Date.now() / 1000);
+  const first = await issueToken(env.DB, { userId: 'mem1', purpose: 'reset', now });
+  const second = await issueToken(env.DB, { userId: 'mem1', purpose: 'reset', now });
+  const submit = (t) => worker.fetch(req('/entrar/clave/', { method: 'POST', form: { t, p: 'reset', password: 'una-clave-nueva-1', confirm: 'una-clave-nueva-1' } }), env);
+  assert.equal((await submit(first)).status, 303);
+  assert.equal((await submit(second)).status, 400);
+});

@@ -9,6 +9,7 @@ const HOUR = 3600;
 const withUser = async (status = 'active', role = 'member') => {
   const db = d1();
   await db.prepare("INSERT INTO users (id, email, name, role, status, created_at, updated_at) VALUES ('u1', 'a@x.co', 'Ana', ?, ?, 0, 0)").bind(role, status).run();
+  await db.prepare("UPDATE users SET password_hash = 'known-hash' WHERE id = 'u1'").run();
   return db;
 };
 
@@ -45,7 +46,7 @@ test('invite lasts 72 hours, reset 24 hours, and purposes do not mix', async () 
 test('a session reads back with the user, expires after 30 days and renews only after 24 hours', async () => {
   const db = await withUser();
   assert.equal(SESSION_TTL, 30 * 24 * HOUR);
-  const token = await createSession(db, { userId: 'u1', now: 0 });
+  const token = await createSession(db, { userId: 'u1', now: 0, passwordHash: 'known-hash', authRevision: '' });
   const s = await readSession(db, { token, now: 10 });
   assert.equal(s.userId, 'u1');
   assert.equal(s.role, 'member');
@@ -59,9 +60,22 @@ test('a session reads back with the user, expires after 30 days and renews only 
 
 test('a deactivated user has no session, and endSessions removes them all', async () => {
   const db = await withUser();
-  const token = await createSession(db, { userId: 'u1', now: 0 });
+  const token = await createSession(db, { userId: 'u1', now: 0, passwordHash: 'known-hash', authRevision: '' });
   await db.prepare("UPDATE users SET status = 'deactivated'").run();
   assert.equal(await readSession(db, { token, now: 1 }), null);
   await endSessions(db, 'u1');
   assert.equal((await db.prepare('SELECT count(*) n FROM sessions').first()).n, 0);
+});
+
+test('session creation rejects a password that changed after verification', async () => {
+  const db = await withUser();
+  await db.prepare("UPDATE users SET password_hash = 'new-hash' WHERE id = 'u1'").run();
+  assert.equal(await createSession(db, { userId: 'u1', now: 1, passwordHash: 'old-hash', authRevision: '' }), null);
+  assert.equal((await db.prepare('SELECT count(*) n FROM sessions').first()).n, 0);
+});
+
+test('session creation rejects an account revision that changed after verification', async () => {
+  const db = await withUser();
+  await db.prepare("UPDATE users SET auth_revision = 'new-revision' WHERE id = 'u1'").run();
+  assert.equal(await createSession(db, { userId: 'u1', now: 1, passwordHash: 'known-hash', authRevision: '' }), null);
 });

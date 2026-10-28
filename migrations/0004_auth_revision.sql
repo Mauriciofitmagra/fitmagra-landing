@@ -1,0 +1,1 @@
+ALTER TABLE users ADD COLUMN auth_revision TEXT NOT NULL DEFAULT '';

@@ -8,11 +8,11 @@ const RENEW_AFTER = 24 * 3600;
 export type Role = 'member' | 'admin';
 export interface Session { userId: string; name: string; email: string; role: Role; consented: boolean }
 
-export async function createSession(db: DB, { userId, now }: { userId: string; now: number }): Promise<string> {
+export async function createSession(db: DB, { userId, now, passwordHash, authRevision }: { userId: string; now: number; passwordHash: string; authRevision: string }): Promise<string | null> {
   const token = randomToken();
-  await db.prepare('INSERT INTO sessions (token_hash, user_id, created_at, expires_at) VALUES (?, ?, ?, ?)')
-    .bind(await sha256Hex(token), userId, now, now + SESSION_TTL).run();
-  return token;
+  const result = await db.prepare("INSERT INTO sessions (token_hash, user_id, created_at, expires_at) SELECT ?, id, ?, ? FROM users WHERE id = ? AND status = 'active' AND password_hash = ? AND auth_revision = ?")
+    .bind(await sha256Hex(token), now, now + SESSION_TTL, userId, passwordHash, authRevision).run();
+  return result.meta.changes ? token : null;
 }
 
 // Only an active user has a session. Deactivation takes effect on the next request.

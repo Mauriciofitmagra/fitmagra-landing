@@ -8,7 +8,7 @@ export interface Statement {
 }
 export interface DB {
   prepare(sql: string): Statement;
-  batch(statements: Statement[]): Promise<unknown[]>;
+  batch(statements: Statement[]): Promise<{ meta: { changes: number } }[]>;
 }
 
 export const nowSeconds = (): number => Math.floor(Date.now() / 1000);

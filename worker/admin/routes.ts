@@ -1,7 +1,6 @@
 import type { DB } from '../db.ts';
 import type { Session } from '../auth/sessions.ts';
-import { endSessions } from '../auth/sessions.ts';
-import { issueToken, type TokenPurpose } from '../auth/tokens.ts';
+import { randomToken, sha256Hex, INVITE_TTL, RESET_TTL, type TokenPurpose } from '../auth/tokens.ts';
 import { html, redirect, form, esc } from '../http.ts';
 import { page, messageView } from '../views.ts';
 import { checkFile, fileKey, PDF, type Bucket } from '../files.ts';
@@ -19,10 +18,9 @@ export async function list(db: DB, session: Session): Promise<Response> {
   const { results } = await db.prepare('SELECT id, name, email, role, status FROM users ORDER BY name').all<Member>();
   const rows = results.map((m) => `<tr><td><a href="/admin/miembros/${esc(m.id)}/">${esc(m.name)}</a></td><td>${esc(m.email)}</td><td>${esc(m.role)}</td><td>${esc(m.status)}</td>
 <td class="actions">
-<form method="post" action="/admin/miembros/${esc(m.id)}/reset/"><button class="link">Enlace de contraseña</button></form>
-${m.status === 'deactivated'
-    ? `<form method="post" action="/admin/miembros/${esc(m.id)}/reactivar/"><button class="link">Reactivar</button></form>`
-    : `<form method="post" action="/admin/miembros/${esc(m.id)}/desactivar/"><button class="link">Desactivar</button></form>`}
+${m.status === 'active' ? `<form method="post" action="/admin/miembros/${esc(m.id)}/reset/"><button class="link">Enlace de contraseña</button></form>` : ''}
+${m.status === 'invited' || m.status === 'deactivated' ? `<form method="post" action="/admin/miembros/${esc(m.id)}/reactivar/"><button class="link">${m.status === 'invited' ? 'Nueva invitación' : 'Reactivar'}</button></form>` : ''}
+${m.status !== 'deactivated' ? `<form method="post" action="/admin/miembros/${esc(m.id)}/desactivar/"><button class="link">Desactivar</button></form>` : ''}
 </td></tr>`).join('\n');
   return html(page('Miembros', `<h1 class="app-title">Miembros</h1>
 <p class="notice">Facturación: Próximamente. <span lang="en">Billing: Coming soon.</span></p>
@@ -56,17 +54,21 @@ export async function create(request: Request, db: DB, session: Session, now: nu
     return html(messageView('Datos incompletos', 'Revisa el nombre, el correo y el rol.', session), 400);
   }
   const id = crypto.randomUUID();
+  const token = randomToken();
+  const tokenHash = await sha256Hex(token);
   try {
     await db.batch([
       db.prepare("INSERT INTO users (id, email, name, role, status, phone, created_at, updated_at) VALUES (?, ?, ?, ?, 'invited', ?, ?, ?)").bind(id, email.trim(), name.trim(), role, digits || null, now, now),
       // Every member starts with an assigned plan and a pending subscription (spec 11, 13).
       ...(role === 'member' ? [db.prepare("INSERT INTO subscriptions (user_id, plan, status, updated_at) VALUES (?, ?, 'pending', ?)").bind(id, plan, now)] : []),
+      db.prepare("INSERT INTO auth_tokens (token_hash, user_id, purpose, expires_at) VALUES (?, ?, 'invite', ?)").bind(tokenHash, id, now + INVITE_TTL),
       audit(db, session, 'member.create', id, now, role === 'member' ? `member, ${plan}` : role),
     ]);
-  } catch {
-    return html(messageView('Correo en uso', 'Ya existe una cuenta con ese correo.', session), 409);
+  } catch (error) {
+    if (String(error).includes('UNIQUE constraint failed: users.email')) return html(messageView('Correo en uso', 'Ya existe una cuenta con ese correo.', session), 409);
+    throw error;
   }
-  return linkView(request, session, 'Invitación creada', await issueToken(db, { userId: id, purpose: 'invite', now }), 'invite');
+  return linkView(request, session, 'Invitación creada', token, 'invite');
 }
 
 export async function detail(db: DB, session: Session, id: string, now: number): Promise<Response> {
@@ -159,27 +161,45 @@ export async function deleteData(request: Request, db: DB, files: Bucket, sessio
 }
 
 export async function memberAction(request: Request, db: DB, session: Session, now: number, id: string, action: string): Promise<Response> {
-  const exists = await db.prepare('SELECT id FROM users WHERE id = ?').bind(id).first();
-  if (!exists) return html(messageView('No existe', 'Ese miembro no existe.', session), 404);
+  const account = await db.prepare('SELECT id, status, password_hash, auth_revision FROM users WHERE id = ?').bind(id).first<{ id: string; status: string; password_hash: string | null; auth_revision: string }>();
+  if (!account) return html(messageView('No existe', 'Ese miembro no existe.', session), 404);
   if (action === 'reset') {
-    await endSessions(db, id);
-    await audit(db, session, 'member.reset', id, now).run();
-    return linkView(request, session, 'Enlace de contraseña', await issueToken(db, { userId: id, purpose: 'reset', now }), 'reset');
-  }
-  if (action === 'desactivar') {
-    await db.batch([
-      db.prepare("UPDATE users SET status = 'deactivated', updated_at = ? WHERE id = ?").bind(now, id),
-      db.prepare('DELETE FROM sessions WHERE user_id = ?').bind(id),
-      audit(db, session, 'member.deactivate', id, now),
+    if (account.status !== 'active' || !account.password_hash) return html(messageView('Cuenta inactiva', 'Reactiva la cuenta antes de generar un enlace.', session), 409);
+    const token = randomToken();
+    const tokenHash = await sha256Hex(token);
+    const revision = crypto.randomUUID();
+    const current = "SELECT 1 FROM users WHERE id = ? AND status = 'active' AND password_hash = ? AND auth_revision = ?";
+    const [, , , issued] = await db.batch([
+      db.prepare(`UPDATE users SET auth_revision = ? WHERE EXISTS (${current}) AND id = ?`)
+        .bind(revision, id, account.password_hash, account.auth_revision, id),
+      db.prepare(`DELETE FROM sessions WHERE user_id = ? AND EXISTS (${current})`).bind(id, id, account.password_hash, revision),
+      db.prepare(`DELETE FROM auth_tokens WHERE user_id = ? AND EXISTS (${current})`).bind(id, id, account.password_hash, revision),
+      db.prepare(`INSERT INTO auth_tokens (token_hash, user_id, purpose, expires_at) SELECT ?, id, 'reset', ? FROM users WHERE id = ? AND status = 'active' AND password_hash = ? AND auth_revision = ?`)
+        .bind(tokenHash, now + RESET_TTL, id, account.password_hash, revision),
+      db.prepare(`INSERT INTO audit_log (actor_id, action, target_user_id, at, detail) SELECT ?, 'member.reset', ?, ?, NULL WHERE EXISTS (${current})`)
+        .bind(session.userId, id, now, id, account.password_hash, revision),
     ]);
-    return redirect('/admin/');
+    if (!issued.meta.changes) return html(messageView('Cuenta modificada', 'La cuenta cambió. Vuelve a intentarlo.', session), 409);
+    return linkView(request, session, 'Enlace de contraseña', token, 'reset');
   }
-  if (action === 'reactivar') {
-    await db.batch([
-      db.prepare("UPDATE users SET status = 'invited', password_hash = NULL, updated_at = ? WHERE id = ?").bind(now, id),
-      audit(db, session, 'member.reactivate', id, now),
+  if (action === 'desactivar' || action === 'reactivar') {
+    const revision = crypto.randomUUID();
+    const token = action === 'reactivar' ? randomToken() : '';
+    const tokenHash = token ? await sha256Hex(token) : '';
+    const current = 'SELECT 1 FROM users WHERE id = ? AND auth_revision = ?';
+    const [changed] = await db.batch([
+      db.prepare(`UPDATE users SET status = ?, password_hash = CASE WHEN ? = 'reactivar' THEN NULL ELSE password_hash END, updated_at = ?, auth_revision = ?
+        WHERE id = ? AND status = ? AND auth_revision = ? AND password_hash IS ?`)
+        .bind(action === 'reactivar' ? 'invited' : 'deactivated', action, now, revision, id, account.status, account.auth_revision, account.password_hash),
+      db.prepare(`DELETE FROM sessions WHERE user_id = ? AND EXISTS (${current})`).bind(id, id, revision),
+      db.prepare(`DELETE FROM auth_tokens WHERE user_id = ? AND EXISTS (${current})`).bind(id, id, revision),
+      ...(token ? [db.prepare(`INSERT INTO auth_tokens (token_hash, user_id, purpose, expires_at) SELECT ?, id, 'invite', ? FROM users WHERE id = ? AND auth_revision = ?`)
+        .bind(tokenHash, now + INVITE_TTL, id, revision)] : []),
+      db.prepare(`INSERT INTO audit_log (actor_id, action, target_user_id, at, detail) SELECT ?, ?, ?, ?, NULL WHERE EXISTS (${current})`)
+        .bind(session.userId, action === 'reactivar' ? 'member.reactivate' : 'member.deactivate', id, now, id, revision),
     ]);
-    return linkView(request, session, 'Invitación nueva', await issueToken(db, { userId: id, purpose: 'invite', now }), 'invite');
+    if (!changed.meta.changes) return html(messageView('Cuenta modificada', 'La cuenta cambió. Vuelve a intentarlo.', session), 409);
+    return token ? linkView(request, session, 'Invitación nueva', token, 'invite') : redirect('/admin/');
   }
   if (action === 'rol') {
     const { role = '' } = await form(request);
