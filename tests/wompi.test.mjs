@@ -31,3 +31,40 @@ test('Wompi checkout integrity rejects invalid amounts and missing input', async
   await assert.rejects(checkoutIntegrity('a'.repeat(256), 100, 'test_integrity_example'));
   await assert.rejects(checkoutIntegrity('order-123', 100, ''));
 });
+
+test('Wompi merchant policies use the current endpoint and reject malformed policy URLs', async () => {
+  const { merchantPolicies } = await import('../worker/billing/wompi.ts');
+  const original = globalThis.fetch;
+  globalThis.fetch = async (url, init) => {
+    assert.equal(url, 'https://sandbox.wompi.co/v1/merchants/info');
+    assert.equal(init.headers['x-merchant-public-key'], 'pub_test_example');
+    assert.equal(init.redirect, 'error');
+    return Response.json({ data: { presigned_acceptance: { acceptance_token: 'a', permalink: 'https://wompi.co/terms' }, presigned_personal_data_auth: { acceptance_token: 'b', permalink: 'https://wompi.co/privacy' } } });
+  };
+  try {
+    assert.deepEqual(await merchantPolicies('test', 'pub_test_example'), { acceptanceToken: 'a', acceptanceUrl: 'https://wompi.co/terms', personalAuthToken: 'b', personalAuthUrl: 'https://wompi.co/privacy' });
+    globalThis.fetch = async () => Response.json({ data: { presigned_acceptance: { acceptance_token: 'a', permalink: 'javascript:alert(1)' }, presigned_personal_data_auth: { acceptance_token: 'b', permalink: 'https://wompi.co/privacy' } } });
+    await assert.rejects(merchantPolicies('test', 'pub_test_example'));
+    await assert.rejects(merchantPolicies('test', 'pub_prod_example'));
+  } finally { globalThis.fetch = original; }
+});
+
+test('Wompi transaction lookup uses the private key and rejects mismatched responses', async () => {
+  const { lookupTransaction } = await import('../worker/billing/wompi.ts');
+  const original = globalThis.fetch;
+  globalThis.fetch = async (url, init) => {
+    assert.equal(url, 'https://production.wompi.co/v1/transactions/tx-1');
+    assert.equal(init.headers.Authorization, 'Bearer prv_prod_example');
+    assert.equal(init.redirect, 'error');
+    return Response.json({ data: { id: 'tx-1', reference: 'order-1', status: 'APPROVED', amount_in_cents: 2490000, currency: 'COP' } });
+  };
+  try {
+    assert.deepEqual(await lookupTransaction('prod', 'prv_prod_example', 'tx-1'), { id: 'tx-1', reference: 'order-1', status: 'APPROVED', amountCents: 2490000, currency: 'COP' });
+    globalThis.fetch = async () => Response.json({ data: { id: 'other', reference: 'order-1', status: 'APPROVED', amount_in_cents: 2490000, currency: 'COP' } });
+    await assert.rejects(lookupTransaction('prod', 'prv_prod_example', 'tx-1'));
+    await assert.rejects(lookupTransaction('prod', 'prv_test_example', 'tx-1'));
+    await assert.rejects(lookupTransaction('prod', 'prv_prod_example', '../tx'));
+    globalThis.fetch = async () => new Response('', { status: 500 });
+    await assert.rejects(lookupTransaction('prod', 'prv_prod_example', 'tx-1'));
+  } finally { globalThis.fetch = original; }
+});

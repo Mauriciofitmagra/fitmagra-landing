@@ -37,3 +37,39 @@ export async function verifyTransactionEvent(value: unknown, secret: string): Pr
   if (typeof transaction.id !== 'string' || !transaction.id || typeof transaction.status !== 'string' || !Number.isSafeInteger(transaction.amount_in_cents) || (transaction.amount_in_cents as number) <= 0) return null;
   return { id: transaction.id, status: transaction.status, amountCents: transaction.amount_in_cents as number };
 }
+
+type WompiEnvironment = 'test' | 'prod';
+
+function apiUrl(environment: WompiEnvironment, key: string, kind: 'pub' | 'prv'): string {
+  if ((environment !== 'test' && environment !== 'prod') || !new RegExp(`^${kind}_${environment}_[a-zA-Z0-9]+$`).test(key)) throw new Error('Invalid Wompi configuration');
+  return environment === 'test' ? 'https://sandbox.wompi.co/v1' : 'https://production.wompi.co/v1';
+}
+
+async function responseData(response: Response): Promise<ObjectValue> {
+  if (!response.ok) throw new Error('Wompi request failed');
+  const body: unknown = await response.json();
+  if (!object(body) || !object(body.data)) throw new Error('Invalid Wompi response');
+  return body.data;
+}
+
+export async function merchantPolicies(environment: WompiEnvironment, publicKey: string): Promise<{ acceptanceToken: string; acceptanceUrl: string; personalAuthToken: string; personalAuthUrl: string }> {
+  const base = apiUrl(environment, publicKey, 'pub');
+  const data = await responseData(await fetch(`${base}/merchants/info`, { headers: { 'x-merchant-public-key': publicKey }, redirect: 'error' }));
+  const acceptance = data.presigned_acceptance;
+  const personal = data.presigned_personal_data_auth;
+  const valid = (v: unknown): v is ObjectValue & { acceptance_token: string; permalink: string } => {
+    if (!object(v) || typeof v.acceptance_token !== 'string' || !v.acceptance_token || typeof v.permalink !== 'string') return false;
+    try { return new URL(v.permalink).protocol === 'https:'; } catch { return false; }
+  };
+  if (!valid(acceptance) || !valid(personal)) throw new Error('Invalid Wompi policies');
+  return { acceptanceToken: acceptance.acceptance_token, acceptanceUrl: acceptance.permalink, personalAuthToken: personal.acceptance_token, personalAuthUrl: personal.permalink };
+}
+
+// A lookup alone is not settlement: compare it with the saved purchase and merchant before crediting.
+export async function lookupTransaction(environment: WompiEnvironment, privateKey: string, id: string): Promise<{ id: string; reference: string; status: string; amountCents: number; currency: string }> {
+  const base = apiUrl(environment, privateKey, 'prv');
+  if (!/^[a-zA-Z0-9_-]{1,255}$/.test(id)) throw new Error('Invalid Wompi transaction ID');
+  const data = await responseData(await fetch(`${base}/transactions/${id}`, { headers: { Authorization: `Bearer ${privateKey}`, Accept: 'application/json' }, redirect: 'error' }));
+  if (data.id !== id || typeof data.reference !== 'string' || !data.reference || typeof data.status !== 'string' || !['PENDING', 'APPROVED', 'DECLINED', 'VOIDED', 'ERROR'].includes(data.status) || !Number.isSafeInteger(data.amount_in_cents) || (data.amount_in_cents as number) <= 0 || data.currency !== 'COP') throw new Error('Invalid Wompi transaction');
+  return { id, reference: data.reference, status: data.status, amountCents: data.amount_in_cents as number, currency: data.currency };
+}
