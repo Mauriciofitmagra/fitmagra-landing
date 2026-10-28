@@ -9,7 +9,6 @@ const SIZE = {
   'coach-green-640.jpg': [640, 639],
   'coach-pilates-640.jpg': [582, 640],
   'coach-black-800.jpg': [533, 800],
-  't-mes-640.jpg': [584, 640],
   'rosario-400.png': [400, 345],
   'neon.jpg': [1156, 520],
 };

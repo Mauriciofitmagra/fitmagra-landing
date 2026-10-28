@@ -1,5 +1,5 @@
 import { rmSync, mkdirSync, cpSync, writeFileSync, readFileSync, readdirSync, existsSync } from 'node:fs';
-import { join, resolve, dirname } from 'node:path';
+import { join, resolve, dirname, basename } from 'node:path';
 import { pathToFileURL } from 'node:url';
 import { strings } from '../site/i18n.mjs';
 import { layout, esc } from '../site/layout.mjs';
@@ -10,9 +10,6 @@ import { parsePost } from '../lib/frontmatter.mjs';
 import { markdown } from '../lib/markdown.mjs';
 
 const root = resolve(import.meta.dirname, '..');
-
-// Every story item without written consent; the cutover checklist (spec 14) refuses to launch while any remain.
-export const unverifiedConsent = (data) => [...data.photos, ...data.quotes, data.video].filter((s) => s.consent !== 'written').map((s) => s.id);
 
 // Published posts per language, newest first. Invalid front matter throws with the file and field.
 export function loadPosts(blogDir) {
@@ -37,7 +34,6 @@ export async function build({
   siteUrl = process.env.SITE_URL || 'https://fitmagra.invalid',
   log = console.log,
 } = {}) {
-  const storyData = JSON.parse(readFileSync(join(root, 'content/stories.json'), 'utf8'));
   const posts = loadPosts(blogDir);
   const indexed = [];
   const write = (path, html, { index = true } = {}) => {
@@ -50,7 +46,8 @@ export async function build({
   rmSync(outDir, { recursive: true, force: true });
   mkdirSync(outDir, { recursive: true });
   cpSync(join(root, 'site/assets'), join(outDir, 'assets'), { recursive: true });
-  cpSync(join(root, 'site/media'), join(outDir, 'media'), { recursive: true });
+  cpSync(join(root, 'site/media'), join(outDir, 'media'), { recursive: true,
+    filter: (path) => !/^(stories|t-.*|testimonial-video\.mp4)$/.test(basename(path)) });
   cpSync(join(root, 'lib/equations.mjs'), join(outDir, 'assets/equations.mjs'));
 
   const legal = [
@@ -63,7 +60,7 @@ export async function build({
   for (const t of Object.values(strings)) {
     const links = legalLinks(t.lang);
     write(t.path, layout(t, { siteUrl, legalLinks: links, body: home(t) }));
-    write(t.stories.path, layout(t, { siteUrl, legalLinks: links, title: t.stories.title, description: t.stories.description, alts: pair('stories'), body: stories(t, storyData) }));
+    write(t.stories.path, layout(t, { siteUrl, legalLinks: links, title: t.stories.title, description: t.stories.description, alts: pair('stories'), body: stories(t) }));
     write(t.blog.path, layout(t, { siteUrl, legalLinks: links, title: t.blog.title, description: t.blog.description, alts: pair('blog'), body: listing(t, posts[t.lang]) }));
     for (const p of legal) {
       const [name, title] = p[t.lang];
@@ -83,8 +80,7 @@ export async function build({
     }
   }
 
-  const pending = unverifiedConsent(storyData);
-  if (pending.length) log(`consent not yet written for ${pending.length} story items: ${pending.join(', ')}`);
+
 
   const nf = strings.es.notFound;
   write('404.html', layout(strings.es, {

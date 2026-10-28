@@ -98,7 +98,7 @@ The invite link prints on the terminal, not into the file. It works once and exp
 ## Step 5. Production secrets and content
 
 - **Roberto runs** `npx wrangler secret put <NAME>` for each secret production needs. Today there are none. The payment provider adds its own in milestone M7. Sign `secretsSet` when every secret the code reads is set.
-- **Mauricio provides**, through a pull request: written consent for every person on Historias (set `consent` to `written` in `content/stories.json`, or remove the item), and the lawyer's text for `content/legal/terminos.md`, `content/legal/privacidad.md`, `content/legal/terms.md` and `content/legal/privacy.md` (spec Q9, Q18).
+- **Mauricio provides**, through a pull request: the lawyer's approved text for `content/legal/terminos.md`, `content/legal/privacidad.md`, `content/legal/terms.md` and `content/legal/privacy.md` (spec Q9, Q18). Drafts are in `docs/drafts/`. Client stories and media are excluded from this release; consent must be obtained before adding them later.
 
 ## Step 6. Production on its workers.dev hostname
 

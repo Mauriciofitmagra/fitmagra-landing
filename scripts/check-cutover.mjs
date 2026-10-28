@@ -1,7 +1,7 @@
 // The production cutover checklist (spec section 14, runbook docs/runbooks/cloudflare-cutover.md). It fails closed: a missing
 // file, an unreadable value or an unsigned item is a failure. Run `node scripts/build.mjs` first, then
 // `SITE_URL=https://<domain> node scripts/check-cutover.mjs`. Exit code 0 only when every item passes.
-import { readFileSync, existsSync, statSync } from 'node:fs';
+import { readFileSync, existsSync, statSync, readdirSync } from 'node:fs';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { checkLinks } from './check-links.mjs';
@@ -35,10 +35,10 @@ export function checkCutover({ root, env = process.env }) {
       if (v.decision !== 'cloudflare') return `decision is "${v.decision}"; this Cloudflare cutover applies only to "cloudflare"`;
       return true;
     }),
-    item('story-consent', 'Written consent for every person on Historias', () => {
-      const s = JSON.parse(read(root, 'content/stories.json'));
-      const pending = [...s.photos, ...s.quotes, s.video].filter((x) => x.consent !== 'written').map((x) => x.id);
-      return pending.length === 0 || `${pending.length} items without written consent: ${pending.join(', ')}`;
+    item('story-consent', 'Client stories and media excluded from the build', () => {
+      const media = join(root, 'dist/media');
+      const included = readdirSync(media).filter((name) => /^(stories|t-.*|testimonial-video\.mp4)$/.test(name));
+      return included.length === 0 || `client media present: ${included.join(', ')}`;
     }),
     item('legal-pages', 'Lawyer-approved Términos and Privacidad', () => {
       for (const [f, output] of [['terminos', 'terminos'], ['privacidad', 'privacidad'], ['terms', 'en/terms'], ['privacy', 'en/privacy']]) {

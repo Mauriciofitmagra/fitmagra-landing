@@ -172,7 +172,8 @@ export const strings = {
     stories: {
       path: '/historias/',
       title: 'Historias | FitMagra',
-      description: 'Fotos de antes y después y testimonios de clientes de FitMagra. Los resultados varían según adherencia y condición inicial.',
+      description: 'Historias de FitMagra, próximamente.',
+      empty: 'Próximamente compartiremos historias de la comunidad FitMagra.',
       heading: ['Historias', 'reales'],
       disclaimer: 'Los resultados varían según adherencia y condición inicial.',
       translated: null,
@@ -203,7 +204,7 @@ export const strings = {
       steps: [
         ['Valoración', '30 minutos por WhatsApp o video para conocer tu punto de partida. No cuesta nada.', 'coach-black-800.jpg', 'Mauricio Sánchez de pie con ropa negra'],
         ['Tu plan', 'Entrenamiento, alimentación y suplementación con tu nombre, listos en 1 a 3 días hábiles.', 'coach-pilates-640.jpg', 'Mauricio Sánchez preparando una sesión'],
-        ['Ajuste semanal', 'Revisamos tu peso, tus entrenos y tus fotos, y el plan cambia según tu respuesta.', 't-mes-640.jpg', 'Seguimiento de un cliente después de un mes de plan'],
+        ['Ajuste semanal', 'Revisamos tu peso, tus entrenos y tus fotos, y el plan cambia según tu respuesta.', 'coach-green-640.jpg', 'Mauricio Sánchez entrenando con una camiseta verde'],
       ],
     },
     pricing: {
@@ -286,7 +287,8 @@ export const strings = {
     stories: {
       path: '/en/stories/',
       title: 'Stories | FitMagra',
-      description: 'Before and after photos and testimonials from FitMagra clients. Results vary with adherence and starting point.',
+      description: 'FitMagra stories, coming soon.',
+      empty: 'Coming soon: stories from the FitMagra community.',
       heading: ['Real', 'stories'],
       disclaimer: 'Results vary with adherence and starting point.',
       translated: 'Translated from Spanish',
@@ -317,7 +319,7 @@ export const strings = {
       steps: [
         ['Assessment', '30 minutes on WhatsApp or video to learn where you are starting from. It costs nothing.', 'coach-black-800.jpg', 'Mauricio Sánchez standing in black workout clothes'],
         ['Your plan', 'Training, nutrition and supplements with your name on them, ready in 1 to 3 business days.', 'coach-pilates-640.jpg', 'Mauricio Sánchez setting up a session'],
-        ['Weekly check-in', 'We review your weight, your workouts and your photos, and the plan changes with how you respond.', 't-mes-640.jpg', 'A client check-in after one month on the plan'],
+        ['Weekly check-in', 'We review your weight, your workouts and your photos, and the plan changes with how you respond.', 'coach-green-640.jpg', 'Mauricio Sánchez training in a green shirt'],
       ],
     },
     pricing: {

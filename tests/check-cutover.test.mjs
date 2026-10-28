@@ -12,9 +12,7 @@ const signed = { by: 'Roberto', date: '2026-11-20' };
 function passingFixture() {
   const root = mkdtempSync(join(tmpdir(), 'fitmagra-cutover-'));
   const put = (p, body) => { mkdirSync(join(root, p, '..'), { recursive: true }); writeFileSync(join(root, p), body); };
-  const stories = JSON.parse(readFileSync(join(repo, 'content/stories.json'), 'utf8'));
-  for (const s of [...stories.photos, ...stories.quotes, stories.video]) s.consent = 'written';
-  put('content/stories.json', JSON.stringify(stories));
+  mkdirSync(join(root, 'dist/media'), { recursive: true });
   put('content/legal/terminos.md', 'Términos revisados por el abogado.');
   put('content/legal/privacidad.md', 'Política de tratamiento de datos revisada por el abogado.');
   put('content/legal/terms.md', 'Terms reviewed by counsel.');
@@ -33,7 +31,7 @@ function passingFixture() {
 test('the checklist fails closed on the repository as it is today', () => {
   const items = checkCutover({ root: repo, env: {} });
   const ids = failing(items);
-  for (const id of ['vercel-decision', 'story-consent', 'legal-pages', 'site-url', 'database-ids', 'signoff-secrets', 'signoff-taste', 'signoff-staging', 'signoff-workers-cpu']) {
+  for (const id of ['vercel-decision', 'legal-pages', 'site-url', 'database-ids', 'signoff-secrets', 'signoff-taste', 'signoff-staging', 'signoff-workers-cpu']) {
     assert.ok(ids.includes(id), `${id} should fail today`);
   }
   assert.ok(items.find((i) => i.id === 'billing-provider').ok, 'production has no stub provider');
@@ -51,7 +49,7 @@ test('each item fails on its own', () => {
     ['billing-provider', (root) => writeFileSync(join(root, 'wrangler.jsonc'), readFileSync(join(root, 'wrangler.jsonc'), 'utf8').replace('"vars": { "ENVIRONMENT": "production" }', '"vars": { "ENVIRONMENT": "production", "BILLING_PROVIDER": "stub" }'))],
     ['legal-pages', (root) => writeFileSync(join(root, 'content/legal/privacidad.md'), 'PENDIENTE: texto del abogado')],
     ['legal-pages', (root) => writeFileSync(join(root, 'dist/en/privacy/index.html'), '')],
-    ['story-consent', (root) => { const p = join(root, 'content/stories.json'); const s = JSON.parse(readFileSync(p, 'utf8')); s.quotes[0].consent = 'unverified'; writeFileSync(p, JSON.stringify(s)); }],
+    ['story-consent', (root) => writeFileSync(join(root, 'dist/media/t-01.jpg'), 'photo')],
     ['vercel-decision', (root) => { const p = join(root, 'docs/runbooks/cutover-signoff.json'); const s = JSON.parse(readFileSync(p, 'utf8')); s.vercel.decision = 'keep-vercel'; writeFileSync(p, JSON.stringify(s)); }],
     ['vercel-decision', (root) => { const p = join(root, 'docs/runbooks/cutover-signoff.json'); const s = JSON.parse(readFileSync(p, 'utf8')); s.vercel.liveSiteChecked = false; writeFileSync(p, JSON.stringify(s)); }],
     ['signoff-staging', (root) => { const p = join(root, 'docs/runbooks/cutover-signoff.json'); const s = JSON.parse(readFileSync(p, 'utf8')); s.stagingSmokeTest = { by: 'Claude', date: '2026-11-20' }; writeFileSync(p, JSON.stringify(s)); }],
