@@ -48,6 +48,10 @@ export function checkCutover({ root, env = process.env }) {
         const built = `dist/${output}/index.html`;
         if (!existsSync(join(root, built)) || statSync(join(root, built)).size === 0) return `${built} is missing or empty; rebuild the site`;
       }
+      const version = read(root, 'worker/app/consent.ts').match(/export const CONSENT_VERSION = ['"]([^'"]+)['"]/)?.[1];
+      if (!version || /borrador|draft|pendiente|todo/i.test(version)) return 'consent version is missing or still a draft';
+      const review = signoff().legalReview;
+      if (!signedOff(review) || !review.lawyer?.trim() || review.consentVersion !== version) return 'record the lawyer review and matching consent version in cutover-signoff.json';
       return true;
     }),
     item('site-url', 'SITE_URL is the real domain', () => {
