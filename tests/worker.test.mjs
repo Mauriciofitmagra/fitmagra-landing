@@ -249,7 +249,7 @@ test('invited accounts offer a replacement invitation', async () => {
   await env.DB.prepare("UPDATE users SET status = 'invited', password_hash = NULL WHERE id = 'mem1'").run();
   const admin = cookieOf(await login(env, 'admin1@x.co'));
   const html = await (await worker.fetch(req('/admin/', { cookie: admin }), env)).text();
-  assert.match(html, /action="\/admin\/miembros\/mem1\/reactivar\/"[^>]*><button class="link">Nueva invitación/);
+  assert.match(html, /action="\/admin\/miembros\/mem1\/reactivar\/"[^>]*><button class="link"[^>]*>Nueva invitación/);
 });
 
 test('a delayed reactivation cannot undo a newer deactivation', async () => {

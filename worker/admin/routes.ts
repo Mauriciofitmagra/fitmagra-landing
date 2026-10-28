@@ -18,9 +18,9 @@ export async function list(db: DB, session: Session): Promise<Response> {
   const { results } = await db.prepare('SELECT id, name, email, role, status FROM users ORDER BY name').all<Member>();
   const rows = results.map((m) => `<tr><td><a href="/admin/miembros/${esc(m.id)}/">${esc(m.name)}</a></td><td>${esc(m.email)}</td><td>${esc(m.role)}</td><td>${esc(m.status)}</td>
 <td class="actions">
-${m.status === 'active' ? `<form method="post" action="/admin/miembros/${esc(m.id)}/reset/"><button class="link">Enlace de contraseña</button></form>` : ''}
-${m.status === 'invited' || m.status === 'deactivated' ? `<form method="post" action="/admin/miembros/${esc(m.id)}/reactivar/"><button class="link">${m.status === 'invited' ? 'Nueva invitación' : 'Reactivar'}</button></form>` : ''}
-${m.status !== 'deactivated' ? `<form method="post" action="/admin/miembros/${esc(m.id)}/desactivar/"><button class="link">Desactivar</button></form>` : ''}
+${m.status === 'active' ? `<form method="post" action="/admin/miembros/${esc(m.id)}/reset/"><button class="link" aria-label="${esc(`Enlace de contraseña para ${m.name}, ${m.email}`)}">Enlace de contraseña</button></form>` : ''}
+${m.status === 'invited' || m.status === 'deactivated' ? `<form method="post" action="/admin/miembros/${esc(m.id)}/reactivar/"><button class="link" aria-label="${esc(`${m.status === 'invited' ? 'Nueva invitación para' : 'Reactivar'} ${m.name}, ${m.email}`)}">${m.status === 'invited' ? 'Nueva invitación' : 'Reactivar'}</button></form>` : ''}
+${m.status !== 'deactivated' ? `<form method="post" action="/admin/miembros/${esc(m.id)}/desactivar/"><button class="link" aria-label="${esc(`Desactivar ${m.name}, ${m.email}`)}">Desactivar</button></form>` : ''}
 </td></tr>`).join('\n');
   return html(page('Miembros', `<h1 class="app-title">Miembros</h1>
 <p class="notice">Facturación: Próximamente. <span lang="en">Billing: Coming soon.</span></p>

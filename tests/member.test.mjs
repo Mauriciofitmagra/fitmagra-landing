@@ -566,3 +566,13 @@ test('photo validation preserves the selected date and pose and asks for the fil
   assert.match(html, /elige la foto de nuevo/i);
   assert.equal(env.FILES.objects.size, 0);
 });
+
+test('admin actions identify the account for screen-reader users', async () => {
+  const env = await setup();
+  await env.DB.prepare("UPDATE users SET name = ? WHERE id IN ('ana', 'beto')").bind('Ana & María').run();
+  await env.DB.prepare("UPDATE users SET status = 'invited' WHERE id = 'beto'").run();
+  const body = await (await send(env, '/admin/', { cookie: await login(env, 'admin1') })).text();
+  assert.match(body, /aria-label="Enlace de contraseña para Ana &amp; María, ana@x\.co"/);
+  assert.match(body, /aria-label="Desactivar Ana &amp; María, ana@x\.co"/);
+  assert.match(body, /aria-label="Nueva invitación para Ana &amp; María, beto@x\.co"/);
+});
