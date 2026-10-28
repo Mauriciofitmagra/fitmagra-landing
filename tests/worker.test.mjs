@@ -168,3 +168,9 @@ test('every Worker response carries the security headers', async () => {
     assert.match(res.headers.get('cache-control'), /no-store/);
   }
 });
+
+test('login provides a usable WhatsApp contact link for invitations and resets', async () => {
+  const env = await setup();
+  const html = await (await worker.fetch(req('/entrar/'), env)).text();
+  assert.match(html, /href="https:\/\/wa\.me\/573153614260/);
+});

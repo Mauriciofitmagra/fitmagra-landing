@@ -1,4 +1,5 @@
 import { esc } from './http.ts';
+import { wa } from '../site/i18n.mjs';
 import type { Session } from './auth/sessions.ts';
 
 // App screens use the brand tokens on white (spec 6.4); the Taste rules for public pages do not apply here.
@@ -36,7 +37,7 @@ ${field('email', 'Correo', 'email', 'required autocomplete="username"')}
 ${field('password', 'Contraseña', 'password', 'required autocomplete="current-password"')}
 <button class="button">Entrar</button>
 </form>
-<p>¿Olvidaste tu contraseña o todavía no tienes cuenta? Escríbele a Mauricio por WhatsApp y te envía un enlace.</p>`);
+<p>¿Olvidaste tu contraseña o todavía no tienes cuenta? <a href="${wa('Hola, necesito ayuda para entrar a mi cuenta')}">Escríbele a Mauricio por WhatsApp</a> y te envía un enlace.</p>`);
 
 export const setPasswordView = (t: string, p: string, error = ''): string => page('Crear contraseña', `<h1 class="app-title">Crea tu contraseña</h1>
 ${error ? `<p class="notice" role="alert">${esc(error)}</p>` : ''}
