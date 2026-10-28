@@ -78,6 +78,10 @@ export async function detail(db: DB, session: Session, id: string, now: number):
   const t = await db.prepare('SELECT kcal, protein_g, carbs_g, fat_g FROM nutrition_targets WHERE user_id = ?').bind(id).first<Record<string, number>>();
   const docs = (await db.prepare('SELECT id, kind, title FROM documents WHERE user_id = ? ORDER BY published_at DESC').bind(id).all<{ id: string; kind: string; title: string }>()).results;
   const photos = (await db.prepare('SELECT id, taken_on, pose FROM photos WHERE user_id = ? ORDER BY taken_on DESC').bind(id).all<{ id: string; taken_on: string; pose: string }>()).results;
+  const state = await db.prepare("SELECT data_revision, (SELECT id FROM erasure_jobs WHERE user_id = users.id AND status = 'pending') AS pending FROM users WHERE id = ?").bind(id).first<{ data_revision: string; pending: string | null }>();
+  if (!state) return html(messageView('No existe', 'Ese miembro no existe.', session), 404);
+  const pending = state.pending;
+  const operation = pending ?? crypto.randomUUID();
   const num = (name: string, label: string, value: unknown) => `<label class="field"><span>${label}</span><input name="${name}" inputmode="numeric" value="${esc(value ?? '')}" required></label>`;
   return html(page(m.name, `<h1 class="app-title">${esc(m.name)}</h1>
 <p>${esc(m.email)}, ${esc(m.role)}, ${esc(m.status)}</p>
@@ -103,6 +107,9 @@ ${num('kcal', 'kcal', t?.kcal)}${num('protein', 'Proteína (g)', t?.protein_g)}$
 <h2 class="app-subtitle">Borrar todos los datos</h2>
 <p>Borra peso, entrenos, nutrición, fotos y planes de este miembro. No se puede deshacer. Escribe su correo para confirmar.</p>
 <form method="post" action="/admin/miembros/${esc(id)}/borrar-datos/" class="app-form">
+<input type="hidden" name="operation" value="${esc(operation)}">
+<input type="hidden" name="revision" value="${esc(state.data_revision)}">
+${pending ? '<p class="notice">Borrado pendiente. Reintenta cuando terminen las cargas; si persiste, contacta a soporte.</p>' : ''}
 <label class="field"><span>Correo del miembro</span><input name="confirm" required></label>
 <button class="button">Borrar datos</button>
 </form>`, session));
@@ -160,22 +167,64 @@ export async function setTargets(request: Request, db: DB, session: Session, now
   return redirect(`/admin/miembros/${id}/`);
 }
 
-// Account deletion on request (spec 12): every data row and file of the member, in one logged action.
+// An unresolved upload or uncertain database outcome stays pending until it can be reconciled.
 export async function deleteData(request: Request, db: DB, files: Bucket, session: Session, now: number, id: string): Promise<Response> {
   const m = await db.prepare('SELECT email FROM users WHERE id = ?').bind(id).first<string>('email');
   if (!m) return html(messageView('No existe', 'Ese miembro no existe.', session), 404);
-  const { confirm = '' } = await form(request);
+  const { confirm = '', operation = '', revision = '' } = await form(request);
   if (confirm.trim().toLowerCase() !== m.toLowerCase()) return html(messageView('Confirmación incorrecta', 'Escribe el correo exacto del miembro.', session), 400);
+  if (!/^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(operation)) return html(messageView('Solicitud no válida', 'Abre la ficha del miembro e inténtalo de nuevo.', session), 400);
+  const pending = () => html(messageView('Borrado pendiente', 'Vuelve a la ficha del miembro y reintenta. Si el problema persiste, contacta a soporte.', session), 409);
+  const job = await db.prepare('SELECT user_id, status FROM erasure_jobs WHERE id = ?').bind(operation).first<{ user_id: string; status: string }>();
+  if (job && job.user_id !== id) return pending();
+  if (job?.status === 'complete') return redirect(`/admin/miembros/${id}/`);
+  const owner = crypto.randomUUID();
+  if (job) {
+    const acquired = await db.prepare("UPDATE users SET erasure_owner = ? WHERE id = ? AND data_erasing = 1 AND erasure_owner IS NULL AND EXISTS (SELECT 1 FROM erasure_jobs WHERE id = ? AND user_id = ? AND status = 'pending')")
+      .bind(owner, id, operation, id).run();
+    if (!acquired.meta.changes) return pending();
+  } else {
+    const [acquired] = await db.batch([
+      db.prepare('UPDATE users SET data_revision = ?, data_erasing = 1, erasure_owner = ? WHERE id = ? AND data_erasing = 0 AND data_revision = ?').bind(crypto.randomUUID(), owner, id, revision),
+      db.prepare("INSERT INTO erasure_jobs (id, user_id, status, created_at) SELECT ?, id, 'pending', ? FROM users WHERE id = ? AND erasure_owner = ?").bind(operation, now, id, owner),
+    ]);
+    if (!acquired.meta.changes) return pending();
+  }
+  const release = () => db.prepare('UPDATE users SET erasure_owner = NULL WHERE id = ? AND data_erasing = 1 AND erasure_owner = ?').bind(id, owner).run();
+  if (await db.prepare('SELECT 1 FROM upload_intents WHERE user_id = ? LIMIT 1').bind(id).first()) {
+    await release();
+    return pending();
+  }
   const keys = [
     ...(await db.prepare('SELECT r2_key FROM photos WHERE user_id = ?').bind(id).all<{ r2_key: string }>()).results,
     ...(await db.prepare('SELECT r2_key FROM documents WHERE user_id = ?').bind(id).all<{ r2_key: string }>()).results,
   ].map((r) => r.r2_key);
-  if (keys.length) await files.delete(keys);
-  await db.batch([
-    ...['weights', 'workouts', 'nutrition_logs', 'nutrition_targets', 'photos', 'documents'].map((t) => db.prepare(`DELETE FROM ${t} WHERE user_id = ?`).bind(id)),
-    audit(db, session, 'member.delete_data', id, now, `${keys.length} files`),
-  ]);
-  return redirect(`/admin/miembros/${id}/`);
+  try {
+    if (keys.length) await files.delete(keys);
+  } catch {
+    await release();
+    return pending();
+  }
+  const guard = "EXISTS (SELECT 1 FROM users WHERE id = ? AND data_erasing = 1 AND erasure_owner = ?) AND EXISTS (SELECT 1 FROM erasure_jobs WHERE id = ? AND user_id = ? AND status = 'pending') AND NOT EXISTS (SELECT 1 FROM upload_intents WHERE user_id = ?)";
+  const args = [id, owner, operation, id, id];
+  let result;
+  try {
+    result = await db.batch([
+    ...['weights', 'workouts', 'nutrition_logs', 'nutrition_targets', 'photos', 'documents'].map((t) => db.prepare(`DELETE FROM ${t} WHERE user_id = ? AND ${guard}`).bind(id, ...args)),
+    db.prepare(`UPDATE audit_log SET detail = NULL WHERE action = 'nutrition.targets' AND target_user_id = ? AND ${guard}`).bind(id, ...args),
+    db.prepare(`INSERT INTO audit_log (actor_id, action, target_user_id, at, detail) SELECT ?, 'member.delete_data', ?, ?, ? WHERE ${guard}`).bind(session.userId, id, now, `${keys.length} files`, ...args),
+    db.prepare(`UPDATE erasure_jobs SET status = 'complete' WHERE id = ? AND ${guard}`).bind(operation, ...args),
+    db.prepare("UPDATE users SET data_erasing = 0, erasure_owner = NULL WHERE id = ? AND erasure_owner = ? AND EXISTS (SELECT 1 FROM erasure_jobs WHERE id = ? AND user_id = ? AND status = 'complete')").bind(id, owner, operation, id),
+    ]);
+  } catch {
+    // A lost response can hide a committed batch; never release an uncertain owner.
+    try {
+      const status = await db.prepare('SELECT status FROM erasure_jobs WHERE id = ? AND user_id = ?').bind(operation, id).first<string>('status');
+      if (status === 'complete') return redirect(`/admin/miembros/${id}/`);
+    } catch { /* Keep the owner until an operator can establish the outcome. */ }
+    return html(messageView('Borrado pendiente', 'No se pudo confirmar el resultado. Contacta a soporte antes de reintentar.', session), 503);
+  }
+  return result.at(-1)?.meta.changes ? redirect(`/admin/miembros/${id}/`) : pending();
 }
 
 export async function memberAction(request: Request, db: DB, session: Session, now: number, id: string, action: string): Promise<Response> {

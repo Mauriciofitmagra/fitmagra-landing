@@ -134,3 +134,11 @@ Do not deploy unless the checklist printed "All 13 items pass." Create the produ
 - Choosing and wiring the payment provider (milestone M7, spec Q2, the research doc on branch `research/payments-colombia`).
 - DIAN electronic invoicing (spec Q4).
 - Email for invites and reminders (spec Q16).
+
+### Pending private-data erasure
+
+An erasure can remain pending if an upload or a database/storage operation has an uncertain outcome. The affected member cannot use the member area until it is resolved. An administrator can reopen the member page and retry; do not start a new request or declare the data erased while the page says it is pending.
+
+If retries do not resolve it, an operator must investigate the `erasure_jobs`, `users.erasure_owner`, and `upload_intents` records and the corresponding private R2 keys. Never remove an upload intent or clear an owner just because it is old or an object is not visible: an earlier operation may still finish. Recovery requires independent evidence that the relevant Worker and storage/database operations have stopped and that any object is removed, followed by a retry of the same job. Preserve the records and escalate if that cannot be established. A failed final database response may already have committed; check the job status before any recovery.
+
+Before enabling this version against an existing bucket, stop all older Worker versions from accepting writes, establish that their in-flight writes have ended, and reconcile existing R2 objects with database records. Older versions do not create upload intents, so this version alone cannot prove those legacy objects were erased. Do not sign off the cutover until this reconciliation is complete.

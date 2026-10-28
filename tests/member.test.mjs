@@ -145,7 +145,7 @@ test('an admin deletes all of a member data, rows and files, and the action is l
   await upload(env, '/app/fotos/', ana, { bytes: JPEG, type: 'image/jpeg', fields: { date: '2026-10-21', pose: 'front' } });
   await upload(env, '/admin/miembros/ana/documentos/', admin, { bytes: PDF, type: 'application/pdf', fields: { kind: 'nutrition_plan', title: 'N' } });
   assert.equal(env.FILES.objects.size, 2);
-  assert.equal((await send(env, '/admin/miembros/ana/borrar-datos/', { method: 'POST', cookie: admin, form: { confirm: 'ana@x.co' } })).status, 303);
+  assert.equal((await send(env, '/admin/miembros/ana/borrar-datos/', { method: 'POST', cookie: admin, form: { confirm: 'ana@x.co', operation: crypto.randomUUID() } })).status, 303);
   assert.equal(env.FILES.objects.size, 0);
   for (const t of ['weights', 'photos', 'documents']) assert.deepEqual(await ids(env, t, 'ana'), [], t);
   assert.ok(await env.DB.prepare("SELECT 1 FROM audit_log WHERE action = 'member.delete_data' AND target_user_id = 'ana'").first());
@@ -302,4 +302,172 @@ test('a stale admin nutrition update cannot write or audit after erasure', async
     assert.equal(target?.kcal ?? null, existing ? 1800 : null);
     assert.equal((await env.DB.prepare("SELECT count(*) n FROM audit_log WHERE action = 'nutrition.targets'").first()).n, 0);
   }
+});
+
+
+test('erasure waits for a paused private upload and retries safely', async () => {
+  const env = await setup();
+  const admin = await login(env, 'admin1');
+  const ana = await login(env, 'ana');
+  const operation = crypto.randomUUID();
+  let started, resume;
+  const ready = new Promise(resolve => { started = resolve; });
+  const wait = new Promise(resolve => { resume = resolve; });
+  const put = env.FILES.put;
+  env.FILES.put = async (...args) => { started(); await wait; return put(...args); };
+  const pendingUpload = upload(env, '/app/fotos/', ana, { bytes: JPEG, type: 'image/jpeg', fields: { date: '2026-10-21', pose: 'front' } });
+  await ready;
+  const erase = () => send(env, '/admin/miembros/ana/borrar-datos/', { method: 'POST', cookie: admin, form: { confirm: 'ana@x.co', operation } });
+  assert.equal((await erase()).status, 409);
+  assert.equal((await send(env, '/app/', { cookie: ana })).status, 409);
+  resume();
+  assert.equal((await pendingUpload).status, 409);
+  assert.equal((await erase()).status, 303);
+  assert.equal(env.FILES.objects.size, 0);
+  assert.equal((await env.DB.prepare("SELECT count(*) AS n FROM upload_intents WHERE user_id = 'ana'").first()).n, 0);
+});
+
+test('retrying a completed erasure cannot delete new member data', async () => {
+  const env = await setup();
+  const admin = await login(env, 'admin1');
+  const ana = await login(env, 'ana');
+  const operation = crypto.randomUUID();
+  const erase = () => send(env, '/admin/miembros/ana/borrar-datos/', { method: 'POST', cookie: admin, form: { confirm: 'ana@x.co', operation } });
+  assert.equal((await erase()).status, 303);
+  await send(env, '/app/peso/', { method: 'POST', cookie: ana, form: { date: '2026-10-20', kg: '70' } });
+  assert.equal((await erase()).status, 303);
+  assert.equal((await ids(env, 'weights', 'ana')).length, 1);
+});
+
+test('concurrent erasure is rejected while another request owns the deletion', async () => {
+  const env = await setup();
+  const admin = await login(env, 'admin1');
+  const ana = await login(env, 'ana');
+  await upload(env, '/app/fotos/', ana, { bytes: JPEG, type: 'image/jpeg', fields: { date: '2026-10-21', pose: 'front' } });
+  let started, resume;
+  const ready = new Promise(resolve => { started = resolve; });
+  const wait = new Promise(resolve => { resume = resolve; });
+  const remove = env.FILES.delete;
+  env.FILES.delete = async (...args) => { started(); await wait; return remove(...args); };
+  const operation = crypto.randomUUID();
+  const erase = op => send(env, '/admin/miembros/ana/borrar-datos/', { method: 'POST', cookie: admin, form: { confirm: 'ana@x.co', operation: op } });
+  const first = erase(operation);
+  await ready;
+  assert.equal((await erase(operation)).status, 409);
+  assert.equal((await erase(crypto.randomUUID())).status, 409);
+  resume();
+  assert.equal((await first).status, 303);
+  assert.equal(env.FILES.objects.size, 0);
+});
+
+test('a failed storage deletion stays pending and can be retried', async () => {
+  const env = await setup();
+  const admin = await login(env, 'admin1');
+  const ana = await login(env, 'ana');
+  await upload(env, '/app/fotos/', ana, { bytes: JPEG, type: 'image/jpeg', fields: { date: '2026-10-21', pose: 'front' } });
+  const remove = env.FILES.delete;
+  env.FILES.delete = async () => { throw new Error('storage unavailable'); };
+  const operation = crypto.randomUUID();
+  const erase = () => send(env, '/admin/miembros/ana/borrar-datos/', { method: 'POST', cookie: admin, form: { confirm: 'ana@x.co', operation } });
+  assert.equal((await erase()).status, 409);
+  assert.equal(env.FILES.objects.size, 1);
+  assert.equal((await send(env, '/app/', { cookie: ana })).status, 409);
+  env.FILES.delete = remove;
+  assert.equal((await erase()).status, 303);
+  assert.equal(env.FILES.objects.size, 0);
+});
+
+test('a lost final database response cannot make a completed erasure delete new data on retry', async () => {
+  const env = await setup();
+  const admin = await login(env, 'admin1');
+  const ana = await login(env, 'ana');
+  const operation = crypto.randomUUID();
+  const erase = () => send(env, '/admin/miembros/ana/borrar-datos/', { method: 'POST', cookie: admin, form: { confirm: 'ana@x.co', operation } });
+  const batch = env.DB.batch;
+  let calls = 0;
+  env.DB.batch = async statements => { const result = await batch(statements); if (++calls === 2) throw new Error('response lost'); return result; };
+  assert.equal((await erase()).status, 303);
+  env.DB.batch = batch;
+  assert.equal((await send(env, '/app/peso/', { method: 'POST', cookie: ana, form: { date: '2026-10-20', kg: '70' } })).status, 303);
+  assert.equal((await erase()).status, 303);
+  assert.equal((await ids(env, 'weights', 'ana')).length, 1);
+});
+
+test('a failed final database transaction never reports erasure complete', async () => {
+  const env = await setup();
+  const admin = await login(env, 'admin1');
+  const ana = await login(env, 'ana');
+  await send(env, '/app/peso/', { method: 'POST', cookie: ana, form: { date: '2026-10-20', kg: '70' } });
+  env.DB.raw.exec("CREATE TRIGGER fail_erase BEFORE INSERT ON audit_log WHEN NEW.action = 'member.delete_data' BEGIN SELECT RAISE(ABORT, 'cleanup failed'); END");
+  const operation = crypto.randomUUID();
+  const erase = () => send(env, '/admin/miembros/ana/borrar-datos/', { method: 'POST', cookie: admin, form: { confirm: 'ana@x.co', operation } });
+  assert.equal((await erase()).status, 503);
+  assert.equal((await ids(env, 'weights', 'ana')).length, 1);
+  assert.equal((await send(env, '/app/', { cookie: ana })).status, 409);
+  assert.equal((await erase()).status, 409);
+  assert.equal((await env.DB.prepare('SELECT status FROM erasure_jobs WHERE id = ?').bind(operation).first()).status, 'pending');
+});
+
+test('a different stale erasure form cannot delete records created after another erasure', async () => {
+  const env = await setup();
+  const admin = await login(env, 'admin1');
+  const ana = await login(env, 'ana');
+  const erase = (operation, revision) => send(env, '/admin/miembros/ana/borrar-datos/', { method: 'POST', cookie: admin, form: { confirm: 'ana@x.co', operation, revision } });
+  assert.equal((await erase(crypto.randomUUID(), '')).status, 303);
+  await send(env, '/app/peso/', { method: 'POST', cookie: ana, form: { date: '2026-10-20', kg: '70' } });
+  assert.equal((await erase(crypto.randomUUID(), '')).status, 409);
+  assert.equal((await ids(env, 'weights', 'ana')).length, 1);
+});
+
+test('erasure removes nutrition values from audit details', async () => {
+  const env = await setup();
+  const admin = await login(env, 'admin1');
+  await send(env, '/admin/miembros/ana/metas/', { method: 'POST', cookie: admin, form: { kcal: '2100', protein: '140', carbs: '220', fat: '70' } });
+  assert.equal((await send(env, '/admin/miembros/ana/borrar-datos/', { method: 'POST', cookie: admin, form: { confirm: 'ana@x.co', operation: crypto.randomUUID(), revision: '' } })).status, 303);
+  const audit = await env.DB.prepare("SELECT detail FROM audit_log WHERE action = 'nutrition.targets' AND target_user_id = 'ana'").first();
+  assert.equal(audit.detail, null);
+});
+
+test('an uncertain upload keeps erasure pending even if its object lands later', async () => {
+  const env = await setup();
+  const admin = await login(env, 'admin1');
+  const ana = await login(env, 'ana');
+  let late;
+  env.FILES.put = async (key, value, opts) => { late = async () => env.FILES.objects.set(key, { bytes: new Uint8Array(value), httpMetadata: opts.httpMetadata }); throw new Error('uncertain put'); };
+  await assert.rejects(upload(env, '/app/fotos/', ana, { bytes: JPEG, type: 'image/jpeg', fields: { date: '2026-10-21', pose: 'front' } }), /uncertain put/);
+  const operation = crypto.randomUUID();
+  const erase = () => send(env, '/admin/miembros/ana/borrar-datos/', { method: 'POST', cookie: admin, form: { confirm: 'ana@x.co', operation, revision: '' } });
+  assert.equal((await erase()).status, 409);
+  await late();
+  assert.equal((await erase()).status, 409);
+  assert.equal(env.FILES.objects.size, 1);
+});
+
+test('a member page captured during erasure keeps the pending job if it completes while rendering', async () => {
+  const env = await setup();
+  const admin = await login(env, 'admin1');
+  const ana = await login(env, 'ana');
+  const operation = crypto.randomUUID();
+  await env.DB.prepare("UPDATE users SET data_revision = 'revision-b', data_erasing = 1 WHERE id = 'ana'").run();
+  await env.DB.prepare("INSERT INTO erasure_jobs (id, user_id, status, created_at) VALUES (?, 'ana', 'pending', 1)").bind(operation).run();
+  const prepare = env.DB.prepare;
+  env.DB.prepare = sql => {
+    const statement = prepare(sql);
+    if (!sql.includes('AS pending')) return statement;
+    return { ...statement, bind: (...args) => {
+      const bound = statement.bind(...args);
+      return { ...bound, first: async (...params) => {
+        const snapshot = await bound.first(...params);
+        await prepare("UPDATE erasure_jobs SET status = 'complete' WHERE id = ?").bind(operation).run();
+        await prepare("UPDATE users SET data_erasing = 0 WHERE id = 'ana'").run();
+        return snapshot;
+      } };
+    } };
+  };
+  const page = await (await send(env, '/admin/miembros/ana/', { cookie: admin })).text();
+  env.DB.prepare = prepare;
+  assert.ok(page.includes(`name="operation" value="${operation}"`));
+  await send(env, '/app/peso/', { method: 'POST', cookie: ana, form: { date: '2026-10-20', kg: '70' } });
+  assert.equal((await send(env, '/admin/miembros/ana/borrar-datos/', { method: 'POST', cookie: admin, form: { confirm: 'ana@x.co', operation, revision: 'revision-b' } })).status, 303);
+  assert.equal((await ids(env, 'weights', 'ana')).length, 1);
 });
