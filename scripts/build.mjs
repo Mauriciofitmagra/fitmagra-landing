@@ -86,12 +86,14 @@ export async function build({
 
 
 
-  const nf = strings.es.notFound;
-  write('404.html', layout(strings.es, {
-    title: nf.title,
-    index: false,
-    body: `<section class="closing"><h1 class="display">${esc(nf.text)}</h1><p><a href="/">${esc(nf.back)}</a></p></section>`,
-  }));
+  for (const t of Object.values(strings)) {
+    const nf = t.notFound;
+    write(`${t.path.slice(1)}404.html`, layout(t, {
+      title: nf.title,
+      index: false,
+      body: `<section class="closing"><h1 class="display">${esc(nf.text)}</h1><p><a href="${t.path}">${esc(nf.back)}</a></p></section>`,
+    }));
+  }
   write('sitemap.xml', sitemap(indexed, siteUrl));
   write('robots.txt', `User-agent: *\nAllow: /\nSitemap: ${siteUrl}/sitemap.xml\n`);
   return outDir;

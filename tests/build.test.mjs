@@ -57,3 +57,16 @@ test('default build uses the chosen Worker hostname for search and sharing', () 
   assert.ok(readFileSync(join(outDir, 'robots.txt'), 'utf8').includes(`Sitemap: ${host}/sitemap.xml`));
   assert.ok(readFileSync(join(outDir, 'sitemap.xml'), 'utf8').includes(`<loc>${host}/</loc>`));
 });
+
+test('missing pages have language-specific, non-indexed recovery pages', () => {
+  const spanish = readFileSync(join(outDir, '404.html'), 'utf8');
+  const english = readFileSync(join(outDir, 'en/404.html'), 'utf8');
+  assert.match(spanish, /<html lang="es">/);
+  assert.match(spanish, /Esta página no existe\./);
+  assert.match(spanish, /<a href="\/">Volver al inicio<\/a>/);
+  assert.match(english, /<html lang="en">/);
+  assert.match(english, /This page does not exist\./);
+  assert.match(english, /<a href="\/en\/">Back to the home page<\/a>/);
+  for (const html of [spanish, english]) assert.match(html, /<meta name="robots" content="noindex">/);
+  assert.doesNotMatch(readFileSync(join(outDir, 'sitemap.xml'), 'utf8'), /404\.html/);
+});
