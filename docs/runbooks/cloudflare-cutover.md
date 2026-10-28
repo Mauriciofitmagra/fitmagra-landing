@@ -1,0 +1,155 @@
+# Cloudflare cutover runbook
+
+How FitMagra moves from today's hosting to one Cloudflare Worker (spec section 14). Nothing in this file has been run. Every command below is marked **Roberto runs**. An agent may prepare a pull request for the repo side of a step. It never runs a deploy, a `wrangler` command against a Cloudflare account, a `vercel` command, or a DNS change.
+
+For local verification, use Node 24 or newer, run `npm ci`, then `npm run check`. The check type-checks the Worker against Cloudflare bindings and runs the tests, static build, link checks and page budgets. The build itself has no runtime dependencies.
+
+The checklist script decides whether cutover may happen:
+
+```text
+SITE_URL=https://fitmagra.robertzu43.workers.dev node scripts/build.mjs
+SITE_URL=https://fitmagra.robertzu43.workers.dev node scripts/check-cutover.mjs
+```
+
+It prints one line per item and exits with code 1 while any item fails. Human sign-offs live in `docs/runbooks/cutover-signoff.json`. Each one needs `"by": "Roberto"` or `"by": "Mauricio"` and a `YYYY-MM-DD` date. An agent cannot sign.
+
+## Gate 0. Vercel, before anything merges to main
+
+This gate comes first because it protects the site that is live today. Roberto chose Cloudflare and its workers.dev address on 2026-10-28. The current Vercel site remains available until the new Worker has been deployed and verified.
+
+On 2026-10-28, the GitHub repository listed `https://fitmagra.vercel.app` as its homepage, and that public URL returned an HTTP 200 FitMagra page. This does not establish which branch Vercel deploys or whether another custom domain is in use.
+
+The GitHub repo `Mauriciofitmagra/fitmagra-landing` is connected to the Vercel project `mauriciofitmagras-projects/fitmagra`, and every pull request from #2 to #8 shows a failing Vercel preview check. It is likely, not confirmed, that Vercel builds `main` and serves the public site from it. The rebuild removes the root `index.html`, and the new site needs `node scripts/build.mjs` before there is anything to serve. If Vercel deploys `main` the old way, merging any of these pull requests would likely change or break the live site.
+
+Do not merge any of #2 to #8, or this runbook's own pull request, until Roberto or Mauricio has done all of this:
+
+1. **Roberto or Mauricio runs.** Open the Vercel project `mauriciofitmagras-projects/fitmagra` and note which branch deploys to production, which domains point at it, and what the production URL shows now.
+2. **Roberto has chosen Cloudflare** on its workers.dev address for this release.
+3. **Roberto or Mauricio runs**, if the decision is Cloudflare. Stop Vercel from deploying `main` before the first merge. Vercel's project settings offer ways to pause production deployments or to disconnect the Git repository. Keep the current production deployment serving the domain until step 7 of this runbook moves the domain.
+4. **Roberto or Mauricio runs**, if the decision is to keep Vercel. Reconfigure the Vercel project to build this site (build command `node scripts/build.mjs`, output directory `dist`). The member area, D1 and R2 parts of this repo need a different backend on Vercel; that is a new design, outside this runbook.
+5. **Roberto or Mauricio records it** in `cutover-signoff.json`:
+
+```json
+"vercel": { "by": "Roberto", "date": "2026-11-03", "decision": "cloudflare", "liveSiteChecked": true, "note": "Production deploys paused on Vercel; domain still on the old deployment." }
+```
+
+The checklist item "Vercel decided before anything merges to main" passes only with `decision` set to `cloudflare`, `liveSiteChecked` true and a valid sign-off.
+
+## Step 1. Accounts and names
+
+The intended public URL is `https://fitmagra.robertzu43.workers.dev`. The account subdomain was verified by a read-only Cloudflare lookup on 2026-10-28; no Worker named `fitmagra` was present at that time. This address will not serve the site until Roberto deploys the Worker. The repo uses these names.
+
+| Thing | Production | Staging |
+| --- | --- | --- |
+| Worker | `fitmagra` | `fitmagra-staging` |
+| D1 database | `fitmagra` | `fitmagra-staging` |
+| R2 bucket (private) | `fitmagra-files` | `fitmagra-files-staging` |
+| `ENVIRONMENT` var | `production` | `staging` |
+| `BILLING_PROVIDER` var | unset (online payment off) | `stub` |
+
+## Step 2. Create the databases and buckets
+
+**Roberto runs**, once per environment:
+
+```text
+npx wrangler login
+npx wrangler d1 create fitmagra-staging
+npx wrangler d1 create fitmagra
+npx wrangler r2 bucket create fitmagra-files-staging
+npx wrangler r2 bucket create fitmagra-files
+```
+
+Copy each printed `database_id` into `wrangler.jsonc` in place of `REPLACE_WITH_STAGING_D1_ID` and `REPLACE_WITH_PRODUCTION_D1_ID`, in a pull request. The ids are not secrets. Leave both buckets without public access and without a custom domain.
+
+**Roberto runs**, to create the tables:
+
+```text
+npx wrangler d1 migrations apply fitmagra-staging --env staging --remote
+npx wrangler d1 migrations apply fitmagra --remote
+```
+
+The migrations add tables and columns, but an older Worker does not enforce the private-data erasure fence. Do not restore old code with member-data writes enabled.
+
+## Step 3. Staging
+
+**Roberto runs:**
+
+```text
+node scripts/build.mjs
+npx wrangler deploy --env staging
+```
+
+Then, in the Cloudflare dashboard, put the staging `workers.dev` hostname behind Cloudflare Access so only Roberto and Mauricio reach it.
+
+**Roberto runs**, to create the first admin on staging:
+
+```text
+node scripts/create-admin.mjs --email <admin email> --name "<name>" --origin https://<staging hostname> > admin.sql
+npx wrangler d1 execute fitmagra-staging --env staging --remote --file admin.sql
+rm admin.sql
+```
+
+The invite link prints on the terminal, not into the file. It works once and expires in 72 hours.
+
+## Step 4. Prove it on staging
+
+**Roberto or Mauricio runs**, then signs each line in `cutover-signoff.json`:
+
+- `stagingSmokeTest`. An admin creates a member, the member sets a password from the invite link, accepts the consent, adds a weight, uploads a photo from a phone, and sees the photo. A second member cannot open the first member's photo URL.
+- `workersCpuMeasured`. Login works on staging and the Worker's CPU time per login is within the plan's limit, read from the Workers dashboard or `npx wrangler tail --env staging`. If it is over, decide spec Q22 (Workers Paid) before production.
+- `tasteInspector`. The Taste inspector run on the staging home, Historias and blog pages shows 0 FAIL.
+
+## Step 5. Production secrets and content
+
+- **Roberto runs** `npx wrangler secret put <NAME>` for each secret production needs. Today there are none. The payment provider adds its own in milestone M7. Sign `secretsSet` when every secret the code reads is set.
+- **Mauricio provides**, through a pull request: the lawyer's approved text for `content/legal/terminos.md`, `content/legal/privacidad.md`, `content/legal/terms.md` and `content/legal/privacy.md` (spec Q9, Q18). Drafts are in `docs/drafts/`. Counsel must also review the member consent screen; replace the draft version in `worker/app/consent.ts`, then Roberto or Mauricio records `legalReview` with `by`, `date`, `lawyer`, the matching `consentVersion`, and the `contentHash` printed by the checklist in `cutover-signoff.json`. Any later edit to the legal text or consent screen requires another review and updated hash. Client stories and media are excluded from this release; consent must be obtained before adding them later.
+
+## Step 6. Production on its workers.dev hostname
+
+**Roberto runs:**
+
+```text
+SITE_URL=https://fitmagra.robertzu43.workers.dev node scripts/build.mjs
+SITE_URL=https://fitmagra.robertzu43.workers.dev node scripts/check-cutover.mjs
+npx wrangler deploy
+```
+
+Do not deploy unless every checklist item passes. Create the production admin with `scripts/create-admin.mjs` as in step 3, against `fitmagra` with `--remote` and without `--env`.
+
+## Step 7. Switch the public link
+
+After the Worker is deployed and the release checks pass, **Roberto runs**:
+
+1. Verify HTTPS, `/sitemap.xml`, `/blog/rss.xml`, one login and one photo view on `https://fitmagra.robertzu43.workers.dev`.
+2. Update FitMagra's shared links to the Worker URL. The existing `fitmagra.vercel.app` address is owned by Vercel and cannot be moved to Cloudflare; a redirect from it requires a separate Vercel configuration or deployment decision.
+3. Keep the old Vercel deployment available for 14 days while the new address is verified. No custom domain or DNS change is needed for this workers.dev release.
+
+## Rollback
+
+| Problem | **Roberto runs** |
+| --- | --- |
+| A deploy broke the site or the member area | Do not roll back to a version that can write member data without the erasure fence. Disable member-data writes first, or deploy a corrected version that retains the fence. Inspect `npx wrangler deployments list` to identify versions. |
+| A migration or an admin action damaged data | D1 Time Travel may restore records that were later erased and cannot restore R2 in lockstep. Stop member-data writes and review erasures and private files before and after any restore; reconcile both stores before reopening access. |
+| Cloudflare itself is the problem in the first 14 days | Restore shared links to the old Vercel address while investigating. Member-area data stays in D1 and R2 and is not available on the old site. |
+
+## Not covered here
+
+- Choosing and wiring the payment provider (milestone M7, spec Q2, the research doc on branch `research/payments-colombia`).
+- DIAN electronic invoicing (spec Q4).
+- Email for invites and reminders (spec Q16).
+
+### Retention policy before launch
+
+The design proposes deleting photos 90 days after deactivation, with exceptions, but the current Worker does not schedule or perform that retention deletion. The draft privacy policy leaves retention periods for counsel to decide. Deactivation currently only blocks access; it does not remove photos. Do not publish a retention promise or sign off launch until counsel and Mauricio approve the policy and the matching deletion and exception process is implemented and verified.
+
+Roberto or Mauricio records `retentionReview` in `cutover-signoff.json` with `by`, `date`, `policy`, `implementation` and `contentHash`. The hash must match the reviewed legal content and consent screen, as for `legalReview`. A sign-off is not a substitute for implementing or testing the approved process. The existing manual erasure flow deletes all member tracking data and files on request; it is not an automatic photo-retention process.
+
+### Pending private-data erasure
+
+An erasure can remain pending if an upload or a database/storage operation has an uncertain outcome. The affected member cannot use the member area until it is resolved. An administrator can reopen the member page and retry; do not start a new request or declare the data erased while the page says it is pending.
+
+If retries do not resolve it, an operator must investigate the `erasure_jobs`, `users.erasure_owner`, and `upload_intents` records and the corresponding private R2 keys. Never remove an upload intent or clear an owner just because it is old or an object is not visible: an earlier operation may still finish. Recovery requires independent evidence that the relevant Worker and storage/database operations have stopped and that any object is removed, followed by a retry of the same job. Preserve the records and escalate if that cannot be established. A failed final database response may already have committed; check the job status before any recovery.
+
+Before enabling this version against an existing bucket, stop all older Worker versions from accepting writes, establish that their in-flight writes have ended, and reconcile existing R2 objects with database records. Older versions do not create upload intents, so this version alone cannot prove those legacy objects were erased. Do not sign off the cutover until this reconciliation is complete.
+
+Before cutover, Roberto or Mauricio records `privateStorage` in `cutover-signoff.json` with `by`, `date`, `state` (`new-empty` or `reconciled`) and an `evidence` description. The evidence must establish that no older Worker can still write to the bucket and that the bucket is either new and empty or its existing objects have been reconciled with database records. The checklist fails until this is recorded.

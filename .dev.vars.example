@@ -1,0 +1,5 @@
+# Copy to .dev.vars for `wrangler dev`. .dev.vars is git-ignored. Never commit real values.
+# Production and staging values are Wrangler secrets that Roberto sets (`wrangler secret put <NAME>`).
+ENVIRONMENT=development
+BILLING_PROVIDER=stub
+# Billing provider secrets arrive with milestone M7, after the provider is chosen (spec Q2).

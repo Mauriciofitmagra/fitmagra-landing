@@ -1,0 +1,34 @@
+// One Worker: static files from dist/ (built by `node scripts/build.mjs`) plus the member-area code.
+// Only the run_worker_first paths invoke the Worker; every other path is served as a file.
+// database_id values are placeholders until Roberto creates the databases (spec Q1). Roberto runs every deploy.
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "fitmagra",
+  "workers_dev": true,
+  "main": "worker/index.ts",
+  "compatibility_date": "2026-10-27",
+  "assets": {
+    "directory": "./dist",
+    "binding": "ASSETS",
+    "not_found_handling": "404-page",
+    "run_worker_first": ["/entrar/*", "/salir/*", "/app/*", "/admin/*", "/api/*"]
+  },
+  "vars": { "ENVIRONMENT": "production" },
+  // Private bucket: no public access and no custom domain. Files are read only through /app/archivos/ (spec 11.2).
+  "r2_buckets": [{ "binding": "FILES", "bucket_name": "fitmagra-files" }],
+  "d1_databases": [
+    { "binding": "DB", "database_name": "fitmagra", "database_id": "REPLACE_WITH_PRODUCTION_D1_ID", "migrations_dir": "migrations" }
+  ],
+  "env": {
+    "staging": {
+      "name": "fitmagra-staging",
+      // Staging lives only on its workers.dev hostname, behind Cloudflare Access (runbook step 3).
+      "workers_dev": true,
+      "vars": { "ENVIRONMENT": "staging", "BILLING_PROVIDER": "stub" },
+      "r2_buckets": [{ "binding": "FILES", "bucket_name": "fitmagra-files-staging" }],
+      "d1_databases": [
+        { "binding": "DB", "database_name": "fitmagra-staging", "database_id": "REPLACE_WITH_STAGING_D1_ID", "migrations_dir": "migrations" }
+      ]
+    }
+  }
+}
