@@ -27,3 +27,9 @@ test('names the file and field when something is wrong', () => {
   assert.throws(() => parsePost(post(`${valid}\ncover: /media/blog/a.jpg`), 'es/a.md'), /cover_alt is required/);
   assert.throws(() => parsePost('sin front matter', 'es/a.md'), /missing front matter/);
 });
+
+test('calendar dates must be real days', () => {
+  assert.throws(() => parsePost(post(valid.replace('2026-11-02', '2026-02-30')), 'es/a.md'), /date must be YYYY-MM-DD/);
+  assert.throws(() => parsePost(post(valid.replace('2026-11-02', '2025-02-29')), 'es/a.md'), /date must be YYYY-MM-DD/);
+  assert.equal(parsePost(post(valid.replace('2026-11-02', '2024-02-29')), 'es/a.md').date, '2024-02-29');
+});
