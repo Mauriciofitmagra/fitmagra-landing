@@ -554,3 +554,15 @@ test('delete controls identify their record for screen-reader users', async () =
   assert.match(nutrition, /aria-label="Borrar.*2025-01-12.*Arroz &amp; pollo"/);
   assert.match(photos, /aria-label="Borrar foto Frente del 2025-01-12"/);
 });
+
+test('photo validation preserves the selected date and pose and asks for the file again', async () => {
+  const env = await setup();
+  const ana = await login(env, 'ana');
+  const res = await upload(env, '/app/fotos/', ana, { bytes: PNG, type: 'image/png', fields: { date: '2025-01-12', pose: 'side' } });
+  assert.equal(res.status, 400);
+  const html = await res.text();
+  assert.match(html, /name="date" value="2025-01-12"/);
+  assert.match(html, /<option value="side" selected>Perfil<\/option>/);
+  assert.match(html, /elige la foto de nuevo/i);
+  assert.equal(env.FILES.objects.size, 0);
+});

@@ -98,15 +98,15 @@ ${older.length ? `<details><summary>Versiones anteriores</summary><ul>${older.ma
 export const plan = async (db: DB, s: Session): Promise<Response> =>
   html(appPage('Plan', '/app/plan/', `<h1 class="app-title">Tu plan de entrenamiento</h1>${await documentsList(db, s.userId, 'training_plan')}`, s));
 
-export async function photos(db: DB, s: Session, now: number, error = '', status = 200): Promise<Response> {
+export async function photos(db: DB, s: Session, now: number, error = '', status = 200, values: { date?: string; pose?: string } = {}): Promise<Response> {
   const { results } = await db.prepare('SELECT id, taken_on, pose FROM photos WHERE user_id = ? ORDER BY taken_on DESC, created_at DESC').bind(s.userId).all<{ id: string; taken_on: string; pose: string }>();
   const poses: Record<string, string> = { front: 'Frente', side: 'Perfil', back: 'Espalda', other: 'Otra' };
   return html(appPage('Fotos', '/app/fotos/', `<h1 class="app-title">Fotos de progreso</h1>
 <p>Solo tú y el equipo de FitMagra ven estas fotos. Si tu navegador puede procesarlas, las reduce y elimina la ubicación. De lo contrario, se sube el archivo original, que puede conservarla.</p>
-${error ? `<p class="notice" role="alert">${esc(error)}</p>` : ''}
+${error ? `<p class="notice" role="alert">${esc(error)} Elige la foto de nuevo.</p>` : ''}
 <form method="post" action="/app/fotos/" enctype="multipart/form-data" class="app-form" data-resize>
-<label class="field"><span>Fecha</span><input type="date" name="date" value="${today(now)}" required></label>
-<label class="field"><span>Pose</span><select name="pose">${Object.entries(poses).map(([v, l]) => `<option value="${v}">${l}</option>`).join('')}</select></label>
+<label class="field"><span>Fecha</span><input type="date" name="date" value="${esc(values.date ?? today(now))}" required></label>
+<label class="field"><span>Pose</span><select name="pose">${Object.entries(poses).map(([v, l]) => `<option value="${v}"${values.pose === v ? ' selected' : ''}>${l}</option>`).join('')}</select></label>
 <label class="field"><span>Foto (JPEG o WebP, 8 MB o menos)</span><input type="file" name="file" accept="image/jpeg,image/webp" required></label>
 <button class="button">Subir</button>
 <p role="status" data-photo-status></p>
@@ -120,9 +120,9 @@ export async function photoAdd(request: Request, db: DB, files: Bucket, s: Sessi
   const data = await request.formData();
   const date = String(data.get('date') ?? '');
   const pose = String(data.get('pose') ?? '');
-  if (!isDate(date) || !['front', 'side', 'back', 'other'].includes(pose)) return photos(db, s, now, 'Revisa la fecha y la pose.', 400);
+  if (!isDate(date) || !['front', 'side', 'back', 'other'].includes(pose)) return photos(db, s, now, 'Revisa la fecha y la pose.', 400, { date, pose });
   const checked = await checkFile(data.get('file'), PHOTO);
-  if (!checked.ok) return photos(db, s, now, checked.error, checked.status);
+  if (!checked.ok) return photos(db, s, now, checked.error, checked.status, { date, pose });
   const key = fileKey(s.userId, 'photos', checked.type === 'image/webp' ? 'webp' : 'jpg');
   if (!await beginUpload(db, s.userId, s.dataRevision, key, now)) return html(messageView('Borrado en curso', 'La cuenta cambió. Vuelve a intentarlo más tarde.', s), 409);
   await files.put(key, checked.bytes, { httpMetadata: { contentType: checked.type } });
