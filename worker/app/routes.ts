@@ -109,6 +109,7 @@ ${error ? `<p class="notice" role="alert">${esc(error)}</p>` : ''}
 <label class="field"><span>Pose</span><select name="pose">${Object.entries(poses).map(([v, l]) => `<option value="${v}">${l}</option>`).join('')}</select></label>
 <label class="field"><span>Foto (JPEG o WebP, 8 MB o menos)</span><input type="file" name="file" accept="image/jpeg,image/webp" required></label>
 <button class="button">Subir</button>
+<p role="status" data-photo-status></p>
 </form>
 <script src="/assets/resize.js" defer></script>
 <ul class="photo-grid">${results.map((p) => `<li><img src="/app/archivos/${esc(p.id)}" alt="Foto ${esc(poses[p.pose] ?? p.pose)} del ${esc(p.taken_on)}" loading="lazy"><span>${esc(p.taken_on)}, ${esc(poses[p.pose] ?? p.pose)}</span>
