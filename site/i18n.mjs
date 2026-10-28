@@ -28,7 +28,6 @@ const PLANS_ES = [
     features: [
       'Todo lo del Plan Standard',
       '4 sesiones/mes presencial o video',
-      'Perfil nutricional por alimento (prescripción adaptada por tipo de sangre)',
       'Cronobiología aplicada (timing óptimo de macros)',
       'Biofeedback semanal con ajuste en tiempo real',
       'Ebook "Biohacking FitMagra" (exclusivo)',
@@ -42,19 +41,7 @@ const PLANS_ES = [
     keys: ['Todo lo del plan Elite', '6 a 8 sesiones el primer mes', 'Videos de entrenamiento grabados para ti'],
     features: [
       'Todo lo del Plan Elite',
-      '6–8 sesiones mes 1 (protocolo de choque inicial)',
-      ['Protocolo de limpieza corporal mes 1:', [
-        'Drenaje linfático + movilidad articular',
-        'Reset de ejes hormonales (cortisol, insulina)',
-        '"Clean slate" nutricional · protocolo 72 h de reset',
-      ]],
-      'Alimentación nutracéutica de alto impacto (aplicada en países avanzados, base funcional real)',
-      ['Prescripción desde múltiples ángulos clínicos:', [
-        'Por tipo de sangre',
-        'Por perfil nutracéutico',
-        'Por biodecomposición genética (tecnología alemana)',
-        'Por ritmos circadianos y eje hormonal',
-      ]],
+      '6–8 sesiones el primer mes',
       'Protocolos de Medicina Tradicional China (diagnóstico funcional profundo)',
       'Árbol de decisión doctoral multidisciplinario (fisiólogo · dietista clínico · bioquímico)',
       'Suplementación basada en evidencia Oxford CEBM',
@@ -86,7 +73,6 @@ const PLANS_EN = [
     features: [
       'Everything in the Standard plan',
       '4 sessions per month, in person or video',
-      'Nutrition profile by food (prescription adapted to blood type)',
       'Applied chronobiology (best timing for macros)',
       'Weekly biofeedback with real-time adjustment',
       'Ebook "Biohacking FitMagra" (exclusive)',
@@ -100,19 +86,7 @@ const PLANS_EN = [
     keys: ['Everything in the Elite plan', '6 to 8 sessions in the first month', 'Training videos recorded for you'],
     features: [
       'Everything in the Elite plan',
-      '6–8 sessions in month 1 (initial shock protocol)',
-      ['Body cleansing protocol, month 1:', [
-        'Lymphatic drainage + joint mobility',
-        'Reset of hormonal axes (cortisol, insulin)',
-        'Nutritional "clean slate" · 72 h reset protocol',
-      ]],
-      'High-impact nutraceutical nutrition (applied in advanced countries, real functional basis)',
-      ['Prescription from several clinical angles:', [
-        'By blood type',
-        'By nutraceutical profile',
-        'By genetic biodecomposition (German technology)',
-        'By circadian rhythms and hormonal axis',
-      ]],
+      '6–8 sessions in the first month',
       'Traditional Chinese Medicine protocols (deep functional diagnosis)',
       'Multidisciplinary doctoral decision tree (physiologist · clinical dietitian · biochemist)',
       'Supplements based on Oxford CEBM evidence',

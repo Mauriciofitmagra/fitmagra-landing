@@ -96,3 +96,10 @@ test('the country list is shown once and does not move continuously', () => {
   const css = readFileSync(join(outDir, 'assets/brand.css'), 'utf8');
   assert.doesNotMatch(css, /\.proof-track\s*\{[^}]*animation\s*:/);
 });
+
+test('public plans do not advertise unsupported blood-type diets or body resets', () => {
+  for (const path of ['index.html', 'en/index.html']) {
+    const html = readFileSync(join(outDir, path), 'utf8');
+    assert.doesNotMatch(html, /tipo de sangre|blood type|limpieza corporal|body cleansing|reset de ejes hormonales|reset of hormonal axes|72 h de reset|72 h reset|biodecomposición genética|genetic biodecomposition/i);
+  }
+});
