@@ -471,3 +471,64 @@ test('a member page captured during erasure keeps the pending job if it complete
   assert.equal((await send(env, '/admin/miembros/ana/borrar-datos/', { method: 'POST', cookie: admin, form: { confirm: 'ana@x.co', operation, revision: 'revision-b' } })).status, 303);
   assert.equal((await ids(env, 'weights', 'ana')).length, 1);
 });
+
+test('a password change started before an admin reset cannot override the reset', async () => {
+  const env = await setup();
+  const memberCookie = await login(env, 'ana');
+  const adminCookie = await login(env, 'admin1');
+  const { readSession } = await import('../worker/auth/sessions.ts');
+  const { changePassword } = await import('../worker/app/routes.ts');
+  const now = Math.floor(Date.now() / 1000);
+  const session = await readSession(env.DB, { token: memberCookie.split('=')[1], now });
+  const reset = await send(env, '/admin/miembros/ana/reset/', { method: 'POST', cookie: adminCookie });
+  assert.equal(reset.status, 200);
+  const request = req('/app/cuenta/clave/', { method: 'POST', form: { current: PASSWORD, password: NEW_PASSWORD, confirm: NEW_PASSWORD } });
+  assert.equal((await changePassword(request, env.DB, session, now)).status, 409);
+  assert.equal((await send(env, '/entrar/', { method: 'POST', form: { email: 'ana@x.co', password: NEW_PASSWORD } })).status, 401);
+  assert.equal((await env.DB.prepare("SELECT count(*) AS n FROM auth_tokens WHERE user_id = 'ana' AND purpose = 'reset'").first()).n, 1);
+});
+
+test('changing a password invalidates previous sessions and reset links', async () => {
+  const env = await setup();
+  const member = await login(env, 'ana');
+  const other = await login(env, 'ana');
+  const { issueToken } = await import('../worker/auth/tokens.ts');
+  await issueToken(env.DB, { userId: 'ana', purpose: 'reset', now: Math.floor(Date.now() / 1000) });
+  const response = await send(env, '/app/cuenta/clave/', { method: 'POST', cookie: member, form: { current: PASSWORD, password: NEW_PASSWORD, confirm: NEW_PASSWORD } });
+  assert.equal(response.status, 303);
+  assert.equal(response.headers.get('location'), '/entrar/?clave=actualizada');
+  assert.match(await (await send(env, response.headers.get('location'))).text(), /Contraseña actualizada/);
+  assert.equal((await send(env, '/app/', { cookie: other })).headers.get('location'), '/entrar/');
+  assert.equal((await env.DB.prepare("SELECT count(*) AS n FROM auth_tokens WHERE user_id = 'ana'").first()).n, 0);
+  assert.equal((await send(env, '/entrar/', { method: 'POST', form: { email: 'ana@x.co', password: NEW_PASSWORD } })).status, 303);
+});
+
+test('a logged-out session cannot complete a delayed password change', async () => {
+  const env = await setup();
+  const member = await login(env, 'ana');
+  const { readSession } = await import('../worker/auth/sessions.ts');
+  const { changePassword } = await import('../worker/app/routes.ts');
+  const now = Math.floor(Date.now() / 1000);
+  const session = await readSession(env.DB, { token: member.split('=')[1], now });
+  await send(env, '/salir/', { method: 'POST', cookie: member });
+  const request = req('/app/cuenta/clave/', { method: 'POST', form: { current: PASSWORD, password: NEW_PASSWORD, confirm: NEW_PASSWORD } });
+  assert.equal((await changePassword(request, env.DB, session, now)).status, 409);
+});
+
+test('concurrent member password changes cannot both succeed', async () => {
+  const env = await setup();
+  const member = await login(env, 'ana');
+  const change = password => send(env, '/app/cuenta/clave/', { method: 'POST', cookie: member, form: { current: PASSWORD, password, confirm: password } });
+  const responses = await Promise.all([change(NEW_PASSWORD), change('tercera-clave-123')]);
+  assert.deepEqual(responses.map(r => r.status).sort(), [303, 409]);
+});
+
+test('a failed password-change transaction preserves the old password and session', async () => {
+  const env = await setup();
+  const member = await login(env, 'ana');
+  env.DB.raw.exec("CREATE TRIGGER fail_revoke BEFORE DELETE ON sessions WHEN OLD.user_id = 'ana' BEGIN SELECT RAISE(ABORT, 'revoke failed'); END");
+  await assert.rejects(send(env, '/app/cuenta/clave/', { method: 'POST', cookie: member, form: { current: PASSWORD, password: NEW_PASSWORD, confirm: NEW_PASSWORD } }), /revoke failed/);
+  assert.equal((await send(env, '/app/', { cookie: member })).status, 200);
+  assert.equal((await send(env, '/entrar/', { method: 'POST', form: { email: 'ana@x.co', password: PASSWORD } })).status, 303);
+  assert.equal((await send(env, '/entrar/', { method: 'POST', form: { email: 'ana@x.co', password: NEW_PASSWORD } })).status, 401);
+});

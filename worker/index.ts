@@ -25,7 +25,7 @@ interface Ctx { request: Request; env: Env; now: number; session: Session | null
 type Route = [method: string, path: RegExp, guard: Guard, handler: (c: Ctx) => Promise<Response> | Response];
 
 const ROUTES: Route[] = [
-  ['GET', /^\/entrar\/$/, 'public', () => auth.loginPage()],
+  ['GET', /^\/entrar\/$/, 'public', (c) => auth.loginPage(c.request)],
   ['POST', /^\/entrar\/$/, 'public', (c) => auth.login(c.request, c.env.DB, c.now)],
   ['GET', /^\/entrar\/clave\/$/, 'public', (c) => auth.setPasswordPage(c.request)],
   ['POST', /^\/entrar\/clave\/$/, 'public', (c) => auth.setPassword(c.request, c.env.DB, c.now)],

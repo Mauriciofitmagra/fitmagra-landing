@@ -1,6 +1,6 @@
 import type { DB } from '../db.ts';
 import type { Session } from '../auth/sessions.ts';
-import { html, redirect, form, esc } from '../http.ts';
+import { html, redirect, form, esc, clearCookie } from '../http.ts';
 import { messageView } from '../views.ts';
 import { verifyPassword, hashPassword } from '../auth/passwords.ts';
 import { checkFile, fileKey, beginUpload, discardUpload, findFile, stream, PHOTO, type Bucket } from '../files.ts';
@@ -174,6 +174,13 @@ export async function changePassword(request: Request, db: DB, s: Session, now: 
   if (!stored || !(await verifyPassword(current, stored))) return account(db, s, now, 'La contraseña actual no es correcta.', 400);
   if (password.length < 10) return account(db, s, now, 'La contraseña nueva necesita 10 caracteres o más.', 400);
   if (password !== confirm) return account(db, s, now, 'Las dos contraseñas no coinciden.', 400);
-  await db.prepare('UPDATE users SET password_hash = ?, updated_at = ? WHERE id = ?').bind(await hashPassword(password), now, s.userId).run();
-  return redirect('/app/cuenta/');
+  const revision = crypto.randomUUID();
+  const [changed] = await db.batch([
+    db.prepare("UPDATE users SET password_hash = ?, updated_at = ?, auth_revision = ? WHERE id = ? AND status = 'active' AND password_hash = ? AND auth_revision = ? AND EXISTS (SELECT 1 FROM sessions WHERE token_hash = ? AND user_id = ? AND expires_at > ?)")
+      .bind(await hashPassword(password), now, revision, s.userId, stored, s.authRevision, s.sessionHash, s.userId, now),
+    db.prepare('DELETE FROM auth_tokens WHERE user_id = ? AND EXISTS (SELECT 1 FROM users WHERE id = ? AND auth_revision = ?)').bind(s.userId, s.userId, revision),
+    db.prepare('DELETE FROM sessions WHERE user_id = ? AND EXISTS (SELECT 1 FROM users WHERE id = ? AND auth_revision = ?)').bind(s.userId, s.userId, revision),
+  ]);
+  if (!changed.meta.changes) return html(messageView('Cuenta modificada', 'Tu cuenta cambió. Vuelve a entrar e inténtalo de nuevo.', s), 409);
+  return redirect('/entrar/?clave=actualizada', { 'set-cookie': clearCookie() });
 }

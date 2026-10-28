@@ -13,7 +13,7 @@ const MIN_PASSWORD = 10;
 const failures = async (db: DB, key: string, now: number): Promise<number> =>
   (await db.prepare('SELECT count(*) AS n FROM login_failures WHERE key = ? AND at > ?').bind(key, now - WINDOW).first<number>('n')) ?? 0;
 
-export const loginPage = (): Response => html(loginView());
+export const loginPage = (request: Request): Response => html(loginView('', new URL(request.url).searchParams.get('clave') === 'actualizada'));
 
 export async function login(request: Request, db: DB, now: number): Promise<Response> {
   const { email = '', password = '' } = await form(request);

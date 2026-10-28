@@ -30,7 +30,8 @@ ${body}
 const field = (name: string, label: string, type = 'text', extra = ''): string =>
   `<label class="field"><span>${esc(label)}</span><input name="${name}" type="${type}" ${extra}></label>`;
 
-export const loginView = (error = ''): string => page('Entrar', `<h1 class="app-title">Entrar</h1>
+export const loginView = (error = '', passwordChanged = false): string => page('Entrar', `<h1 class="app-title">Entrar</h1>
+${passwordChanged ? '<p class="notice" role="status">Contraseña actualizada. Vuelve a entrar con tu nueva contraseña.</p>' : ''}
 ${error ? `<p class="notice" role="alert">${esc(error)}</p>` : ''}
 <form method="post" action="/entrar/" class="app-form">
 ${field('email', 'Correo', 'email', 'required autocomplete="username"')}
