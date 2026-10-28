@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import { mkdtempSync, mkdirSync, writeFileSync, readFileSync, cpSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import { checkCutover } from '../scripts/check-cutover.mjs';
+import { checkCutover, legalContentHash } from '../scripts/check-cutover.mjs';
 
 const repo = new URL('..', import.meta.url).pathname;
 const failing = (items) => items.filter((i) => !i.ok).map((i) => i.id);
@@ -18,11 +18,12 @@ function passingFixture() {
   put('content/legal/terms.md', 'Terms reviewed by counsel.');
   put('content/legal/privacy.md', 'Privacy policy reviewed by counsel.');
   put('worker/app/consent.ts', "export const CONSENT_VERSION = '2026-11-20';");
-  for (const p of ['terminos', 'privacidad', 'en/terms', 'en/privacy']) put(`dist/${p}/index.html`, '<html>Approved legal text</html>');
+  put('worker/app/views.ts', 'Lawyer-reviewed consent screen.');
+  for (const [p, text] of [['terminos', 'Términos revisados por el abogado.'], ['privacidad', 'Política de tratamiento de datos revisada por el abogado.'], ['en/terms', 'Terms reviewed by counsel.'], ['en/privacy', 'Privacy policy reviewed by counsel.']]) put(`dist/${p}/index.html`, `<html><p>${text}</p></html>`);
   put('wrangler.jsonc', readFileSync(join(repo, 'wrangler.jsonc'), 'utf8').replace('REPLACE_WITH_PRODUCTION_D1_ID', 'a1b2c3').replace('REPLACE_WITH_STAGING_D1_ID', 'd4e5f6'));
   put('docs/runbooks/cutover-signoff.json', JSON.stringify({
     vercel: { ...signed, decision: 'cloudflare', liveSiteChecked: true },
-    legalReview: { ...signed, lawyer: 'Counsel', consentVersion: '2026-11-20' },
+    legalReview: { ...signed, lawyer: 'Counsel', consentVersion: '2026-11-20', contentHash: legalContentHash(root) },
     secretsSet: signed, tasteInspector: signed, stagingSmokeTest: signed, workersCpuMeasured: signed,
   }));
   put('dist/index.html', '<html><head><link rel="canonical" href="https://fitmagra.co/"></head><body><a href="/">x</a></body></html>');
@@ -51,6 +52,8 @@ test('each item fails on its own', () => {
     ['billing-provider', (root) => writeFileSync(join(root, 'wrangler.jsonc'), readFileSync(join(root, 'wrangler.jsonc'), 'utf8').replace('"vars": { "ENVIRONMENT": "production" }', '"vars": { "ENVIRONMENT": "production", "BILLING_PROVIDER": "stub" }'))],
     ['legal-pages', (root) => writeFileSync(join(root, 'content/legal/privacidad.md'), 'PENDIENTE: texto del abogado')],
     ['legal-pages', (root) => writeFileSync(join(root, 'dist/en/privacy/index.html'), '')],
+    ['legal-pages', (root) => writeFileSync(join(root, 'content/legal/privacy.md'), 'Updated legal text, not yet built.')],
+    ['legal-pages', (root) => { const p = join(root, 'docs/runbooks/cutover-signoff.json'); const s = JSON.parse(readFileSync(p, 'utf8')); s.legalReview.contentHash = 'outdated'; writeFileSync(p, JSON.stringify(s)); }],
     ['legal-pages', (root) => writeFileSync(join(root, 'worker/app/consent.ts'), "export const CONSENT_VERSION = '2026-10-27-borrador';")],
     ['legal-pages', (root) => { const p = join(root, 'docs/runbooks/cutover-signoff.json'); const s = JSON.parse(readFileSync(p, 'utf8')); s.legalReview = null; writeFileSync(p, JSON.stringify(s)); }],
     ['legal-pages', (root) => { const p = join(root, 'docs/runbooks/cutover-signoff.json'); const s = JSON.parse(readFileSync(p, 'utf8')); s.legalReview.consentVersion = 'older'; writeFileSync(p, JSON.stringify(s)); }],

@@ -4,12 +4,16 @@
 import { readFileSync, existsSync, statSync, readdirSync } from 'node:fs';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { createHash } from 'node:crypto';
+import { markdown } from '../lib/markdown.mjs';
 import { checkLinks } from './check-links.mjs';
 import { pageWeight, BUDGETS } from './check-budgets.mjs';
 
 export const stripJsonc = (text) => text.replace(/("(?:\\.|[^"\\])*")|\/\/[^\n]*|\/\*[\s\S]*?\*\//g, (m, str) => str ?? '');
 const SIGNERS = ['Roberto', 'Mauricio'];
 const read = (root, p) => readFileSync(join(root, p), 'utf8');
+const LEGAL_SOURCES = ['content/legal/terminos.md', 'content/legal/privacidad.md', 'content/legal/terms.md', 'content/legal/privacy.md', 'worker/app/consent.ts', 'worker/app/views.ts'];
+export const legalContentHash = (root) => createHash('sha256').update(JSON.stringify(LEGAL_SOURCES.map((p) => read(root, p)))).digest('hex');
 
 // A human sign-off: who (Roberto or Mauricio) and when. Agents cannot sign.
 const signedOff = (s) => Boolean(s && SIGNERS.includes(s.by) && /^\d{4}-\d{2}-\d{2}$/.test(s.date ?? ''));
@@ -44,14 +48,15 @@ export function checkCutover({ root, env = process.env }) {
       for (const [f, output] of [['terminos', 'terminos'], ['privacidad', 'privacidad'], ['terms', 'en/terms'], ['privacy', 'en/privacy']]) {
         const p = `content/legal/${f}.md`;
         if (!existsSync(join(root, p))) return `${p} is missing`;
-        if (/PENDIENTE|PLACEHOLDER|TODO/i.test(read(root, p))) return `${p} still has placeholder text`;
+        const text = read(root, p);
+        if (!text.trim() || /PENDIENTE|PLACEHOLDER|TODO/i.test(text)) return `${p} is empty or still has placeholder text`;
         const built = `dist/${output}/index.html`;
-        if (!existsSync(join(root, built)) || statSync(join(root, built)).size === 0) return `${built} is missing or empty; rebuild the site`;
+        if (!existsSync(join(root, built)) || !read(root, built).includes(markdown(text))) return `${built} does not contain the current legal text; rebuild the site`;
       }
       const version = read(root, 'worker/app/consent.ts').match(/export const CONSENT_VERSION = ['"]([^'"]+)['"]/)?.[1];
       if (!version || /borrador|draft|pendiente|todo/i.test(version)) return 'consent version is missing or still a draft';
       const review = signoff().legalReview;
-      if (!signedOff(review) || !review.lawyer?.trim() || review.consentVersion !== version) return 'record the lawyer review and matching consent version in cutover-signoff.json';
+      if (!signedOff(review) || !review.lawyer?.trim() || review.consentVersion !== version || review.contentHash !== legalContentHash(root)) return `record the lawyer review, matching consent version, and content hash ${legalContentHash(root)} in cutover-signoff.json`;
       return true;
     }),
     item('site-url', 'SITE_URL is the real domain', () => {

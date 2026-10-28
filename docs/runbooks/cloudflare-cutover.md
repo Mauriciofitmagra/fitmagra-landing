@@ -98,7 +98,7 @@ The invite link prints on the terminal, not into the file. It works once and exp
 ## Step 5. Production secrets and content
 
 - **Roberto runs** `npx wrangler secret put <NAME>` for each secret production needs. Today there are none. The payment provider adds its own in milestone M7. Sign `secretsSet` when every secret the code reads is set.
-- **Mauricio provides**, through a pull request: the lawyer's approved text for `content/legal/terminos.md`, `content/legal/privacidad.md`, `content/legal/terms.md` and `content/legal/privacy.md` (spec Q9, Q18). Drafts are in `docs/drafts/`. Counsel must also review the member consent screen; replace the draft version in `worker/app/consent.ts`, then Roberto or Mauricio records `legalReview` with `by`, `date`, `lawyer`, and the matching `consentVersion` in `cutover-signoff.json`. Client stories and media are excluded from this release; consent must be obtained before adding them later.
+- **Mauricio provides**, through a pull request: the lawyer's approved text for `content/legal/terminos.md`, `content/legal/privacidad.md`, `content/legal/terms.md` and `content/legal/privacy.md` (spec Q9, Q18). Drafts are in `docs/drafts/`. Counsel must also review the member consent screen; replace the draft version in `worker/app/consent.ts`, then Roberto or Mauricio records `legalReview` with `by`, `date`, `lawyer`, the matching `consentVersion`, and the `contentHash` printed by the checklist in `cutover-signoff.json`. Any later edit to the legal text or consent screen requires another review and updated hash. Client stories and media are excluded from this release; consent must be obtained before adding them later.
 
 ## Step 6. Production on its workers.dev hostname
 
