@@ -5,6 +5,7 @@ body.app { background: var(--white); color: var(--black); }
 .app-bar nav { margin-left: auto; display: flex; gap: var(--s4); align-items: center; }
 .app-bar a, .app-bar .link { color: var(--white); }
 .app-main { padding: var(--s6) var(--margin) var(--s7); display: grid; gap: var(--s4); max-width: 960px; }
+.skip-target { position: absolute; }
 .app-title { font-size: var(--step-heading); font-weight: 800; line-height: 1.05; }
 .app-subtitle { font-size: var(--step-statement); font-weight: 800; margin-top: var(--s5); }
 .app-form { display: grid; gap: var(--s4); max-width: 420px; }

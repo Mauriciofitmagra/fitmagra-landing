@@ -39,8 +39,9 @@ test('login, member and admin pages offer a skip link to the main content', asyn
   const admin = cookieOf(await login(env, 'admin1@x.co'));
   for (const [path, cookie] of [['/entrar/', undefined], ['/app/', member], ['/admin/', admin]]) {
     const body = await (await worker.fetch(req(path, { cookie }), env)).text();
-    assert.match(body, /<a class="skip" href="#contenido">Saltar al contenido<\/a>/);
+    assert.match(body, path === '/app/' ? /<a class="skip" href="#seccion">Saltar al contenido<\/a>/ : /<a class="skip" href="#contenido">Saltar al contenido<\/a>/);
     assert.match(body, /<main id="contenido" class="app-main">/);
+    if (path === '/app/') assert.match(body, /<\/nav>\s*<span id="seccion" class="skip-target" tabindex="-1"><\/span>\s*<h1/);
   }
 });
 

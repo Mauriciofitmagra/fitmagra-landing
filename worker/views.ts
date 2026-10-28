@@ -3,7 +3,7 @@ import { wa } from '../site/i18n.mjs';
 import type { Session } from './auth/sessions.ts';
 
 // App screens use the brand tokens on white (spec 6.4); the Taste rules for public pages do not apply here.
-export function page(title: string, body: string, session: Session | null = null): string {
+export function page(title: string, body: string, session: Session | null = null, skipTarget = 'contenido'): string {
   return `<!doctype html>
 <html lang="es">
 <head>
@@ -16,7 +16,7 @@ export function page(title: string, body: string, session: Session | null = null
 <link rel="stylesheet" href="/assets/app.css">
 </head>
 <body class="app">
-<a class="skip" href="#contenido">Saltar al contenido</a>
+<a class="skip" href="#${esc(skipTarget)}">Saltar al contenido</a>
 <header class="app-bar">
 <a href="${session ? '/app/' : '/'}"><img src="/media/logo-oficial-600.png" width="600" height="162" alt="FitMagra Systems"></a>
 ${session ? `<nav>${session.role === 'admin' ? '<a href="/admin/">Admin</a>' : ''}<form method="post" action="/salir/"><button class="link">Salir</button></form></nav>` : ''}

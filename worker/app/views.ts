@@ -13,7 +13,8 @@ const TABS: [string, string][] = [
 export const appPage = (title: string, current: string, body: string, session: Session): string => page(title, `<nav class="app-tabs" aria-label="Área de miembro">
 ${TABS.map(([href, label]) => `<a href="${href}"${href === current ? ' aria-current="page"' : ''}>${label}</a>`).join('\n')}
 </nav>
-${body}`, session);
+<span id="seccion" class="skip-target" tabindex="-1"></span>
+${body}`, session, 'seccion');
 
 const notice = (error: string): string => (error ? `<p class="notice" role="alert">${esc(error)}</p>` : '');
 
