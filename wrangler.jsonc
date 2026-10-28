@@ -4,6 +4,7 @@
 {
   "$schema": "node_modules/wrangler/config-schema.json",
   "name": "fitmagra",
+  "workers_dev": true,
   "main": "worker/index.ts",
   "compatibility_date": "2026-10-27",
   "assets": {

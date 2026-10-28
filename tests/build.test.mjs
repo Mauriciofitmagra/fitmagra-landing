@@ -6,7 +6,9 @@ import { join } from 'node:path';
 import { build } from '../scripts/build.mjs';
 
 const outDir = mkdtempSync(join(tmpdir(), 'fitmagra-build-'));
-await build({ outDir });
+const previousSiteUrl = process.env.SITE_URL;
+delete process.env.SITE_URL;
+try { await build({ outDir }); } finally { if (previousSiteUrl !== undefined) process.env.SITE_URL = previousSiteUrl; }
 const es = readFileSync(join(outDir, 'index.html'), 'utf8');
 const en = readFileSync(join(outDir, 'en/index.html'), 'utf8');
 
@@ -42,7 +44,16 @@ test('both languages expose the member login and mobile navigation', () => {
 
 test('public pages include share metadata with absolute URLs', () => {
   assert.match(es, /<meta property="og:type" content="website">/);
-  assert.match(es, /<meta property="og:url" content="https:\/\/fitmagra\.invalid\/">/);
-  assert.match(en, /<meta property="og:url" content="https:\/\/fitmagra\.invalid\/en\/">/);
-  assert.match(es, /<meta property="og:image" content="https:\/\/fitmagra\.invalid\/media\/coach-black-800\.jpg">/);
+  assert.match(es, /<meta property="og:url" content="https:\/\/fitmagra\.robertzu43\.workers\.dev\/">/);
+  assert.match(en, /<meta property="og:url" content="https:\/\/fitmagra\.robertzu43\.workers\.dev\/en\/">/);
+  assert.match(es, /<meta property="og:image" content="https:\/\/fitmagra\.robertzu43\.workers\.dev\/media\/coach-black-800\.jpg">/);
+});
+
+
+test('default build uses the chosen Worker hostname for search and sharing', () => {
+  const host = 'https://fitmagra.robertzu43.workers.dev';
+  assert.ok(es.includes(`<link rel="canonical" href="${host}/">`));
+  assert.ok(en.includes(`<link rel="canonical" href="${host}/en/">`));
+  assert.ok(readFileSync(join(outDir, 'robots.txt'), 'utf8').includes(`Sitemap: ${host}/sitemap.xml`));
+  assert.ok(readFileSync(join(outDir, 'sitemap.xml'), 'utf8').includes(`<loc>${host}/</loc>`));
 });

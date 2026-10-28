@@ -8,6 +8,7 @@ test('wrangler.jsonc serves dist/ as static assets and holds no account ids or s
   const raw = readFileSync(new URL('../wrangler.jsonc', import.meta.url), 'utf8');
   const config = JSON.parse(stripJsonc(raw));
   assert.equal(config.name, 'fitmagra');
+  assert.equal(config.workers_dev, true);
   assert.equal(config.assets.directory, './dist');
   assert.equal(config.assets.not_found_handling, '404-page');
   assert.match(config.compatibility_date, /^\d{4}-\d{2}-\d{2}$/);
@@ -24,7 +25,7 @@ test('wrangler.jsonc serves dist/ as static assets and holds no account ids or s
   assert.equal(config.env.staging.vars.ENVIRONMENT, 'staging');
   assert.equal(config.env.staging.vars.BILLING_PROVIDER, 'stub');
   assert.equal(config.env.staging.workers_dev, true);
-  assert.equal(config.routes, undefined, 'the production domain is attached by Roberto at cutover, not in this file yet');
+  assert.equal(config.routes, undefined, 'this release uses workers.dev without a custom-domain route');
   assert.equal(config.vars.BILLING_PROVIDER, undefined, 'no billing provider in production until Roberto picks one');
   assert.doesNotMatch(raw, /secret|token|api_key/i);
 });

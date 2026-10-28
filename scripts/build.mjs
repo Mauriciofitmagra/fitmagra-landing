@@ -35,8 +35,7 @@ export async function build({
   outDir = join(root, 'dist'),
   blogDir = join(root, 'content/blog'),
   legalDir = join(root, 'content/legal'),
-  // ponytail: placeholder until the production domain is known (spec Q1); the cutover check refuses .invalid.
-  siteUrl = process.env.SITE_URL || 'https://fitmagra.invalid',
+  siteUrl = process.env.SITE_URL || 'https://fitmagra.robertzu43.workers.dev',
   log = console.log,
 } = {}) {
   const posts = loadPosts(blogDir);

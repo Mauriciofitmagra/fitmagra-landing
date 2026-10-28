@@ -7,15 +7,15 @@ For local verification, use Node 24 or newer, run `npm ci`, then `npm run check`
 The checklist script decides whether cutover may happen:
 
 ```text
-SITE_URL=https://<production domain> node scripts/build.mjs
-SITE_URL=https://<production domain> node scripts/check-cutover.mjs
+SITE_URL=https://fitmagra.robertzu43.workers.dev node scripts/build.mjs
+SITE_URL=https://fitmagra.robertzu43.workers.dev node scripts/check-cutover.mjs
 ```
 
 It prints one line per item and exits with code 1 while any item fails. Human sign-offs live in `docs/runbooks/cutover-signoff.json`. Each one needs `"by": "Roberto"` or `"by": "Mauricio"` and a `YYYY-MM-DD` date. An agent cannot sign.
 
 ## Gate 0. Vercel, before anything merges to main
 
-This gate comes first because it protects the site that is live today.
+This gate comes first because it protects the site that is live today. Roberto chose Cloudflare and its workers.dev address on 2026-10-28. The current Vercel site remains available until the new Worker has been deployed and verified.
 
 On 2026-10-28, the GitHub repository listed `https://fitmagra.vercel.app` as its homepage, and that public URL returned an HTTP 200 FitMagra page. This does not establish which branch Vercel deploys or whether another custom domain is in use.
 
@@ -24,7 +24,7 @@ The GitHub repo `Mauriciofitmagra/fitmagra-landing` is connected to the Vercel p
 Do not merge any of #2 to #8, or this runbook's own pull request, until Roberto or Mauricio has done all of this:
 
 1. **Roberto or Mauricio runs.** Open the Vercel project `mauriciofitmagras-projects/fitmagra` and note which branch deploys to production, which domains point at it, and what the production URL shows now.
-2. **Roberto decides.** Either Cloudflare serves the site (this runbook), or Vercel keeps serving it and this runbook does not apply.
+2. **Roberto has chosen Cloudflare** on its workers.dev address for this release.
 3. **Roberto or Mauricio runs**, if the decision is Cloudflare. Stop Vercel from deploying `main` before the first merge. Vercel's project settings offer ways to pause production deployments or to disconnect the Git repository. Keep the current production deployment serving the domain until step 7 of this runbook moves the domain.
 4. **Roberto or Mauricio runs**, if the decision is to keep Vercel. Reconfigure the Vercel project to build this site (build command `node scripts/build.mjs`, output directory `dist`). The member area, D1 and R2 parts of this repo need a different backend on Vercel; that is a new design, outside this runbook.
 5. **Roberto or Mauricio records it** in `cutover-signoff.json`:
@@ -37,7 +37,7 @@ The checklist item "Vercel decided before anything merges to main" passes only w
 
 ## Step 1. Accounts and names
 
-**Roberto decides** which Cloudflare account owns the Worker, who owns the FitMagra domain and where its DNS lives today (spec Q1). The repo uses these names.
+The intended public URL is `https://fitmagra.robertzu43.workers.dev`. The account subdomain was verified by a read-only Cloudflare lookup on 2026-10-28; no Worker named `fitmagra` was present at that time. This address will not serve the site until Roberto deploys the Worker. The repo uses these names.
 
 | Thing | Production | Staging |
 | --- | --- | --- |
@@ -109,21 +109,20 @@ The invite link prints on the terminal, not into the file. It works once and exp
 **Roberto runs:**
 
 ```text
-SITE_URL=https://<production domain> node scripts/build.mjs
-SITE_URL=https://<production domain> node scripts/check-cutover.mjs
+SITE_URL=https://fitmagra.robertzu43.workers.dev node scripts/build.mjs
+SITE_URL=https://fitmagra.robertzu43.workers.dev node scripts/check-cutover.mjs
 npx wrangler deploy
 ```
 
 Do not deploy unless every checklist item passes. Create the production admin with `scripts/create-admin.mjs` as in step 3, against `fitmagra` with `--remote` and without `--env`.
 
-## Step 7. Move the domain
+## Step 7. Switch the public link
 
-**Roberto runs**, in this order:
+After the Worker is deployed and the release checks pass, **Roberto runs**:
 
-1. If the domain's DNS is not on Cloudflare yet, add the zone to the Cloudflare account and change the nameservers at the registrar. Copy every existing record first. Leave MX and other mail records exactly as they are.
-2. Attach the domain to the `fitmagra` Worker as a Custom Domain (dashboard, or a `routes` entry with `custom_domain: true` in `wrangler.jsonc` through a pull request).
-3. Check HTTPS, the `www` redirect, `/sitemap.xml`, `/blog/rss.xml`, one login and one photo view.
-4. Keep the old Vercel deployment untouched for 14 days.
+1. Verify HTTPS, `/sitemap.xml`, `/blog/rss.xml`, one login and one photo view on `https://fitmagra.robertzu43.workers.dev`.
+2. Update FitMagra's shared links to the Worker URL. The existing `fitmagra.vercel.app` address is owned by Vercel and cannot be moved to Cloudflare; a redirect from it requires a separate Vercel configuration or deployment decision.
+3. Keep the old Vercel deployment available for 14 days while the new address is verified. No custom domain or DNS change is needed for this workers.dev release.
 
 ## Rollback
 
@@ -131,7 +130,7 @@ Do not deploy unless every checklist item passes. Create the production admin wi
 | --- | --- |
 | A deploy broke the site or the member area | Do not roll back to a version that can write member data without the erasure fence. Disable member-data writes first, or deploy a corrected version that retains the fence. Inspect `npx wrangler deployments list` to identify versions. |
 | A migration or an admin action damaged data | D1 Time Travel may restore records that were later erased and cannot restore R2 in lockstep. Stop member-data writes and review erasures and private files before and after any restore; reconcile both stores before reopening access. |
-| Cloudflare itself is the problem in the first 14 days | Point the domain back to the old Vercel deployment in DNS. Member-area data stays in D1 and R2 and is not lost. |
+| Cloudflare itself is the problem in the first 14 days | Restore shared links to the old Vercel address while investigating. Member-area data stays in D1 and R2 and is not available on the old site. |
 
 ## Not covered here
 
