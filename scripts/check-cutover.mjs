@@ -41,16 +41,22 @@ export function checkCutover({ root, env = process.env }) {
       return pending.length === 0 || `${pending.length} items without written consent: ${pending.join(', ')}`;
     }),
     item('legal-pages', 'Lawyer-approved Términos and Privacidad', () => {
-      for (const f of ['terminos', 'privacidad']) {
+      for (const [f, output] of [['terminos', 'terminos'], ['privacidad', 'privacidad'], ['terms', 'en/terms'], ['privacy', 'en/privacy']]) {
         const p = `content/legal/${f}.md`;
         if (!existsSync(join(root, p))) return `${p} is missing`;
         if (/PENDIENTE|PLACEHOLDER|TODO/i.test(read(root, p))) return `${p} still has placeholder text`;
+        const built = `dist/${output}/index.html`;
+        if (!existsSync(join(root, built)) || statSync(join(root, built)).size === 0) return `${built} is missing or empty; rebuild the site`;
       }
       return true;
     }),
     item('site-url', 'SITE_URL is the real domain', () => {
       const u = env.SITE_URL ?? '';
-      return (/^https:\/\/[a-z0-9.-]+\.[a-z]{2,}$/.test(u) && !u.endsWith('.invalid')) || `SITE_URL is "${u || 'unset'}"; set it to https://<production domain> before building`;
+      if (!/^https:\/\/[a-z0-9.-]+\.[a-z]{2,}$/.test(u) || u.endsWith('.invalid')) return `SITE_URL is "${u || 'unset'}"; set it to https://<production domain> before building`;
+      for (const [path, suffix] of [['dist/index.html', '/'], ['dist/en/index.html', '/en/']]) {
+        if (!read(root, path).includes(`<link rel="canonical" href="${u}${suffix}">`)) return `${path} was not built with SITE_URL=${u}`;
+      }
+      return true;
     }),
     item('database-ids', 'Real D1 ids in wrangler.jsonc', () => {
       const c = wrangler();

@@ -17,13 +17,16 @@ function passingFixture() {
   put('content/stories.json', JSON.stringify(stories));
   put('content/legal/terminos.md', 'Términos revisados por el abogado.');
   put('content/legal/privacidad.md', 'Política de tratamiento de datos revisada por el abogado.');
+  put('content/legal/terms.md', 'Terms reviewed by counsel.');
+  put('content/legal/privacy.md', 'Privacy policy reviewed by counsel.');
+  for (const p of ['terminos', 'privacidad', 'en/terms', 'en/privacy']) put(`dist/${p}/index.html`, '<html>Approved legal text</html>');
   put('wrangler.jsonc', readFileSync(join(repo, 'wrangler.jsonc'), 'utf8').replace('REPLACE_WITH_PRODUCTION_D1_ID', 'a1b2c3').replace('REPLACE_WITH_STAGING_D1_ID', 'd4e5f6'));
   put('docs/runbooks/cutover-signoff.json', JSON.stringify({
     vercel: { ...signed, decision: 'cloudflare', liveSiteChecked: true },
     secretsSet: signed, tasteInspector: signed, stagingSmokeTest: signed, workersCpuMeasured: signed,
   }));
-  put('dist/index.html', '<html><body><a href="/">x</a></body></html>');
-  put('dist/en/index.html', '<html><body><a href="/en/">x</a></body></html>');
+  put('dist/index.html', '<html><head><link rel="canonical" href="https://fitmagra.co/"></head><body><a href="/">x</a></body></html>');
+  put('dist/en/index.html', '<html><head><link rel="canonical" href="https://fitmagra.co/en/"></head><body><a href="/en/">x</a></body></html>');
   return root;
 }
 
@@ -44,8 +47,10 @@ test('the checklist passes when every item is met', () => {
 test('each item fails on its own', () => {
   const cases = [
     ['site-url', (root, env) => { env.SITE_URL = 'https://fitmagra.invalid'; }],
+    ['site-url', (root) => writeFileSync(join(root, 'dist/index.html'), '<link rel="canonical" href="https://fitmagra.invalid/">')],
     ['billing-provider', (root) => writeFileSync(join(root, 'wrangler.jsonc'), readFileSync(join(root, 'wrangler.jsonc'), 'utf8').replace('"vars": { "ENVIRONMENT": "production" }', '"vars": { "ENVIRONMENT": "production", "BILLING_PROVIDER": "stub" }'))],
     ['legal-pages', (root) => writeFileSync(join(root, 'content/legal/privacidad.md'), 'PENDIENTE: texto del abogado')],
+    ['legal-pages', (root) => writeFileSync(join(root, 'dist/en/privacy/index.html'), '')],
     ['story-consent', (root) => { const p = join(root, 'content/stories.json'); const s = JSON.parse(readFileSync(p, 'utf8')); s.quotes[0].consent = 'unverified'; writeFileSync(p, JSON.stringify(s)); }],
     ['vercel-decision', (root) => { const p = join(root, 'docs/runbooks/cutover-signoff.json'); const s = JSON.parse(readFileSync(p, 'utf8')); s.vercel.decision = 'keep-vercel'; writeFileSync(p, JSON.stringify(s)); }],
     ['vercel-decision', (root) => { const p = join(root, 'docs/runbooks/cutover-signoff.json'); const s = JSON.parse(readFileSync(p, 'utf8')); s.vercel.liveSiteChecked = false; writeFileSync(p, JSON.stringify(s)); }],

@@ -5,7 +5,7 @@ How FitMagra moves from today's hosting to one Cloudflare Worker (spec section 1
 The checklist script decides whether cutover may happen:
 
 ```text
-node scripts/build.mjs
+SITE_URL=https://<production domain> node scripts/build.mjs
 SITE_URL=https://<production domain> node scripts/check-cutover.mjs
 ```
 
@@ -98,7 +98,7 @@ The invite link prints on the terminal, not into the file. It works once and exp
 ## Step 5. Production secrets and content
 
 - **Roberto runs** `npx wrangler secret put <NAME>` for each secret production needs. Today there are none. The payment provider adds its own in milestone M7. Sign `secretsSet` when every secret the code reads is set.
-- **Mauricio provides**, through a pull request: written consent for every person on Historias (set `consent` to `written` in `content/stories.json`, or remove the item), and the lawyer's text for `content/legal/terminos.md` and `content/legal/privacidad.md` (spec Q9, Q18).
+- **Mauricio provides**, through a pull request: written consent for every person on Historias (set `consent` to `written` in `content/stories.json`, or remove the item), and the lawyer's text for `content/legal/terminos.md`, `content/legal/privacidad.md`, `content/legal/terms.md` and `content/legal/privacy.md` (spec Q9, Q18).
 
 ## Step 6. Production on its workers.dev hostname
 

@@ -7,6 +7,7 @@ import { home } from '../site/pages/home.mjs';
 import { stories } from '../site/pages/stories.mjs';
 import { listing, post, postHead, postPath, rss, sitemap } from '../site/pages/blog.mjs';
 import { parsePost } from '../lib/frontmatter.mjs';
+import { markdown } from '../lib/markdown.mjs';
 
 const root = resolve(import.meta.dirname, '..');
 
@@ -31,6 +32,7 @@ export function loadPosts(blogDir) {
 export async function build({
   outDir = join(root, 'dist'),
   blogDir = join(root, 'content/blog'),
+  legalDir = join(root, 'content/legal'),
   // ponytail: placeholder until the production domain is known (spec Q1); the cutover check refuses .invalid.
   siteUrl = process.env.SITE_URL || 'https://fitmagra.invalid',
   log = console.log,
@@ -51,17 +53,33 @@ export async function build({
   cpSync(join(root, 'site/media'), join(outDir, 'media'), { recursive: true });
   cpSync(join(root, 'lib/equations.mjs'), join(outDir, 'assets/equations.mjs'));
 
+  const legal = [
+    { es: ['terminos', 'Términos'], en: ['terms', 'Terms'] },
+    { es: ['privacidad', 'Privacidad'], en: ['privacy', 'Privacy'] },
+  ];
+  const legalLinks = (lang) => legal.filter((p) => existsSync(join(legalDir, `${p[lang][0]}.md`)))
+    .map((p) => [`${strings[lang].path}${p[lang][0]}/`, p[lang][1]]);
   const pair = (key) => ({ es: strings.es[key].path, en: strings.en[key].path });
   for (const t of Object.values(strings)) {
-    write(t.path, layout(t, { siteUrl, body: home(t) }));
-    write(t.stories.path, layout(t, { siteUrl, title: t.stories.title, description: t.stories.description, alts: pair('stories'), body: stories(t, storyData) }));
-    write(t.blog.path, layout(t, { siteUrl, title: t.blog.title, description: t.blog.description, alts: pair('blog'), body: listing(t, posts[t.lang]) }));
+    const links = legalLinks(t.lang);
+    write(t.path, layout(t, { siteUrl, legalLinks: links, body: home(t) }));
+    write(t.stories.path, layout(t, { siteUrl, legalLinks: links, title: t.stories.title, description: t.stories.description, alts: pair('stories'), body: stories(t, storyData) }));
+    write(t.blog.path, layout(t, { siteUrl, legalLinks: links, title: t.blog.title, description: t.blog.description, alts: pair('blog'), body: listing(t, posts[t.lang]) }));
+    for (const p of legal) {
+      const [name, title] = p[t.lang];
+      const file = join(legalDir, `${name}.md`);
+      if (!existsSync(file)) continue;
+      const alts = Object.fromEntries(Object.keys(strings).filter((lang) => existsSync(join(legalDir, `${p[lang][0]}.md`)))
+        .map((lang) => [lang, `${strings[lang].path}${p[lang][0]}/`]));
+      write(alts[t.lang], layout(t, { siteUrl, legalLinks: links, title: `${title} | FitMagra`, description: title, alts,
+        body: `<article class="blog-post"><header class="blog-head"><h1 class="display">${esc(title)}</h1></header><div class="blog-body">${markdown(readFileSync(file, 'utf8'))}</div></article>` }));
+    }
     write(`${t.blog.path}rss.xml`, rss(t, posts[t.lang], siteUrl));
     const other = t.lang === 'es' ? strings.en : strings.es;
     for (const p of posts[t.lang]) {
       const twin = p.translation && posts[other.lang].find((q) => q.slug === p.translation);
       const alts = { [t.lang]: postPath(t, p), ...(twin ? { [other.lang]: postPath(other, twin) } : {}) };
-      write(postPath(t, p), layout(t, { siteUrl, title: `${p.title} | FitMagra`, description: p.description, alts, head: postHead(t, p, siteUrl), body: post(t, p) }));
+      write(postPath(t, p), layout(t, { siteUrl, legalLinks: links, title: `${p.title} | FitMagra`, description: p.description, alts, head: postHead(t, p, siteUrl), body: post(t, p) }));
     }
   }
 

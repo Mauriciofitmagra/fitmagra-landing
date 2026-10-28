@@ -31,12 +31,13 @@ const navLinks = (t, alts = HOME) => {
 <a href="${alts[other] ?? HOME[other]}" hreflang="${other}">${esc(t.nav.other[1])}</a>`;
 };
 
-const footer = (t, alts) => `<footer class="footer">
+const footer = (t, alts, legalLinks) => `<footer class="footer">
 ${img('neon.jpg', t.footer.neonAlt, 'neon')}
 <div class="footer-grid">
 <p class="statement">${esc(t.footer.slogan)}</p>
 <nav aria-label="${esc(t.nav.home)}">
 ${navLinks(t, alts)}
+${legalLinks.map(([path, title]) => `<a href="${path}">${esc(title)}</a>`).join('\n')}
 </nav>
 <address>
 <h2>${esc(t.footer.contact)}</h2>
@@ -53,7 +54,7 @@ ${navLinks(t, alts)}
 </div>
 </footer>`;
 
-export function layout(t, { title = t.meta.title, description = t.meta.description, body, index = true, alts = HOME, head = '', siteUrl = 'https://fitmagra.invalid' }) {
+export function layout(t, { title = t.meta.title, description = t.meta.description, body, index = true, alts = HOME, head = '', siteUrl = 'https://fitmagra.invalid', legalLinks = [] }) {
   return `<!doctype html>
 <html lang="${t.lang}">
 <head>
@@ -80,7 +81,7 @@ ${navLinks(t, alts)}
 <main id="contenido">
 ${body}
 </main>
-${footer(t, alts)}
+${footer(t, alts, legalLinks)}
 </body>
 </html>
 `;
