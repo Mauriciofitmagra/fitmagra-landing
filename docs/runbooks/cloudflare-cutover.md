@@ -64,7 +64,7 @@ npx wrangler d1 migrations apply fitmagra-staging --env staging --remote
 npx wrangler d1 migrations apply fitmagra --remote
 ```
 
-Migrations only add tables and columns, so an older Worker version can still read the database after a rollback.
+The migrations add tables and columns, but an older Worker does not enforce the private-data erasure fence. Do not restore old code with member-data writes enabled.
 
 ## Step 3. Staging
 
@@ -110,7 +110,7 @@ SITE_URL=https://<production domain> node scripts/check-cutover.mjs
 npx wrangler deploy
 ```
 
-Do not deploy unless the checklist printed "All 13 items pass." Create the production admin with `scripts/create-admin.mjs` as in step 3, against `fitmagra` with `--remote` and without `--env`.
+Do not deploy unless every checklist item passes. Create the production admin with `scripts/create-admin.mjs` as in step 3, against `fitmagra` with `--remote` and without `--env`.
 
 ## Step 7. Move the domain
 
@@ -125,8 +125,8 @@ Do not deploy unless the checklist printed "All 13 items pass." Create the produ
 
 | Problem | **Roberto runs** |
 | --- | --- |
-| A deploy broke the site or the member area | `npx wrangler rollback` returns traffic to the previous version. `npx wrangler deployments list` shows the versions. |
-| A migration or an admin action damaged data | D1 Time Travel restores the database to a point in time: `npx wrangler d1 time-travel restore fitmagra --timestamp <ISO time before the problem>`. |
+| A deploy broke the site or the member area | Do not roll back to a version that can write member data without the erasure fence. Disable member-data writes first, or deploy a corrected version that retains the fence. Inspect `npx wrangler deployments list` to identify versions. |
+| A migration or an admin action damaged data | D1 Time Travel may restore records that were later erased and cannot restore R2 in lockstep. Stop member-data writes and review erasures and private files before and after any restore; reconcile both stores before reopening access. |
 | Cloudflare itself is the problem in the first 14 days | Point the domain back to the old Vercel deployment in DNS. Member-area data stays in D1 and R2 and is not lost. |
 
 ## Not covered here
@@ -142,3 +142,5 @@ An erasure can remain pending if an upload or a database/storage operation has a
 If retries do not resolve it, an operator must investigate the `erasure_jobs`, `users.erasure_owner`, and `upload_intents` records and the corresponding private R2 keys. Never remove an upload intent or clear an owner just because it is old or an object is not visible: an earlier operation may still finish. Recovery requires independent evidence that the relevant Worker and storage/database operations have stopped and that any object is removed, followed by a retry of the same job. Preserve the records and escalate if that cannot be established. A failed final database response may already have committed; check the job status before any recovery.
 
 Before enabling this version against an existing bucket, stop all older Worker versions from accepting writes, establish that their in-flight writes have ended, and reconcile existing R2 objects with database records. Older versions do not create upload intents, so this version alone cannot prove those legacy objects were erased. Do not sign off the cutover until this reconciliation is complete.
+
+Before cutover, Roberto or Mauricio records `privateStorage` in `cutover-signoff.json` with `by`, `date`, `state` (`new-empty` or `reconciled`) and an `evidence` description. The evidence must establish that no older Worker can still write to the bucket and that the bucket is either new and empty or its existing objects have been reconciled with database records. The checklist fails until this is recorded.

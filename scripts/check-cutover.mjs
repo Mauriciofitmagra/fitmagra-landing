@@ -91,6 +91,11 @@ export function checkCutover({ root, env = process.env }) {
       }
       return true;
     }),
+    item('private-storage', 'Private storage and old Worker writes reconciled', () => {
+      const review = signoff().privateStorage;
+      if (!signedOff(review) || !['new-empty', 'reconciled'].includes(review.state) || typeof review.evidence !== 'string' || !review.evidence.trim()) return 'record the private-storage state and evidence with a human sign-off';
+      return true;
+    }),
     sign('signoff-secrets', 'secretsSet', 'Production secrets set with wrangler secret put'),
     sign('signoff-taste', 'tasteInspector', 'Taste inspector run on staging with 0 FAIL'),
     sign('signoff-staging', 'stagingSmokeTest', 'Staging: a member logs in, adds a weight and uploads a photo'),

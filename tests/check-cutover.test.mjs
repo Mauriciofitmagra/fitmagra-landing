@@ -24,7 +24,7 @@ function passingFixture() {
   put('docs/runbooks/cutover-signoff.json', JSON.stringify({
     vercel: { ...signed, decision: 'cloudflare', liveSiteChecked: true },
     legalReview: { ...signed, lawyer: 'Counsel', consentVersion: '2026-11-20', contentHash: legalContentHash(root) },
-    secretsSet: signed, tasteInspector: signed, stagingSmokeTest: signed, workersCpuMeasured: signed,
+    secretsSet: signed, tasteInspector: signed, stagingSmokeTest: signed, workersCpuMeasured: signed, privateStorage: { ...signed, state: 'new-empty', evidence: 'New private bucket; no older Worker writes.' },
   }));
   put('dist/index.html', '<html><head><link rel="canonical" href="https://fitmagra.co/"></head><body><a href="/">x</a></body></html>');
   put('dist/en/index.html', '<html><head><link rel="canonical" href="https://fitmagra.co/en/"></head><body><a href="/en/">x</a></body></html>');
@@ -34,7 +34,7 @@ function passingFixture() {
 test('the checklist fails closed on the repository as it is today', () => {
   const items = checkCutover({ root: repo, env: {} });
   const ids = failing(items);
-  for (const id of ['vercel-decision', 'legal-pages', 'site-url', 'database-ids', 'signoff-secrets', 'signoff-taste', 'signoff-staging', 'signoff-workers-cpu']) {
+  for (const id of ['vercel-decision', 'legal-pages', 'site-url', 'database-ids', 'signoff-secrets', 'signoff-taste', 'signoff-staging', 'signoff-workers-cpu', 'private-storage']) {
     assert.ok(ids.includes(id), `${id} should fail today`);
   }
   assert.ok(items.find((i) => i.id === 'billing-provider').ok, 'production has no stub provider');
@@ -60,6 +60,9 @@ test('each item fails on its own', () => {
     ['story-consent', (root) => writeFileSync(join(root, 'dist/media/t-01.jpg'), 'photo')],
     ['vercel-decision', (root) => { const p = join(root, 'docs/runbooks/cutover-signoff.json'); const s = JSON.parse(readFileSync(p, 'utf8')); s.vercel.decision = 'keep-vercel'; writeFileSync(p, JSON.stringify(s)); }],
     ['vercel-decision', (root) => { const p = join(root, 'docs/runbooks/cutover-signoff.json'); const s = JSON.parse(readFileSync(p, 'utf8')); s.vercel.liveSiteChecked = false; writeFileSync(p, JSON.stringify(s)); }],
+    ['private-storage', (root) => { const p = join(root, 'docs/runbooks/cutover-signoff.json'); const s = JSON.parse(readFileSync(p, 'utf8')); s.privateStorage = null; writeFileSync(p, JSON.stringify(s)); }],
+    ['private-storage', (root) => { const p = join(root, 'docs/runbooks/cutover-signoff.json'); const s = JSON.parse(readFileSync(p, 'utf8')); s.privateStorage.state = 'unknown'; writeFileSync(p, JSON.stringify(s)); }],
+    ['private-storage', (root) => { const p = join(root, 'docs/runbooks/cutover-signoff.json'); const s = JSON.parse(readFileSync(p, 'utf8')); s.privateStorage.evidence = '  '; writeFileSync(p, JSON.stringify(s)); }],
     ['signoff-staging', (root) => { const p = join(root, 'docs/runbooks/cutover-signoff.json'); const s = JSON.parse(readFileSync(p, 'utf8')); s.stagingSmokeTest = { by: 'Claude', date: '2026-11-20' }; writeFileSync(p, JSON.stringify(s)); }],
     ['links', (root) => writeFileSync(join(root, 'dist/index.html'), '<img src="/media/missing.jpg">')],
     ['dist-built', (root) => cpSync(join(root, 'dist/index.html'), join(root, 'dist/old.html')) || writeFileSync(join(root, 'dist/index.html'), '') ],
