@@ -98,7 +98,7 @@ export async function photos(db: DB, s: Session, now: number, error = '', status
   const { results } = await db.prepare('SELECT id, taken_on, pose FROM photos WHERE user_id = ? ORDER BY taken_on DESC, created_at DESC').bind(s.userId).all<{ id: string; taken_on: string; pose: string }>();
   const poses: Record<string, string> = { front: 'Frente', side: 'Perfil', back: 'Espalda', other: 'Otra' };
   return html(appPage('Fotos', '/app/fotos/', `<h1 class="app-title">Fotos de progreso</h1>
-<p>Solo tú y el equipo de FitMagra ven estas fotos. Antes de subirlas, tu teléfono las reduce y les quita la ubicación.</p>
+<p>Solo tú y el equipo de FitMagra ven estas fotos. Si tu navegador puede procesarlas, las reduce y elimina la ubicación. De lo contrario, se sube el archivo original, que puede conservarla.</p>
 ${error ? `<p class="notice" role="alert">${esc(error)}</p>` : ''}
 <form method="post" action="/app/fotos/" enctype="multipart/form-data" class="app-form" data-resize>
 <label class="field"><span>Fecha</span><input type="date" name="date" value="${today(now)}" required></label>

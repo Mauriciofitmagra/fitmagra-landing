@@ -160,3 +160,14 @@ test('the admin member page shows that member data read-only', async () => {
   assert.ok(body.includes('visible-para-admin'));
   assert.equal((await send(env, '/admin/miembros/ana/', { cookie: ana })).status, 403);
 });
+
+test('private files require a member to accept consent', async () => {
+  const env = await setup();
+  const ana = await login(env, 'ana');
+  await upload(env, '/app/fotos/', ana, { bytes: JPEG, type: 'image/jpeg', fields: { date: '2026-10-21', pose: 'front' } });
+  const { id } = await env.DB.prepare("SELECT id FROM photos WHERE user_id = 'ana'").first();
+  await env.DB.prepare("UPDATE users SET consent_version = NULL WHERE id = 'ana'").run();
+  const res = await send(env, `/app/archivos/${id}`, { cookie: ana });
+  assert.equal(res.status, 303);
+  assert.equal(res.headers.get('location'), '/app/consentimiento/');
+});
