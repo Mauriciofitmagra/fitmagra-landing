@@ -37,3 +37,11 @@ test('calendar dates must be real days', () => {
   assert.throws(() => parsePost(post(valid.replace('2026-11-02', '2025-02-29')), 'es/a.md'), /date must be YYYY-MM-DD/);
   assert.equal(parsePost(post(valid.replace('2026-11-02', '2024-02-29')), 'es/a.md').date, '2024-02-29');
 });
+
+test('cover images must be local blog media paths', () => {
+  for (const cover of ['https://example.com/a.jpg', '/media/coach.jpg', '/media/blog/../coach.jpg', '/media/blog/%2e%2e/a.jpg', '/media/blog//a.jpg', '/media/blog/a.jpg?x=1', '//example.com/a.jpg', '/media/blog/']) {
+    assert.throws(() => parsePost(post(`${valid}\ncover: ${cover}\ncover_alt: Foto`), 'es/x.md'), /es\/x\.md: cover must be a path under \/media\/blog\//);
+  }
+  assert.equal(parsePost(post(`${valid}\ncover: /media/blog/a.jpg\ncover_alt: Foto`), 'es/x.md').cover, '/media/blog/a.jpg');
+  assert.equal(parsePost(post(`${valid}\ncover: /media/blog/2026/a.jpg\ncover_alt: Foto`), 'es/x.md').cover, '/media/blog/2026/a.jpg');
+});
