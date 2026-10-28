@@ -183,3 +183,14 @@ CREATE TABLE erasure_jobs (
   created_at BIGINT NOT NULL
 );
 CREATE UNIQUE INDEX erasure_jobs_pending ON erasure_jobs(user_id) WHERE status = 'pending';
+
+CREATE TABLE wompi_link_payments (
+  transaction_id TEXT PRIMARY KEY,
+  link_id TEXT,
+  payer_name TEXT,
+  payer_email TEXT,
+  status TEXT NOT NULL,
+  amount_cents BIGINT NOT NULL CHECK (amount_cents BETWEEN 0 AND 9007199254740991),
+  currency TEXT NOT NULL CHECK (currency = 'COP'),
+  occurred_at TEXT
+);

@@ -6,6 +6,7 @@ import { html, redirect, cookie, sameOrigin, withSecurity } from './http.ts';
 import { readSession, type Session } from './auth/sessions.ts';
 import * as auth from './auth/routes.ts';
 import * as admin from './admin/routes.ts';
+import { wompiPayments } from './admin/wompi-payments.ts';
 import * as app from './app/routes.ts';
 import type { Bucket } from './files.ts';
 import * as billing from './billing/routes.ts';
@@ -48,6 +49,7 @@ const ROUTES: Route[] = [
   ['POST', /^\/app\/cuenta\/clave\/$/, 'account', (c) => app.changePassword(c.request, c.env.DB, c.session!, c.now)],
   ['GET', /^\/admin\/facturacion\/$/, 'admin', () => redirect('/admin/')],
   ['GET', /^\/admin\/$/, 'admin', (c) => admin.list(c.env.DB, c.session!)],
+  ['GET', /^\/admin\/pagos-wompi\/$/, 'admin', (c) => wompiPayments(c.env.DB, c.session!)],
   ['POST', /^\/admin\/miembros\/$/, 'admin', (c) => admin.create(c.request, c.env.DB, c.session!, c.now)],
   ['GET', /^\/admin\/miembros\/([\w-]+)\/$/, 'admin', (c) => admin.detail(c.env.DB, c.session!, c.params[0], c.now)],
   ['POST', /^\/admin\/miembros\/([\w-]+)\/documentos\/$/, 'admin', (c) => admin.uploadDocument(c.request, c.env.DB, c.env.FILES, c.session!, c.now, c.params[0])],

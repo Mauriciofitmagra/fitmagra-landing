@@ -24,6 +24,7 @@ ${m.status !== 'deactivated' ? `<form method="post" action="/admin/miembros/${es
 </td></tr>`).join('\n');
   return html(page('Miembros', `<h1 class="app-title">Miembros</h1>
 <p class="notice">Facturación: Próximamente. <span lang="en">Billing: Coming soon.</span></p>
+<p><a href="/admin/pagos-wompi/">Pagos por enlace Wompi</a></p>
 <div class="table-scroll" role="region" aria-label="Miembros" tabindex="0"><table class="table"><thead><tr><th>Nombre</th><th>Correo</th><th>Rol</th><th>Estado</th><th></th></tr></thead><tbody>
 ${rows}
 </tbody></table></div>
