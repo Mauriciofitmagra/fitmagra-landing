@@ -96,5 +96,21 @@ test('invited members have access and payments are coming soon', async () => {
   const adminBody = await (await send(env, '/admin/', { cookie: admin })).text();
   assert.match(adminBody, /Facturación: Próximamente/);
   assert.match(adminBody, /Billing: Coming soon/);
-  assert.equal((await send(env, '/admin/facturacion/', { cookie: admin })).status, 404);
+  const oldAdmin = await send(env, '/admin/facturacion/', { cookie: admin });
+  assert.equal(oldAdmin.status, 303);
+  assert.equal(oldAdmin.headers.get('location'), '/admin/');
+});
+
+
+test('old billing links lead to the coming-soon state without enabling checkout', async () => {
+  const env = await setup();
+  const member = await login(env, 'ana');
+  const res = await send(env, '/app/pagar/', { cookie: member });
+  assert.equal(res.status, 303);
+  assert.equal(res.headers.get('location'), '/app/cuenta/');
+  const account = await (await send(env, res.headers.get('location'), { cookie: member })).text();
+  assert.match(account, /Próximamente/);
+  assert.match(account, /Coming soon/);
+  assert.equal((await send(env, '/app/pagar/', { method: 'POST', cookie: member, form: { months: '1' } })).status, 404);
+  assert.equal((await send(env, '/admin/facturacion/', { cookie: member })).status, 403);
 });
