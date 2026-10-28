@@ -182,3 +182,19 @@ test('member and admin tables have keyboard-accessible scroll regions', async ()
     assert.match(html, /<div class="table-scroll" role="region" aria-label="[^"]+" tabindex="0">\s*<table/);
   }
 });
+
+test('invalid log entries retain submitted values and reject impossible dates', async () => {
+  const env = await setup();
+  const ana = await login(env, 'ana');
+  const response = await send(env, '/app/peso/', { method: 'POST', cookie: ana, form: { date: '2026-02-30', kg: '72,5', note: 'Mi nota <personal>' } });
+  assert.equal(response.status, 400);
+  const html = await response.text();
+  assert.match(html, /name="kg"[^>]*value="72,5"/);
+  assert.match(html, /name="note"[^>]*value="Mi nota &lt;personal&gt;"/);
+  assert.equal((await ids(env, 'weights', 'ana')).length, 0);
+  const meal = await send(env, '/app/nutricion/', { method: 'POST', cookie: ana, form: { date: '2026-10-20', meal: 'dinner', description: 'Arroz', kcal: 'invalid' } });
+  const mealHtml = await meal.text();
+  assert.equal(meal.status, 400);
+  assert.match(mealHtml, /value="dinner" selected/);
+  assert.match(mealHtml, /name="description"[^>]*value="Arroz"/);
+});

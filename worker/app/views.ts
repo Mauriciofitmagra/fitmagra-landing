@@ -17,16 +17,16 @@ ${body}`, session);
 
 const notice = (error: string): string => (error ? `<p class="notice" role="alert">${esc(error)}</p>` : '');
 
-const input = (f: Field, today: string): string => {
-  if (f.type === 'select') return `<label class="field"><span>${esc(f.label)}</span><select name="${f.name}">${f.options!.map(([v, l]) => `<option value="${v}">${esc(l)}</option>`).join('')}</select></label>`;
+const input = (f: Field, today: string, values: Record<string, string>): string => {
+  if (f.type === 'select') return `<label class="field"><span>${esc(f.label)}</span><select name="${f.name}">${f.options!.map(([v, l]) => `<option value="${v}"${values[f.name] === v ? ' selected' : ''}>${esc(l)}</option>`).join('')}</select></label>`;
   const type = f.type === 'date' ? 'date' : f.type === 'text' ? 'text' : 'text" inputmode="decimal';
-  const value = f.type === 'date' ? ` value="${today}"` : '';
-  return `<label class="field"><span>${esc(f.label)}</span><input name="${f.name}" type="${type}"${value}${f.required ? ' required' : ''}></label>`;
+  const value = values[f.name] ?? (f.type === 'date' ? today : '');
+  return `<label class="field"><span>${esc(f.label)}</span><input name="${f.name}" type="${type}" value="${esc(value)}"${f.required ? ' required' : ''}></label>`;
 };
 
-export function entryForm(kind: LogKind, today: string, error = ''): string {
+export function entryForm(kind: LogKind, today: string, error = '', values: Record<string, string> = {}): string {
   return `${notice(error)}<form method="post" action="${kind.path}" class="app-form app-form-wide">
-${kind.fields.map((f) => input(f, today)).join('\n')}
+${kind.fields.map((f) => input(f, today, values)).join('\n')}
 <button class="button">Guardar</button>
 </form>`;
 }

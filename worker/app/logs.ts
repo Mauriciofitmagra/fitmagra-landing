@@ -51,7 +51,11 @@ export const LOGS: Record<'weights' | 'workouts' | 'nutrition', LogKind> = {
   },
 };
 
-export const isDate = (s: string): boolean => /^\d{4}-\d{2}-\d{2}$/.test(s) && !Number.isNaN(Date.parse(`${s}T00:00:00Z`));
+export const isDate = (s: string): boolean => {
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(s)) return false;
+  const n = Date.parse(`${s}T00:00:00Z`);
+  return Number.isFinite(n) && new Date(n).toISOString().slice(0, 10) === s;
+};
 
 // Parses one submitted entry into column values, or the first problem in Spanish.
 export function parseEntry(kind: LogKind, input: Record<string, string>): { values: Record<string, string | number | null> } | { error: string } {

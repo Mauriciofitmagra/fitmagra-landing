@@ -39,17 +39,18 @@ const listRows = async (db: DB, kind: LogKind, userId: string, date?: string) =>
   (await db.prepare(`SELECT * FROM ${kind.table} WHERE user_id = ?${date ? ` AND ${kind.dateCol} = ?` : ''} ORDER BY ${kind.dateCol} DESC, rowid DESC LIMIT 200`)
     .bind(...(date ? [userId, date] : [userId])).all<Record<string, unknown>>()).results;
 
-async function logScreen(db: DB, kind: LogKind, s: Session, now: number, error = '', status = 200): Promise<Response> {
+async function logScreen(db: DB, kind: LogKind, s: Session, now: number, error = '', status = 200, values: Record<string, string> = {}): Promise<Response> {
   const rows = await listRows(db, kind, s.userId);
-  return html(appPage(kind.title, kind.path, `<h1 class="app-title">${kind.title}</h1>${entryForm(kind, today(now), error)}${entryTable(kind, rows)}`, s), status);
+  return html(appPage(kind.title, kind.path, `<h1 class="app-title">${kind.title}</h1>${entryForm(kind, today(now), error, values)}${entryTable(kind, rows)}`, s), status);
 }
 
 export const logList = (db: DB, key: keyof typeof LOGS, s: Session, now: number) => logScreen(db, LOGS[key], s, now);
 
 export async function logAdd(request: Request, db: DB, key: keyof typeof LOGS, s: Session, now: number): Promise<Response> {
   const kind = LOGS[key];
-  const parsed = parseEntry(kind, await form(request));
-  if ('error' in parsed) return key === 'nutrition' ? nutrition(request, db, s, now, parsed.error, 400) : logScreen(db, kind, s, now, parsed.error, 400);
+  const values = await form(request);
+  const parsed = parseEntry(kind, values);
+  if ('error' in parsed) return key === 'nutrition' ? nutrition(request, db, s, now, parsed.error, 400, values) : logScreen(db, kind, s, now, parsed.error, 400, values);
   const cols = Object.keys(parsed.values);
   await db.prepare(`INSERT INTO ${kind.table} (id, user_id, ${cols.join(', ')}) VALUES (?, ?, ${cols.map(() => '?').join(', ')})`)
     .bind(crypto.randomUUID(), s.userId, ...Object.values(parsed.values)).run();
@@ -63,9 +64,9 @@ export async function logDelete(db: DB, key: keyof typeof LOGS, s: Session, id: 
   return r.meta.changes ? redirect(kind.path) : html(messageView('No encontrado', 'Ese registro no existe.', s), 404);
 }
 
-export async function nutrition(request: Request, db: DB, s: Session, now: number, error = '', status = 200): Promise<Response> {
+export async function nutrition(request: Request, db: DB, s: Session, now: number, error = '', status = 200, values: Record<string, string> = {}): Promise<Response> {
   const kind = LOGS.nutrition;
-  const asked = new URL(request.url).searchParams.get('fecha') ?? '';
+  const asked = values.date ?? new URL(request.url).searchParams.get('fecha') ?? '';
   const day = isDate(asked) ? asked : today(now);
   const rows = await listRows(db, kind, s.userId, day);
   const t = await db.prepare('SELECT kcal, protein_g, carbs_g, fat_g FROM nutrition_targets WHERE user_id = ?').bind(s.userId).first<Record<string, number>>();
@@ -80,7 +81,7 @@ ${await documentsList(db, s.userId, 'nutrition_plan')}
 ${totals}
 ${entryTable(kind, rows)}
 <h2 class="app-subtitle">Registrar comida</h2>
-${entryForm(kind, day, error)}`, s), status);
+${entryForm(kind, day, error, values)}`, s), status);
 }
 
 async function documentsList(db: DB, userId: string, kind: 'training_plan' | 'nutrition_plan'): Promise<string> {
