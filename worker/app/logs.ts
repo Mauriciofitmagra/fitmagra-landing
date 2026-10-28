@@ -89,6 +89,6 @@ export function parseEntry(kind: LogKind, input: Record<string, string>): { valu
 export function display(f: Field, v: unknown): string {
   if (v === null || v === undefined) return '';
   if (f.type === 'select') return f.options!.find(([k]) => k === v)?.[1] ?? String(v);
-  if (f.type === 'decimal') return (Number(v) / (f.scale ?? 1)).toLocaleString('es-CO', { maximumFractionDigits: 1 });
+  if (f.type === 'decimal') return (Number(v) / (f.scale ?? 1)).toLocaleString('es-CO', { maximumFractionDigits: 3 });
   return String(v);
 }

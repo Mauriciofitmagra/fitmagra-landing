@@ -12,7 +12,7 @@ import { billingSection } from '../billing/routes.ts';
 // Members live in 14 countries; the default date follows Bogotá, where the coach works. They can change it.
 export const today = (now: number): string => new Date(now * 1000).toLocaleDateString('en-CA', { timeZone: 'America/Bogota' });
 
-const kg = (g: number): string => (g / 1000).toLocaleString('es-CO', { maximumFractionDigits: 1 });
+const kg = (g: number): string => (g / 1000).toLocaleString('es-CO', { maximumFractionDigits: 3 });
 const signedKg = (g: number): string => `${g < 0 ? '−' : g > 0 ? '+' : ''}${kg(Math.abs(g))} kg`;
 
 export async function home(db: DB, s: Session): Promise<Response> {

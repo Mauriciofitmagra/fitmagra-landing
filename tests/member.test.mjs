@@ -128,6 +128,19 @@ test('the home screen shows the latest weight and the change since the first ent
   assert.ok(body.includes('−3,6 kg'));
 });
 
+test('weight history and summary preserve stored gram precision', async () => {
+  const env = await setup();
+  const ana = await login(env, 'ana');
+  await send(env, '/app/peso/', { method: 'POST', cookie: ana, form: { date: '2026-09-01', kg: '72,55' } });
+  await send(env, '/app/peso/', { method: 'POST', cookie: ana, form: { date: '2026-10-01', kg: '72,561' } });
+  const history = await (await send(env, '/app/peso/', { cookie: ana })).text();
+  assert.match(history, /72,55/);
+  assert.match(history, /72,561/);
+  const home = await (await send(env, '/app/', { cookie: ana })).text();
+  assert.match(home, /72,561 kg/);
+  assert.match(home, /\+0,011 kg/);
+});
+
 test('a member changes their password only with the current one', async () => {
   const env = await setup();
   const ana = await login(env, 'ana');
