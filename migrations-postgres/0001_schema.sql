@@ -10,8 +10,8 @@ CREATE TABLE users (
   role TEXT NOT NULL CHECK (role IN ('member', 'admin')),
   status TEXT NOT NULL DEFAULT 'invited' CHECK (status IN ('invited', 'active', 'deactivated')),
   password_hash TEXT,
-  created_at INTEGER NOT NULL,
-  updated_at INTEGER NOT NULL
+  created_at BIGINT NOT NULL,
+  updated_at BIGINT NOT NULL
 );
 
 CREATE UNIQUE INDEX users_email_unique ON users (lower(email));
@@ -19,8 +19,8 @@ CREATE UNIQUE INDEX users_email_unique ON users (lower(email));
 CREATE TABLE sessions (
   token_hash TEXT PRIMARY KEY,
   user_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-  created_at INTEGER NOT NULL,
-  expires_at INTEGER NOT NULL
+  created_at BIGINT NOT NULL,
+  expires_at BIGINT NOT NULL
 );
 CREATE INDEX sessions_user ON sessions(user_id);
 
@@ -28,13 +28,13 @@ CREATE TABLE auth_tokens (
   token_hash TEXT PRIMARY KEY,
   user_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
   purpose TEXT NOT NULL CHECK (purpose IN ('invite', 'reset')),
-  expires_at INTEGER NOT NULL,
-  used_at INTEGER
+  expires_at BIGINT NOT NULL,
+  used_at BIGINT
 );
 
 CREATE TABLE login_failures (
   key TEXT NOT NULL,
-  at INTEGER NOT NULL
+  at BIGINT NOT NULL
 );
 CREATE INDEX login_failures_key_at ON login_failures(key, at);
 
@@ -43,13 +43,13 @@ CREATE TABLE audit_log (
   actor_id TEXT REFERENCES users(id) ON DELETE SET NULL,
   action TEXT NOT NULL,
   target_user_id TEXT,
-  at INTEGER NOT NULL,
+  at BIGINT NOT NULL,
   detail TEXT
 );
 
 -- Member data (spec section 11.1). Quantities are integers in their smallest unit. Dates are YYYY-MM-DD text.
 ALTER TABLE users ADD COLUMN consent_version TEXT;
-ALTER TABLE users ADD COLUMN consent_at INTEGER;
+ALTER TABLE users ADD COLUMN consent_at BIGINT;
 
 CREATE TABLE weights (
   id TEXT PRIMARY KEY,
@@ -83,7 +83,7 @@ CREATE TABLE photos (
   r2_key TEXT NOT NULL UNIQUE,
   content_type TEXT NOT NULL CHECK (content_type IN ('image/jpeg', 'image/webp')),
   bytes INTEGER NOT NULL,
-  created_at INTEGER NOT NULL
+  created_at BIGINT NOT NULL
 );
 CREATE INDEX photos_user ON photos(user_id, taken_on);
 
@@ -94,7 +94,7 @@ CREATE TABLE documents (
   title TEXT NOT NULL,
   r2_key TEXT NOT NULL UNIQUE,
   bytes INTEGER NOT NULL,
-  published_at INTEGER NOT NULL
+  published_at BIGINT NOT NULL
 );
 CREATE INDEX documents_user ON documents(user_id, kind, published_at);
 
@@ -104,7 +104,7 @@ CREATE TABLE nutrition_targets (
   protein_g INTEGER NOT NULL CHECK (protein_g BETWEEN 0 AND 600),
   carbs_g INTEGER NOT NULL CHECK (carbs_g BETWEEN 0 AND 1200),
   fat_g INTEGER NOT NULL CHECK (fat_g BETWEEN 0 AND 400),
-  updated_at INTEGER NOT NULL
+  updated_at BIGINT NOT NULL
 );
 
 CREATE TABLE nutrition_logs (
@@ -133,7 +133,7 @@ CREATE TABLE subscriptions (
   cancel_at_period_end INTEGER NOT NULL DEFAULT 0 CHECK (cancel_at_period_end IN (0, 1)),
   provider TEXT,
   provider_ref TEXT,
-  updated_at INTEGER NOT NULL
+  updated_at BIGINT NOT NULL
 );
 
 CREATE TABLE payments (
@@ -147,7 +147,7 @@ CREATE TABLE payments (
   method TEXT,
   reference TEXT,
   provider_ref TEXT,
-  created_at INTEGER NOT NULL
+  created_at BIGINT NOT NULL
 );
 CREATE INDEX payments_user ON payments(user_id, created_at);
 
@@ -158,7 +158,7 @@ CREATE TABLE billing_events (
   kind TEXT NOT NULL,
   user_id TEXT,
   outcome TEXT NOT NULL CHECK (outcome IN ('applied', 'rejected', 'unknown_member')),
-  received_at INTEGER NOT NULL,
+  received_at BIGINT NOT NULL,
   payload TEXT
 );
 
@@ -171,7 +171,7 @@ ALTER TABLE users ADD COLUMN erasure_owner TEXT;
 CREATE TABLE upload_intents (
   r2_key TEXT PRIMARY KEY,
   user_id TEXT NOT NULL REFERENCES users(id) ON DELETE RESTRICT,
-  created_at INTEGER NOT NULL
+  created_at BIGINT NOT NULL
 );
 CREATE INDEX upload_intents_user ON upload_intents(user_id);
 
@@ -179,6 +179,6 @@ CREATE TABLE erasure_jobs (
   id TEXT PRIMARY KEY,
   user_id TEXT NOT NULL REFERENCES users(id) ON DELETE RESTRICT,
   status TEXT NOT NULL CHECK (status IN ('pending', 'complete')),
-  created_at INTEGER NOT NULL
+  created_at BIGINT NOT NULL
 );
 CREATE UNIQUE INDEX erasure_jobs_pending ON erasure_jobs(user_id) WHERE status = 'pending';

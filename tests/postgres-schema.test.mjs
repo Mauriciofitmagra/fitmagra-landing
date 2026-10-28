@@ -7,7 +7,7 @@ test('PostgreSQL schema preserves account and member-data constraints', async ()
   const db = new PGlite();
   try {
     await db.exec(readFileSync(new URL('../migrations-postgres/0001_schema.sql', import.meta.url), 'utf8'));
-    await db.query("INSERT INTO fitmagra.users (id, email, name, role, created_at, updated_at) VALUES ('a', 'Ana@example.com', 'Ana', 'member', 0, 0)");
+    await db.query("INSERT INTO fitmagra.users (id, email, name, role, created_at, updated_at) VALUES ('a', 'Ana@example.com', 'Ana', 'member', 2200000000, 2200000000)");
     await assert.rejects(db.query("INSERT INTO fitmagra.users (id, email, name, role, created_at, updated_at) VALUES ('b', 'ana@example.com', 'Ana', 'member', 0, 0)"));
     await assert.rejects(db.query("INSERT INTO fitmagra.weights (id, user_id, measured_on, weight_g) VALUES ('w', 'a', '2026-01-01', 1)"));
     await assert.rejects(db.query("INSERT INTO fitmagra.weights (id, user_id, measured_on, weight_g) VALUES ('w', 'a', '01/01/2026', 70000)"));
