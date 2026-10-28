@@ -17,6 +17,8 @@ It prints one line per item and exits with code 1 while any item fails. Human si
 
 This gate comes first because it protects the site that is live today.
 
+On 2026-10-28, the GitHub repository listed `https://fitmagra.vercel.app` as its homepage, and that public URL returned an HTTP 200 FitMagra page. This does not establish which branch Vercel deploys or whether another custom domain is in use.
+
 The GitHub repo `Mauriciofitmagra/fitmagra-landing` is connected to the Vercel project `mauriciofitmagras-projects/fitmagra`, and every pull request from #2 to #8 shows a failing Vercel preview check. It is likely, not confirmed, that Vercel builds `main` and serves the public site from it. The rebuild removes the root `index.html`, and the new site needs `node scripts/build.mjs` before there is anything to serve. If Vercel deploys `main` the old way, merging any of these pull requests would likely change or break the live site.
 
 Do not merge any of #2 to #8, or this runbook's own pull request, until Roberto or Mauricio has done all of this:
