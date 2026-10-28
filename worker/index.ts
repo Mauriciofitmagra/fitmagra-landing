@@ -9,8 +9,6 @@ import * as admin from './admin/routes.ts';
 import * as app from './app/routes.ts';
 import type { Bucket } from './files.ts';
 import * as billing from './billing/routes.ts';
-import { access } from './billing/access.ts';
-import { readSubscription } from './billing/apply.ts';
 import { messageView } from './views.ts';
 
 export interface Env {
@@ -21,8 +19,7 @@ export interface Env {
   BILLING_PROVIDER?: string;
 }
 
-// signed: logged in. account: signed and consented to data treatment (spec 12). member: account and billing
-// allows access (spec 13.2), so a pending or lapsed member still reaches their account to pay. admin: role admin.
+// Members need a valid session and consent; billing is deferred.
 type Guard = 'public' | 'signed' | 'account' | 'member' | 'admin';
 interface Ctx { request: Request; env: Env; now: number; session: Session | null; params: string[] }
 type Route = [method: string, path: RegExp, guard: Guard, handler: (c: Ctx) => Promise<Response> | Response];
@@ -47,16 +44,10 @@ const ROUTES: Route[] = [
   ['GET', /^\/app\/plan\/$/, 'member', (c) => app.plan(c.env.DB, c.session!)],
   ['GET', /^\/app\/coach-ia\/$/, 'member', (c) => app.coach(c.session!)],
   ['GET', /^\/app\/cuenta\/$/, 'account', (c) => app.account(c.env.DB, c.session!, c.now)],
-  ['POST', /^\/app\/pagar\/$/, 'account', (c) => billing.startPayment(c.request, c.env.DB, c.env, c.session!)],
-  ['GET', /^\/api\/billing\/stub\/$/, 'account', (c) => (c.env.ENVIRONMENT === 'production' ? notFound() : billing.stubPage(c.request, c.session!))],
-  ['POST', /^\/api\/billing\/stub\/$/, 'account', (c) => (c.env.ENVIRONMENT === 'production' ? notFound() : billing.stubResult(c.request, c.env.DB, c.session!, app.today(c.now), c.now))],
   ['POST', /^\/app\/cuenta\/clave\/$/, 'account', (c) => app.changePassword(c.request, c.env.DB, c.session!, c.now)],
   ['GET', /^\/admin\/$/, 'admin', (c) => admin.list(c.env.DB, c.session!)],
   ['POST', /^\/admin\/miembros\/$/, 'admin', (c) => admin.create(c.request, c.env.DB, c.session!, c.now)],
   ['GET', /^\/admin\/miembros\/([\w-]+)\/$/, 'admin', (c) => admin.detail(c.env.DB, c.session!, c.params[0], c.now)],
-  ['GET', /^\/admin\/facturacion\/$/, 'admin', (c) => billing.adminBilling(c.env.DB, c.session!, app.today(c.now))],
-  ['POST', /^\/admin\/miembros\/([\w-]+)\/pago-manual\/$/, 'admin', (c) => billing.manualPayment(c.request, c.env.DB, c.session!, c.params[0], app.today(c.now), c.now)],
-  ['POST', /^\/admin\/miembros\/([\w-]+)\/facturacion\/$/, 'admin', (c) => billing.override(c.request, c.env.DB, c.session!, c.params[0], app.today(c.now), c.now)],
   ['POST', /^\/admin\/miembros\/([\w-]+)\/documentos\/$/, 'admin', (c) => admin.uploadDocument(c.request, c.env.DB, c.env.FILES, c.session!, c.now, c.params[0])],
   ['POST', /^\/admin\/miembros\/([\w-]+)\/metas\/$/, 'admin', (c) => admin.setTargets(c.request, c.env.DB, c.session!, c.now, c.params[0])],
   ['POST', /^\/admin\/miembros\/([\w-]+)\/borrar-datos\/$/, 'admin', (c) => admin.deleteData(c.request, c.env.DB, c.env.FILES, c.session!, c.now, c.params[0])],
@@ -84,14 +75,7 @@ async function route(request: Request, env: Env): Promise<Response> {
   if ((guard === 'account' || guard === 'member') && !session!.consented && !isAdmin) return redirect('/app/consentimiento/');
   if (guard === 'admin' && !isAdmin) return html(messageView('Sin acceso', 'Esta sección es solo para administradores.', session), 403);
   const ctx = { request, env, now, session, params: path.exec(url.pathname)!.slice(1) };
-  if (guard !== 'member' || isAdmin) return handler(ctx);
-  const level = access(await readSubscription(env.DB, session!.userId), app.today(now));
-  if (level.level === 'billing_only') return redirect('/app/cuenta/');
-  const res = await handler(ctx);
-  if (level.level === 'full' || !res.headers.get('content-type')?.startsWith('text/html')) return res;
-  // Inside grace every member screen carries the payment warning, added in one place instead of in each handler.
-  const body = (await res.text()).replace('<main class="app-main">', `<main class="app-main">\n${billing.warningBanner(level)}`);
-  return new Response(body, res);
+  return handler(ctx);
 }
 
 export default {

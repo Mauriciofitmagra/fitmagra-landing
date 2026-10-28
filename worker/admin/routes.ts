@@ -7,7 +7,6 @@ import { page, messageView } from '../views.ts';
 import { checkFile, fileKey, PDF, type Bucket } from '../files.ts';
 import { LOGS, type LogKind } from '../app/logs.ts';
 import { entryTable } from '../app/views.ts';
-import { adminBillingForm } from '../billing/routes.ts';
 import { PLANS, isPlan } from '../billing/plans.ts';
 import { today } from '../app/routes.ts';
 
@@ -26,7 +25,7 @@ ${m.status === 'deactivated'
     : `<form method="post" action="/admin/miembros/${esc(m.id)}/desactivar/"><button class="link">Desactivar</button></form>`}
 </td></tr>`).join('\n');
   return html(page('Miembros', `<h1 class="app-title">Miembros</h1>
-<p><a href="/admin/facturacion/">Facturación</a></p>
+<p class="notice">Facturación: Próximamente. <span lang="en">Billing: Coming soon.</span></p>
 <table class="table"><thead><tr><th>Nombre</th><th>Correo</th><th>Rol</th><th>Estado</th><th></th></tr></thead><tbody>
 ${rows}
 </tbody></table>
@@ -80,7 +79,7 @@ export async function detail(db: DB, session: Session, id: string, now: number):
   const num = (name: string, label: string, value: unknown) => `<label class="field"><span>${label}</span><input name="${name}" inputmode="numeric" value="${esc(value ?? '')}" required></label>`;
   return html(page(m.name, `<h1 class="app-title">${esc(m.name)}</h1>
 <p>${esc(m.email)}, ${esc(m.role)}, ${esc(m.status)}</p>
-${await adminBillingForm(db, id, today(now))}
+<p class="notice">Pagos: Próximamente. <span lang="en">Payments: Coming soon.</span></p>
 <h2 class="app-subtitle">Planes en PDF</h2>
 <ul>${docs.map((d) => `<li><a href="/app/archivos/${esc(d.id)}">${esc(d.title)}</a> (${d.kind === 'training_plan' ? 'entrenamiento' : 'nutrición'})</li>`).join('')}</ul>
 <form method="post" action="/admin/miembros/${esc(id)}/documentos/" enctype="multipart/form-data" class="app-form">

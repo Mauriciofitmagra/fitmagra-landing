@@ -17,28 +17,11 @@ const audit = (db: DB, actor: Session, action: string, target: string, now: numb
 export const warningBanner = (a: Access): string =>
   `<p class="notice" role="status">Tu pago está pendiente. Te quedan ${a.daysLeft} días para pagar antes de que se pause tu acceso. <a href="/app/cuenta/">Pagar</a></p>`;
 
-export async function billingSection(db: DB, s: Session, today: string): Promise<string> {
+export async function billingSection(db: DB, s: Session, _today: string): Promise<string> {
   const sub = await readSubscription(db, s.userId);
-  if (!sub) return '<p>Tu cuenta todavía no tiene un plan asignado. Escríbele a Mauricio.</p>';
-  const a = access(sub, today);
-  const { results } = await db.prepare('SELECT period_start, months, amount_cop, status, provider, method FROM payments WHERE user_id = ? ORDER BY created_at DESC LIMIT 24')
-    .bind(s.userId).all<{ period_start: string; months: number; amount_cop: number; status: string; provider: string; method: string | null }>();
   return `<h2 class="app-subtitle">Tu plan</h2>
-<dl class="summary">
-<div><dt>Plan</dt><dd>${esc(PLANS[sub.plan].name)}</dd></div>
-<div><dt>Estado</dt><dd>${esc(STATUS[sub.status])}${sub.cancelAtPeriodEnd ? ', se cancela al final del periodo' : ''}</dd></div>
-<div><dt>Pagado hasta</dt><dd>${esc(sub.currentPeriodEnd ?? 'Sin pagos')}</dd></div>
-</dl>
-${a.level === 'billing_only' ? '<p class="notice">Tu acceso está en pausa hasta que se registre tu pago. Tus datos siguen guardados.</p>' : ''}
-<form method="post" action="/app/pagar/" class="app-form">
-<label class="field"><span>Pagar</span><select name="months">${TERMS.map((m) => `<option value="${m}">${m} ${m === 1 ? 'mes' : 'meses'}, ${cop(priceCop(sub.plan, m))}</option>`).join('')}</select></label>
-<button class="button">Pagar en línea</button>
-</form>
-<p class="small">También puedes pagar por Nequi, Daviplata, transferencia o Efecty y enviarle el comprobante a Mauricio por WhatsApp.</p>
-<h2 class="app-subtitle">Pagos</h2>
-${results.length ? `<table class="table"><thead><tr><th>Fecha</th><th>Meses</th><th>Valor</th><th>Estado</th><th>Medio</th></tr></thead><tbody>
-${results.map((p) => `<tr><td>${esc(p.period_start)}</td><td>${p.months}</td><td>${cop(p.amount_cop)}</td><td>${p.status === 'paid' ? 'Pagado' : p.status === 'failed' ? 'Fallido' : esc(p.status)}</td><td>${esc(p.method ?? p.provider)}</td></tr>`).join('\n')}
-</tbody></table>` : '<p>Todavía no hay pagos registrados.</p>'}`;
+${sub ? `<p>${esc(PLANS[sub.plan].name)}</p>` : ''}
+<p class="notice" role="status">Pagos: Próximamente. Tu acceso no depende de un pago. <span lang="en">Payments: Coming soon. Your access does not depend on payment.</span></p>`;
 }
 
 export async function startPayment(request: Request, db: DB, env: { ENVIRONMENT: string; BILLING_PROVIDER?: string }, s: Session): Promise<Response> {
