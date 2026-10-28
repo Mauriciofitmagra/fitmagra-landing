@@ -23,19 +23,19 @@ const alternates = (alts, siteUrl) => Object.entries(alts)
   .map(([lang, href]) => `<link rel="alternate" hreflang="${lang}" href="${esc(siteUrl + href)}">`)
   .join('\n');
 
-const navLinks = (t, alts = HOME) => {
+const navLinks = (t, alts = HOME, languageFallback = HOME) => {
   const other = t.lang === 'es' ? 'en' : 'es';
   return `${t.nav.links.map(([href, label]) => `<a href="${t.path}${href}">${esc(label)}</a>`).join('\n')}
 <a href="/entrar/">${esc(t.nav.login)}</a>
-<a href="${alts[other] ?? HOME[other]}" hreflang="${other}">${esc(t.nav.other[1])}</a>`;
+<a href="${alts[other] ?? languageFallback[other]}" hreflang="${other}">${esc(t.nav.other[1])}</a>`;
 };
 
-const footer = (t, alts, legalLinks) => `<footer class="footer">
+const footer = (t, alts, legalLinks, languageFallback) => `<footer class="footer">
 ${img('neon.jpg', t.footer.neonAlt, 'neon')}
 <div class="footer-grid">
 <p class="statement">${esc(t.footer.slogan)}</p>
 <nav aria-label="${esc(t.nav.home)}">
-${navLinks(t, alts)}
+${navLinks(t, alts, languageFallback)}
 ${legalLinks.map(([path, title]) => `<a href="${path}">${esc(title)}</a>`).join('\n')}
 </nav>
 <address>
@@ -53,7 +53,7 @@ ${legalLinks.map(([path, title]) => `<a href="${path}">${esc(title)}</a>`).join(
 </div>
 </footer>`;
 
-export function layout(t, { title = t.meta.title, description = t.meta.description, body, index = true, alts = HOME, head = '', siteUrl = 'https://fitmagra.invalid', legalLinks = [] }) {
+export function layout(t, { title = t.meta.title, description = t.meta.description, body, index = true, alts = HOME, head = '', siteUrl = 'https://fitmagra.invalid', legalLinks = [], languageFallback = HOME }) {
   return `<!doctype html>
 <html lang="${t.lang}">
 <head>
@@ -78,14 +78,14 @@ ${head || (index ? `<meta property="og:type" content="website">
 <header class="nav">
 <a class="nav-logo" href="${t.path}">${img('logo-oficial-600.png', 'FitMagra Systems', '', false)}</a>
 <nav aria-label="${esc(t.nav.home)}">
-${navLinks(t, alts)}
+${navLinks(t, alts, languageFallback)}
 </nav>
 <a class="button" href="${wa(t.actionText)}">${esc(t.action)}</a>
 </header>
 <main id="contenido">
 ${body}
 </main>
-${footer(t, alts, legalLinks)}
+${footer(t, alts, legalLinks, languageFallback)}
 </body>
 </html>
 `;

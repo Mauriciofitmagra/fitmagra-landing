@@ -69,3 +69,25 @@ test('an invalid post fails the build with its file and field', async () => {
   writeFileSync(join(bad, 'es/x.md'), '---\ndescription: d\ndate: 2026-01-01\nlang: es\nslug: x\n---\nhola');
   await assert.rejects(build({ outDir: mkdtempSync(join(tmpdir(), 'o-')), blogDir: bad, log: () => {} }), /es\/x\.md: title is required/);
 });
+
+test('the build rejects two published posts with the same language and slug', async () => {
+  const { mkdirSync, writeFileSync } = await import('node:fs');
+  const blogDir = mkdtempSync(join(tmpdir(), 'fitmagra-duplicate-'));
+  mkdirSync(join(blogDir, 'es'));
+  const post = (title) => `---\ntitle: ${title}\ndescription: Texto\ndate: 2026-01-01\nlang: es\nslug: duplicado\n---\nContenido`;
+  writeFileSync(join(blogDir, 'es/a.md'), post('Primero'));
+  writeFileSync(join(blogDir, 'es/b.md'), post('Segundo'));
+  await assert.rejects(build({ outDir: mkdtempSync(join(tmpdir(), 'o-')), blogDir, siteUrl: site, log: () => {} }), /duplicate.*duplicado/i);
+});
+
+test('a post without a translation links the language switch to the other blog', async () => {
+  const { mkdirSync, writeFileSync } = await import('node:fs');
+  const blogDir = mkdtempSync(join(tmpdir(), 'fitmagra-one-language-'));
+  mkdirSync(join(blogDir, 'es'));
+  writeFileSync(join(blogDir, 'es/solo.md'), '---\ntitle: Solo\ndescription: Texto\ndate: 2026-01-01\nlang: es\nslug: solo\n---\nContenido');
+  const outDir = mkdtempSync(join(tmpdir(), 'fitmagra-one-post-'));
+  await build({ outDir, blogDir, siteUrl: site, log: () => {} });
+  const html = read(outDir, 'blog/solo/index.html');
+  assert.match(html, /<a href="\/en\/blog\/" hreflang="en">English<\/a>/);
+  assert.doesNotMatch(html, /<link rel="alternate" hreflang="en"/);
+});

@@ -17,9 +17,14 @@ export function loadPosts(blogDir) {
   for (const lang of Object.keys(byLang)) {
     const dir = join(blogDir, lang);
     if (!existsSync(dir)) continue;
+    const slugs = new Map();
     for (const name of readdirSync(dir).filter((n) => n.endsWith('.md')).sort()) {
       const p = parsePost(readFileSync(join(dir, name), 'utf8'), `${lang}/${name}`);
-      if (!p.draft) byLang[lang].push(p);
+      if (!p.draft) {
+        if (slugs.has(p.slug)) throw new Error(`${lang}/${name}: duplicate slug "${p.slug}" (also in ${lang}/${slugs.get(p.slug)})`);
+        slugs.set(p.slug, name);
+        byLang[lang].push(p);
+      }
     }
     byLang[lang].sort((a, b) => b.date.localeCompare(a.date));
   }
@@ -76,7 +81,7 @@ export async function build({
     for (const p of posts[t.lang]) {
       const twin = p.translation && posts[other.lang].find((q) => q.slug === p.translation);
       const alts = { [t.lang]: postPath(t, p), ...(twin ? { [other.lang]: postPath(other, twin) } : {}) };
-      write(postPath(t, p), layout(t, { siteUrl, legalLinks: links, title: `${p.title} | FitMagra`, description: p.description, alts, head: postHead(t, p, siteUrl), body: post(t, p) }));
+      write(postPath(t, p), layout(t, { siteUrl, legalLinks: links, title: `${p.title} | FitMagra`, description: p.description, alts, languageFallback: pair('blog'), head: postHead(t, p, siteUrl), body: post(t, p) }));
     }
   }
 
