@@ -192,5 +192,7 @@ CREATE TABLE wompi_link_payments (
   status TEXT NOT NULL,
   amount_cents BIGINT NOT NULL CHECK (amount_cents BETWEEN 0 AND 9007199254740991),
   currency TEXT NOT NULL CHECK (currency = 'COP'),
-  occurred_at TEXT
+  occurred_at TEXT,
+  event_timestamp BIGINT NOT NULL DEFAULT 0,
+  revision BIGINT NOT NULL DEFAULT 0
 );

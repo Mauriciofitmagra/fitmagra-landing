@@ -6,7 +6,8 @@ import { html, redirect, cookie, sameOrigin, withSecurity } from './http.ts';
 import { readSession, type Session } from './auth/sessions.ts';
 import * as auth from './auth/routes.ts';
 import * as admin from './admin/routes.ts';
-import { wompiPayments } from './admin/wompi-payments.ts';
+import { importWompiPayment, wompiPayments } from './admin/wompi-payments.ts';
+import { wompiWebhook } from './billing/wompi-webhook.ts';
 import * as app from './app/routes.ts';
 import type { Bucket } from './files.ts';
 import * as billing from './billing/routes.ts';
@@ -18,6 +19,9 @@ export interface Env {
   FILES: Bucket;
   ENVIRONMENT: string;
   BILLING_PROVIDER?: string;
+  WOMPI_ENVIRONMENT?: string;
+  WOMPI_PRIVATE_KEY?: string;
+  WOMPI_EVENTS_SECRET?: string;
 }
 
 // Members need a valid session and consent; billing is deferred.
@@ -26,6 +30,7 @@ interface Ctx { request: Request; env: Env; now: number; session: Session | null
 type Route = [method: string, path: RegExp, guard: Guard, handler: (c: Ctx) => Promise<Response> | Response];
 
 const ROUTES: Route[] = [
+  ['POST', /^\/api\/wompi\/eventos\/$/, 'public', (c) => wompiWebhook(c.request, c.env)],
   ['GET', /^\/entrar\/$/, 'public', (c) => auth.loginPage(c.request)],
   ['POST', /^\/entrar\/$/, 'public', (c) => auth.login(c.request, c.env.DB, c.now)],
   ['GET', /^\/entrar\/clave\/$/, 'public', (c) => auth.setPasswordPage(c.request)],
@@ -49,7 +54,8 @@ const ROUTES: Route[] = [
   ['POST', /^\/app\/cuenta\/clave\/$/, 'account', (c) => app.changePassword(c.request, c.env.DB, c.session!, c.now)],
   ['GET', /^\/admin\/facturacion\/$/, 'admin', () => redirect('/admin/')],
   ['GET', /^\/admin\/$/, 'admin', (c) => admin.list(c.env.DB, c.session!)],
-  ['GET', /^\/admin\/pagos-wompi\/$/, 'admin', (c) => wompiPayments(c.env.DB, c.session!)],
+  ['GET', /^\/admin\/pagos-wompi\/$/, 'admin', (c) => wompiPayments(c.env.DB, c.session!, c.env)],
+  ['POST', /^\/admin\/pagos-wompi\/importar\/$/, 'admin', (c) => importWompiPayment(c.request, c.env.DB, c.session!, c.env)],
   ['POST', /^\/admin\/miembros\/$/, 'admin', (c) => admin.create(c.request, c.env.DB, c.session!, c.now)],
   ['GET', /^\/admin\/miembros\/([\w-]+)\/$/, 'admin', (c) => admin.detail(c.env.DB, c.session!, c.params[0], c.now)],
   ['POST', /^\/admin\/miembros\/([\w-]+)\/documentos\/$/, 'admin', (c) => admin.uploadDocument(c.request, c.env.DB, c.env.FILES, c.session!, c.now, c.params[0])],
@@ -70,7 +76,7 @@ async function route(request: Request, env: Env): Promise<Response> {
   const match = ROUTES.find(([method, path]) => method === request.method && path.test(url.pathname));
   if (!match) return notFound();
   const [, path, guard, handler] = match;
-  if (request.method === 'POST' && !sameOrigin(request)) return html(messageView('Solicitud rechazada', 'Vuelve a intentarlo desde el sitio.'), 403);
+  if (request.method === 'POST' && url.pathname !== '/api/wompi/eventos/' && !sameOrigin(request)) return html(messageView('Solicitud rechazada', 'Vuelve a intentarlo desde el sitio.'), 403);
   const now = nowSeconds();
   const token = cookie(request);
   const session = guard === 'public' || !token ? null : await readSession(env.DB, { token, now });

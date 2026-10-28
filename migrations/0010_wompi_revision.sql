@@ -1,0 +1,1 @@
+ALTER TABLE wompi_link_payments ADD COLUMN revision INTEGER NOT NULL DEFAULT 0;

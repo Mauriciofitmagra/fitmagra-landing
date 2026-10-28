@@ -15,7 +15,7 @@ test('Postgres history uses exact cents for large approved totals', async () => 
     await insert.bind('2', 'APPROVED', 1, 'COP', 'VdTCSO').run();
     const html = await (await wompiPayments(db, { userId: 'test-admin', role: 'admin' })).text();
     assert.match(html, /90\.071\.992\.547\.409,92 COP/);
-    assert.match(html, /sincronización.*no está conectada/i);
+    assert.match(html, /sincronización.*no están conciliados/i);
     await assert.rejects(insert.bind('3', 'APPROVED', 10, 'USD', 'VdTCSO').run());
   } finally { await client.close(); }
 });

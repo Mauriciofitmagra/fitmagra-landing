@@ -4,7 +4,7 @@ import { setup, login, send } from './helpers.mjs';
 
 const path = '/admin/pagos-wompi/';
 
-test('Wompi history is private and states that synchronization is disconnected', async () => {
+test('Wompi history is private and warns that the history is not reconciled', async () => {
   const env = await setup();
   assert.equal((await send(env, path)).status, 303);
   const member = await login(env, 'ana');
@@ -14,8 +14,8 @@ test('Wompi history is private and states that synchronization is disconnected',
   const body = await res.text();
   assert.equal(res.status, 200);
   assert.match(res.headers.get('cache-control'), /no-store/);
-  assert.match(body, /sincronización.*no está conectada/i);
-  assert.match(body, /no representa el historial completo/i);
+  assert.match(body, /sincronización.*no están conciliados/i);
+  assert.match(body, /lista puede estar incompleta/i);
   assert.match(body, /sin pagos registrados/i);
   assert.doesNotMatch(body, /\$ 0,00 COP/);
   assert.match(body, /sin conciliar/i);

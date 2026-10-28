@@ -79,10 +79,16 @@ export async function lookupTransaction(environment: WompiEnvironment, privateKe
   return { id, reference: data.reference as string, status: data.status as string, amountCents: data.amount_in_cents as number, currency: data.currency as string };
 }
 
-// Do not associate a payment with a link unless the provider's server response identifies that link.
+// Provider link identity is required before deciding which payments to record.
+export async function lookupPaymentLinkTransaction(environment: WompiEnvironment, privateKey: string, id: string): Promise<{ id: string; reference: string; status: string; amountCents: number; currency: string; paymentLinkId: string | null; customerEmail: string | null; finalizedAt: string | null }> {
+  const data = await transactionData(environment, privateKey, id);
+  if ((!Object.hasOwn(data, 'payment_link_id') || (data.payment_link_id !== null && (typeof data.payment_link_id !== 'string' || !/^[a-zA-Z0-9_-]{1,255}$/.test(data.payment_link_id)))) || (data.customer_email != null && (typeof data.customer_email !== 'string' || data.customer_email.length > 320)) || (data.finalized_at != null && (typeof data.finalized_at !== 'string' || !Number.isFinite(Date.parse(data.finalized_at))))) throw new Error('Invalid link transaction');
+  return { id, reference: data.reference as string, status: data.status as string, amountCents: data.amount_in_cents as number, currency: data.currency as string, paymentLinkId: data.payment_link_id, customerEmail: data.customer_email as string | null ?? null, finalizedAt: data.finalized_at as string | null ?? null };
+}
+
 export async function lookupLinkTransaction(environment: WompiEnvironment, privateKey: string, id: string, linkId: string): Promise<{ id: string; reference: string; status: string; amountCents: number; currency: string; paymentLinkId: string; customerEmail: string | null; finalizedAt: string | null }> {
   if (!/^[a-zA-Z0-9_-]{1,255}$/.test(linkId)) throw new Error('Invalid payment link ID');
-  const data = await transactionData(environment, privateKey, id);
-  if (data.payment_link_id !== linkId || (data.customer_email != null && (typeof data.customer_email !== 'string' || data.customer_email.length > 320)) || (data.finalized_at != null && (typeof data.finalized_at !== 'string' || !Number.isFinite(Date.parse(data.finalized_at))))) throw new Error('Invalid link transaction');
-  return { id, reference: data.reference as string, status: data.status as string, amountCents: data.amount_in_cents as number, currency: data.currency as string, paymentLinkId: linkId, customerEmail: data.customer_email as string | null ?? null, finalizedAt: data.finalized_at as string | null ?? null };
+  const transaction = await lookupPaymentLinkTransaction(environment, privateKey, id);
+  if (transaction.paymentLinkId !== linkId) throw new Error('Invalid link transaction');
+  return { ...transaction, paymentLinkId: linkId };
 }
