@@ -105,7 +105,7 @@ export const strings = {
       title: 'FitMagra | Tu plan de entrenamiento y nutrición con Mauricio Sánchez',
       description: 'Mauricio Sánchez diseña tu entrenamiento y tu alimentación con tu nombre y los ajusta contigo cada semana. Valoración de 30 minutos sin costo.',
     },
-    nav: { home: 'Inicio', login: 'Entrar', links: [['#metodo', 'Método'], ['historias/', 'Historias'], ['#planes', 'Planes'], ['blog/', 'Blog']], other: ['/en/', 'English'], skip: 'Saltar al contenido' },
+    nav: { home: 'Inicio', primary: 'Navegación principal', footer: 'Navegación del pie de página', login: 'Entrar', links: [['#metodo', 'Método'], ['historias/', 'Historias'], ['#planes', 'Planes'], ['blog/', 'Blog']], other: ['/en/', 'English'], skip: 'Saltar al contenido' },
     action: 'Agenda tu valoración',
     actionText: 'Hola, quiero agendar mi valoración gratuita',
     hero: {
@@ -220,7 +220,7 @@ export const strings = {
       title: 'FitMagra | Your training and nutrition plan with Mauricio Sánchez',
       description: 'Mauricio Sánchez designs your training and nutrition with your name on them and adjusts them with you every week. Free 30-minute assessment.',
     },
-    nav: { home: 'Home', login: 'Sign in', links: [['#metodo', 'Method'], ['stories/', 'Stories'], ['#planes', 'Plans'], ['blog/', 'Blog']], other: ['/', 'Español'], skip: 'Skip to content' },
+    nav: { home: 'Home', primary: 'Main navigation', footer: 'Footer navigation', login: 'Sign in', links: [['#metodo', 'Method'], ['stories/', 'Stories'], ['#planes', 'Plans'], ['blog/', 'Blog']], other: ['/', 'Español'], skip: 'Skip to content' },
     action: 'Book your assessment',
     actionText: "Hi, I'd like to book my free assessment",
     hero: {

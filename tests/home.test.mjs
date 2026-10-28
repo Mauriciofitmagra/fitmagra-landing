@@ -44,7 +44,7 @@ for (const t of Object.values(strings)) {
   test(`${t.lang} FAQ has six answered bands and the footer player is opt-in`, () => {
     assert.equal((html.match(/class="faq-band/g) ?? []).length, 6);
     for (const [, a] of t.faq.items) assert.ok(html.includes(text(a)));
-    assert.match(html, /<audio controls preload="none" src="\/media\/fitmagra-vibes\.mp3">/);
+    assert.match(html, /<audio controls preload="none" src="\/media\/fitmagra-vibes\.mp3" aria-label="[^"]+">/);
     assert.match(html, /src="\/media\/neon\.jpg"/);
   });
 

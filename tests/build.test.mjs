@@ -70,3 +70,11 @@ test('missing pages have language-specific, non-indexed recovery pages', () => {
   for (const html of [spanish, english]) assert.match(html, /<meta name="robots" content="noindex">/);
   assert.doesNotMatch(readFileSync(join(outDir, 'sitemap.xml'), 'utf8'), /404\.html/);
 });
+
+test('public navigation landmarks and audio player have descriptive names in both languages', () => {
+  for (const [html, main, footer] of [[es, 'Navegación principal', 'Navegación del pie de página'], [en, 'Main navigation', 'Footer navigation']]) {
+    assert.ok(html.includes(`<nav aria-label="${main}">`));
+    assert.ok(html.includes(`<nav aria-label="${footer}">`));
+    assert.match(html, /<audio[^>]+aria-label="[^"]+"/);
+  }
+});

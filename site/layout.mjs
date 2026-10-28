@@ -34,7 +34,7 @@ const footer = (t, alts, legalLinks, languageFallback) => `<footer class="footer
 ${img('neon.jpg', t.footer.neonAlt, 'neon')}
 <div class="footer-grid">
 <p class="statement">${esc(t.footer.slogan)}</p>
-<nav aria-label="${esc(t.nav.home)}">
+<nav aria-label="${esc(t.nav.footer)}">
 ${navLinks(t, alts, languageFallback)}
 ${legalLinks.map(([path, title]) => `<a href="${path}">${esc(title)}</a>`).join('\n')}
 </nav>
@@ -47,7 +47,7 @@ ${legalLinks.map(([path, title]) => `<a href="${path}">${esc(title)}</a>`).join(
 </address>
 <div class="player">
 <p>${esc(t.footer.music)}</p>
-<audio controls preload="none" src="/media/fitmagra-vibes.mp3"></audio>
+<audio controls preload="none" src="/media/fitmagra-vibes.mp3" aria-label="${esc(t.footer.music)}"></audio>
 </div>
 <p class="small">${esc(t.footer.rights)}</p>
 </div>
@@ -77,7 +77,7 @@ ${head || (index ? `<meta property="og:type" content="website">
 <a class="skip" href="#contenido">${esc(t.nav.skip)}</a>
 <header class="nav">
 <a class="nav-logo" href="${t.path}">${img('logo-oficial-600.png', 'FitMagra Systems', '', false)}</a>
-<nav aria-label="${esc(t.nav.home)}">
+<nav aria-label="${esc(t.nav.primary)}">
 ${navLinks(t, alts, languageFallback)}
 </nav>
 <a class="button" href="${wa(t.actionText)}">${esc(t.action)}</a>
