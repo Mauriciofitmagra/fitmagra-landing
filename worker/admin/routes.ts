@@ -26,9 +26,9 @@ ${m.status === 'deactivated'
 </td></tr>`).join('\n');
   return html(page('Miembros', `<h1 class="app-title">Miembros</h1>
 <p class="notice">Facturación: Próximamente. <span lang="en">Billing: Coming soon.</span></p>
-<table class="table"><thead><tr><th>Nombre</th><th>Correo</th><th>Rol</th><th>Estado</th><th></th></tr></thead><tbody>
+<div class="table-scroll" role="region" aria-label="Miembros" tabindex="0"><table class="table"><thead><tr><th>Nombre</th><th>Correo</th><th>Rol</th><th>Estado</th><th></th></tr></thead><tbody>
 ${rows}
-</tbody></table>
+</tbody></table></div>
 <h2 class="app-subtitle">Crear miembro</h2>
 <form method="post" action="/admin/miembros/" class="app-form">
 <label class="field"><span>Nombre</span><input name="name" required></label>

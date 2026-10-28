@@ -14,7 +14,8 @@ body.app { background: var(--white); color: var(--black); }
 .app .button { background: var(--black); color: var(--white); border: 0; cursor: pointer; }
 .link { background: none; border: 0; padding: 0; font: inherit; color: inherit; text-decoration: underline; cursor: pointer; }
 .notice { padding: var(--s3) var(--s4); background: var(--lime); color: var(--black); font-weight: 500; }
-.table { width: 100%; border-collapse: collapse; font-variant-numeric: tabular-nums; }
+.table-scroll { min-width: 0; max-width: 100%; overflow-x: auto; }
+.table { width: 100%; min-width: 560px; border-collapse: collapse; font-variant-numeric: tabular-nums; }
 .table th, .table td { text-align: left; padding: var(--s2) var(--s3) var(--s2) 0; border-bottom: 1px solid var(--black); vertical-align: top; }
 .table .actions { display: flex; gap: var(--s3); flex-wrap: wrap; }
 .link-once { padding: var(--s4); background: var(--fit); color: var(--black); word-break: break-all; font-weight: 800; }

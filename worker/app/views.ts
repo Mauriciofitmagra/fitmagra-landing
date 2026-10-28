@@ -33,9 +33,9 @@ ${kind.fields.map((f) => input(f, today)).join('\n')}
 
 export function entryTable(kind: LogKind, rows: Record<string, unknown>[], { readOnly = false } = {}): string {
   if (!rows.length) return '<p>Todavía no hay registros.</p>';
-  return `<table class="table"><thead><tr>${kind.fields.map((f) => `<th>${esc(f.label)}</th>`).join('')}${readOnly ? '' : '<th></th>'}</tr></thead><tbody>
+  return `<div class="table-scroll" role="region" aria-label="${esc(kind.title)}" tabindex="0"><table class="table"><thead><tr>${kind.fields.map((f) => `<th>${esc(f.label)}</th>`).join('')}${readOnly ? '' : '<th></th>'}</tr></thead><tbody>
 ${rows.map((r) => `<tr>${kind.fields.map((f) => `<td>${esc(display(f, r[f.col]))}</td>`).join('')}${readOnly ? '' : `<td><form method="post" action="${kind.path}${esc(r.id)}/borrar/"><button class="link">Borrar</button></form></td>`}</tr>`).join('\n')}
-</tbody></table>`;
+</tbody></table></div>`;
 }
 
 export const consentView = (session: Session, error = ''): string => page('Tus datos', `<h1 class="app-title">Antes de empezar</h1>

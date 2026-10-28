@@ -171,3 +171,14 @@ test('private files require a member to accept consent', async () => {
   assert.equal(res.status, 303);
   assert.equal(res.headers.get('location'), '/app/consentimiento/');
 });
+
+test('member and admin tables have keyboard-accessible scroll regions', async () => {
+  const env = await setup();
+  const ana = await login(env, 'ana');
+  await send(env, '/app/peso/', { method: 'POST', cookie: ana, form: { date: '2026-10-20', kg: '72.5' } });
+  const member = await (await send(env, '/app/peso/', { cookie: ana })).text();
+  const admin = await (await send(env, '/admin/', { cookie: await login(env, 'admin1') })).text();
+  for (const html of [member, admin]) {
+    assert.match(html, /<div class="table-scroll" role="region" aria-label="[^"]+" tabindex="0">\s*<table/);
+  }
+});
