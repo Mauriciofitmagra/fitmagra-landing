@@ -39,6 +39,7 @@ export function checkLinks(dir) {
   for (const page of htmlPages(dir)) {
     const html = readFileSync(join(dir, page), 'utf8');
     for (const ref of refsIn(html)) {
+      if (ref === '/entrar/') continue; // Served by the Worker, not the static build.
       const target = resolveRef(dir, page, ref);
       if (target === null) continue;
       const file = join(dir, target);

@@ -7,6 +7,8 @@ import { checkFile, fileKey, findFile, stream, PHOTO, type Bucket } from '../fil
 import { LOGS, type LogKind, parseEntry, isDate } from './logs.ts';
 import { appPage, entryForm, entryTable, consentView, coachView, CONSENT_VERSION } from './views.ts';
 import { billingSection } from '../billing/routes.ts';
+import { readSubscription } from '../billing/apply.ts';
+import { access } from '../billing/access.ts';
 
 // Members live in 14 countries; the default date follows Bogotá, where the coach works. They can change it.
 export const today = (now: number): string => new Date(now * 1000).toLocaleDateString('en-CA', { timeZone: 'America/Bogota' });
@@ -14,17 +16,19 @@ export const today = (now: number): string => new Date(now * 1000).toLocaleDateS
 const kg = (g: number): string => (g / 1000).toLocaleString('es-CO', { maximumFractionDigits: 1 });
 const signedKg = (g: number): string => `${g < 0 ? '−' : g > 0 ? '+' : ''}${kg(Math.abs(g))} kg`;
 
-export async function home(db: DB, s: Session): Promise<Response> {
+export async function home(db: DB, s: Session, now: number): Promise<Response> {
   const first = await db.prepare('SELECT weight_g FROM weights WHERE user_id = ? ORDER BY measured_on, rowid LIMIT 1').bind(s.userId).first<number>('weight_g');
   const last = await db.prepare('SELECT weight_g, measured_on FROM weights WHERE user_id = ? ORDER BY measured_on DESC, rowid DESC LIMIT 1').bind(s.userId).first<{ weight_g: number; measured_on: string }>();
   const photo = await db.prepare('SELECT max(taken_on) AS d FROM photos WHERE user_id = ?').bind(s.userId).first<string | null>('d');
-  return html(appPage('Inicio', '/app/', `<h1 class="app-title">Hola, ${esc(s.name)}</h1>
+  const sub = s.role === 'member' ? await readSubscription(db, s.userId) : null;
+  return html(appPage('Inicio', '/app/', `<div class="app-welcome"><p class="app-kicker">Tu espacio FitMagra</p><h1 class="app-title">Hola, ${esc(s.name)}</h1><p>Tu progreso, tu plan y tu seguimiento en un solo lugar.</p>${sub ? `<p>Tu acceso está ${access(sub, today(now)).level === 'billing_only' ? 'en pausa' : 'activo'} hasta el ${esc(sub.currentPeriodEnd ?? 'registro de tu pago')}. <a href="/app/cuenta/">Ver mi cuenta →</a></p>` : ''}</div>
+<h2 class="app-subtitle">Tu progreso</h2>
 <dl class="summary">
 <div><dt>Último peso</dt><dd>${last ? `${kg(last.weight_g)} kg, ${esc(last.measured_on)}` : 'Sin registros'}</dd></div>
 <div><dt>Cambio desde el inicio</dt><dd>${last && first !== null ? signedKg(last.weight_g - first) : 'Sin registros'}</dd></div>
 <div><dt>Últimas fotos</dt><dd>${photo ? esc(photo) : 'Sin fotos'}</dd></div>
 </dl>
-<p><a class="button" href="/app/peso/">Registrar peso</a></p>`, s));
+<div class="app-actions"><a class="button" href="/app/peso/">Registrar peso →</a><a href="/app/plan/">Ver mi plan →</a></div>`, s));
 }
 
 export async function consent(request: Request, db: DB, s: Session, now: number): Promise<Response> {

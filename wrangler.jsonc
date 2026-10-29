@@ -1,11 +1,11 @@
 // One Worker: static files from dist/ (built by `node scripts/build.mjs`) plus the member-area code.
 // Only the run_worker_first paths invoke the Worker; every other path is served as a file.
-// database_id values are placeholders until Roberto creates the databases (spec Q1). Roberto runs every deploy.
 {
   "$schema": "node_modules/wrangler/config-schema.json",
   "name": "fitmagra",
   "main": "worker/index.ts",
   "compatibility_date": "2026-10-27",
+  "observability": { "enabled": true, "redact_query_string": true, "logs": { "enabled": true, "invocation_logs": true }, "traces": { "enabled": true } },
   "assets": {
     "directory": "./dist",
     "binding": "ASSETS",
@@ -16,17 +16,19 @@
   // Private bucket: no public access and no custom domain. Files are read only through /app/archivos/ (spec 11.2).
   "r2_buckets": [{ "binding": "FILES", "bucket_name": "fitmagra-files" }],
   "d1_databases": [
-    { "binding": "DB", "database_name": "fitmagra", "database_id": "REPLACE_WITH_PRODUCTION_D1_ID", "migrations_dir": "migrations" }
+    { "binding": "DB", "database_name": "fitmagra", "database_id": "54e450fa-9417-4eb4-8624-07486f030299", "migrations_dir": "migrations" }
   ],
   "env": {
     "staging": {
       "name": "fitmagra-staging",
-      // Staging lives only on its workers.dev hostname, behind Cloudflare Access (runbook step 3).
+      // Staging uses its workers.dev hostname; Access was removed at Roberto’s request.
       "workers_dev": true,
-      "vars": { "ENVIRONMENT": "staging", "BILLING_PROVIDER": "stub" },
+      "preview_urls": false,
+      "vars": { "ENVIRONMENT": "staging" },
+      "observability": { "enabled": true, "redact_query_string": true, "logs": { "enabled": true, "invocation_logs": true }, "traces": { "enabled": true } },
       "r2_buckets": [{ "binding": "FILES", "bucket_name": "fitmagra-files-staging" }],
       "d1_databases": [
-        { "binding": "DB", "database_name": "fitmagra-staging", "database_id": "REPLACE_WITH_STAGING_D1_ID", "migrations_dir": "migrations" }
+        { "binding": "DB", "database_name": "fitmagra-staging", "database_id": "82b44057-e776-425d-a993-32a5926cf60c", "migrations_dir": "migrations" }
       ]
     }
   }

@@ -4,7 +4,7 @@ import { readFileSync, existsSync } from 'node:fs';
 
 const stories = JSON.parse(readFileSync(new URL('../content/stories.json', import.meta.url), 'utf8'));
 const media = (f) => new URL(`../site/media/${f}`, import.meta.url);
-const all = [...stories.photos, ...stories.quotes, stories.video];
+const all = [...stories.photos, ...stories.quotes];
 
 test('every story item has a unique id and a known consent status', () => {
   const ids = all.map((s) => s.id);
@@ -27,5 +27,4 @@ test('every quote has a name, a role in both languages, the original text and a 
     assert.ok(q.name && q.text && q.translation, q.id);
     assert.ok(q.role.es && q.role.en, `${q.id}: role`);
   }
-  assert.ok(existsSync(media(stories.video.file)), 'video file');
 });

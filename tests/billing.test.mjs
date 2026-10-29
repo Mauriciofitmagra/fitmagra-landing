@@ -1,8 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { setup, send, login } from './helpers.mjs';
+import { setup, send, login, upload, JPEG } from './helpers.mjs';
 import { applyEvent } from '../worker/billing/apply.ts';
-import { getProvider } from '../worker/billing/provider.ts';
 import { priceCop } from '../worker/billing/plans.ts';
 
 const today = () => new Date().toLocaleDateString('en-CA', { timeZone: 'America/Bogota' });
@@ -10,6 +9,35 @@ const subOf = (env, id) => env.DB.prepare('SELECT * FROM subscriptions WHERE use
 const setSub = (env, id, status, periodEnd = null, grace = null) =>
   env.DB.prepare(`INSERT INTO subscriptions (user_id, plan, status, current_period_end, grace_until, cancel_at_period_end, updated_at) VALUES (?, 'elite', ?, ?, ?, 0, 0)
     ON CONFLICT(user_id) DO UPDATE SET status = excluded.status, current_period_end = excluded.current_period_end, grace_until = excluded.grace_until`).bind(id, status, periodEnd, grace).run();
+
+test('paid access lasts 30 days per month and blocks private files after expiry', async () => {
+  const env = await setup();
+  const ana = await login(env, 'ana');
+  await upload(env, '/app/fotos/', ana, { bytes: JPEG, type: 'image/jpeg', fields: { date: '2026-01-01', pose: 'front' } });
+  const photo = await env.DB.prepare("SELECT id FROM photos WHERE user_id = 'ana'").first();
+  await setSub(env, 'ana', 'pending');
+  await applyEvent(env.DB, { provider: 'manual', providerEventId: 'thirty', userId: 'ana', event: { kind: 'payment_succeeded', months: 1 }, amountCop: 400000 }, '2026-01-01', 1);
+  assert.equal((await subOf(env, 'ana')).current_period_end, '2026-01-31');
+  const file = await send(env, `/app/archivos/${photo.id}`, { cookie: ana });
+  assert.equal(file.headers.get('location'), '/app/cuenta/');
+  const admin = await login(env, 'admin1');
+  assert.equal((await send(env, `/app/archivos/${photo.id}`, { cookie: admin })).status, 200);
+  assert.equal((await send(env, '/admin/miembros/ana/pago-manual/', { method: 'POST', cookie: admin, form: { months: '1', amount: '0', method: 'tarjeta', reference: 'ABC' } })).status, 400);
+  assert.equal((await send(env, '/admin/miembros/ana/pago-manual/', { method: 'POST', cookie: admin, form: { months: '1', amount: '400000', method: 'tarjeta', reference: 'ABC' } })).status, 303);
+  assert.equal((await send(env, `/app/archivos/${photo.id}`, { cookie: ana })).status, 200);
+});
+
+test('an expired account offers Wompi and receipt instructions but cannot simulate payment', async () => {
+  const env = await setup();
+  const ana = await login(env, 'ana');
+  await setSub(env, 'ana', 'pending');
+  const body = await (await send(env, '/app/cuenta/', { cookie: ana })).text();
+  assert.match(body, /https:\/\/checkout\.wompi\.co\/l\/VPOS_h9q1ew/);
+  assert.match(body, /comprobante/);
+  assert.match(body, /https:\/\/wa\.me\/573165754416\?/);
+  assert.equal((await send(env, '/api/billing/stub/', { method: 'POST', cookie: ana, form: { ref: 'fake', outcome: 'success' } })).status, 404);
+  assert.equal((await subOf(env, 'ana')).status, 'pending');
+});
 
 test('prices follow the current plans and the prepaid discounts', () => {
   assert.equal(priceCop('standard', 1), 250000);
@@ -41,48 +69,14 @@ test('access gating: pending and lapsed members only reach their account; active
   assert.equal((await send(env, '/app/peso/', { cookie: ana })).status, 200);
 });
 
-test('inside grace the member keeps access and every screen shows the warning with days left', async () => {
+test('members are reminded shortly before their paid period ends', async () => {
   const env = await setup();
   const ana = await login(env, 'ana');
-  const grace = new Date(Date.parse(`${today()}T00:00:00Z`) + 3 * 86400000).toISOString().slice(0, 10);
-  await setSub(env, 'ana', 'past_due', '2020-01-01', grace);
+  const end = new Date(Date.parse(`${today()}T00:00:00Z`) + 3 * 86400000).toISOString().slice(0, 10);
+  await setSub(env, 'ana', 'active', end);
   const res = await send(env, '/app/peso/', { cookie: ana });
   assert.equal(res.status, 200);
-  assert.match(await res.text(), /Tu pago está pendiente\. Te quedan 3 días/);
-});
-
-test('the stub checkout simulates success and failure outside production', async () => {
-  const env = await setup();
-  env.BILLING_PROVIDER = 'stub';
-  const ana = await login(env, 'ana');
-  await setSub(env, 'ana', 'pending');
-  const start = await send(env, '/app/pagar/', { method: 'POST', cookie: ana, form: { months: '1' } });
-  assert.equal(start.status, 303);
-  assert.match(start.headers.get('location'), /^\/api\/billing\/stub\/\?ref=/);
-  const ref = new URL(start.headers.get('location'), 'https://x').searchParams.get('ref');
-  assert.equal((await send(env, `/api/billing/stub/?ref=${ref}`, { cookie: ana })).status, 200);
-  const ok = await send(env, '/api/billing/stub/', { method: 'POST', cookie: ana, form: { ref, outcome: 'success' } });
-  assert.equal(ok.status, 303);
-  const s = await subOf(env, 'ana');
-  assert.equal(s.status, 'active');
-  assert.equal(s.provider, 'stub');
-  const pay = await env.DB.prepare("SELECT amount_cop, status, months FROM payments WHERE user_id = 'ana'").first();
-  assert.deepEqual(pay, { amount_cop: 400000, status: 'paid', months: 1 });
-  await send(env, '/api/billing/stub/', { method: 'POST', cookie: ana, form: { ref: 'other', outcome: 'failure' } });
-  assert.equal((await subOf(env, 'ana')).status, 'past_due');
-});
-
-test('the stub provider is refused in production', async () => {
-  assert.throws(() => getProvider({ ENVIRONMENT: 'production', BILLING_PROVIDER: 'stub' }), /stub.*production/);
-  assert.equal(getProvider({ ENVIRONMENT: 'staging', BILLING_PROVIDER: 'stub' }).name, 'stub');
-  assert.equal(getProvider({ ENVIRONMENT: 'production' }), null, 'no online provider until one is chosen (spec Q2)');
-  const env = await setup();
-  env.ENVIRONMENT = 'production';
-  env.BILLING_PROVIDER = 'stub';
-  const ana = await login(env, 'ana');
-  await setSub(env, 'ana', 'pending');
-  assert.equal((await send(env, '/app/pagar/', { method: 'POST', cookie: ana, form: { months: '1' } })).status, 503);
-  assert.equal((await send(env, '/api/billing/stub/', { method: 'POST', cookie: ana, form: { ref: 'r', outcome: 'success' } })).status, 404);
+  assert.match(await res.text(), /Tu plan vence en 3 días/);
 });
 
 test('a repeated event id changes nothing', async () => {
@@ -124,22 +118,20 @@ test('admin overrides need a reason and are logged', async () => {
   const env = await setup();
   const admin = await login(env, 'admin1');
   await setSub(env, 'ana', 'past_due', '2026-10-01', '2026-10-08');
-  assert.equal((await send(env, '/admin/miembros/ana/facturacion/', { method: 'POST', cookie: admin, form: { action: 'extend_grace', days: '5', reason: '' } })).status, 400);
-  assert.equal((await send(env, '/admin/miembros/ana/facturacion/', { method: 'POST', cookie: admin, form: { action: 'extend_grace', days: '5', reason: 'Viaje' } })).status, 303);
-  assert.equal((await subOf(env, 'ana')).grace_until, new Date(Date.parse(`${today()}T00:00:00Z`) + 5 * 86400000).toISOString().slice(0, 10));
+  assert.equal((await send(env, '/admin/miembros/ana/facturacion/', { method: 'POST', cookie: admin, form: { action: 'cancel_now', reason: '' } })).status, 400);
+  assert.equal((await send(env, '/admin/miembros/ana/facturacion/', { method: 'POST', cookie: admin, form: { action: 'extend_grace', days: '5', reason: 'Viaje' } })).status, 400);
   await send(env, '/admin/miembros/ana/facturacion/', { method: 'POST', cookie: admin, form: { action: 'cancel_now', reason: 'Pidió cancelar' } });
   assert.equal((await subOf(env, 'ana')).status, 'cancelled');
   const actions = (await env.DB.prepare("SELECT action, detail FROM audit_log WHERE target_user_id = 'ana' ORDER BY id").all()).results;
-  assert.deepEqual(actions.map((a) => a.action), ['billing.extend_grace', 'billing.cancel_now']);
-  assert.match(actions[0].detail, /Viaje/);
+  assert.deepEqual(actions.map((a) => a.action), ['billing.cancel_now']);
+  assert.match(actions[0].detail, /Pidió cancelar/);
 });
 
 test('the admin billing view counts states and lists who to remind today with a WhatsApp link', async () => {
   const env = await setup();
   const admin = await login(env, 'admin1');
   await env.DB.prepare("UPDATE users SET phone = '573001112233' WHERE id = 'ana'").run();
-  const graceToday = new Date(Date.parse(`${today()}T00:00:00Z`) + 7 * 86400000).toISOString().slice(0, 10);
-  await setSub(env, 'ana', 'past_due', today(), graceToday);
+  await setSub(env, 'ana', 'active', today());
   await setSub(env, 'beto', 'active', '2099-01-01');
   const body = await (await send(env, '/admin/facturacion/', { cookie: admin })).text();
   assert.match(body, /Al día<\/dt><dd>1/);

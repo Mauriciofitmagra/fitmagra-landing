@@ -13,7 +13,7 @@ function passingFixture() {
   const root = mkdtempSync(join(tmpdir(), 'fitmagra-cutover-'));
   const put = (p, body) => { mkdirSync(join(root, p, '..'), { recursive: true }); writeFileSync(join(root, p), body); };
   const stories = JSON.parse(readFileSync(join(repo, 'content/stories.json'), 'utf8'));
-  for (const s of [...stories.photos, ...stories.quotes, stories.video]) s.consent = 'written';
+  for (const s of [...stories.photos, ...stories.quotes]) s.consent = 'written';
   put('content/stories.json', JSON.stringify(stories));
   put('content/legal/terminos.md', 'Términos revisados por el abogado.');
   put('content/legal/privacidad.md', 'Política de tratamiento de datos revisada por el abogado.');
@@ -30,7 +30,7 @@ function passingFixture() {
 test('the checklist fails closed on the repository as it is today', () => {
   const items = checkCutover({ root: repo, env: {} });
   const ids = failing(items);
-  for (const id of ['vercel-decision', 'story-consent', 'legal-pages', 'site-url', 'database-ids', 'signoff-secrets', 'signoff-taste', 'signoff-staging', 'signoff-workers-cpu']) {
+  for (const id of ['vercel-decision', 'legal-pages', 'site-url', 'signoff-secrets', 'signoff-taste', 'signoff-staging', 'signoff-workers-cpu']) {
     assert.ok(ids.includes(id), `${id} should fail today`);
   }
   assert.ok(items.find((i) => i.id === 'billing-provider').ok, 'production has no stub provider');
@@ -43,6 +43,7 @@ test('the checklist passes when every item is met', () => {
 
 test('each item fails on its own', () => {
   const cases = [
+    ['database-ids', (root) => { const p = join(root, 'wrangler.jsonc'); writeFileSync(p, readFileSync(p, 'utf8').replace('54e450fa-9417-4eb4-8624-07486f030299', 'REPLACE_WITH_PRODUCTION_D1_ID')); }],
     ['site-url', (root, env) => { env.SITE_URL = 'https://fitmagra.invalid'; }],
     ['billing-provider', (root) => writeFileSync(join(root, 'wrangler.jsonc'), readFileSync(join(root, 'wrangler.jsonc'), 'utf8').replace('"vars": { "ENVIRONMENT": "production" }', '"vars": { "ENVIRONMENT": "production", "BILLING_PROVIDER": "stub" }'))],
     ['legal-pages', (root) => writeFileSync(join(root, 'content/legal/privacidad.md'), 'PENDIENTE: texto del abogado')],

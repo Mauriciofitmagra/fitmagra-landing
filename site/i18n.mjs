@@ -1,8 +1,8 @@
-export const WHATSAPP = '573153614260';
+export const WHATSAPP = '573165754416';
 export const USD_RATE = 4000;
 export const wa = (text) => `https://wa.me/${WHATSAPP}?text=${encodeURIComponent(text)}`;
 export const CONTACT = {
-  phone: '+57 315 361 4260',
+  phone: '+57 316 575 4416',
   email: 'Fitmagrasystems@gmail.com',
   facebook: 'https://www.facebook.com/FitmagraOficial/',
 };
@@ -131,7 +131,7 @@ export const strings = {
       title: 'FitMagra | Tu plan de entrenamiento y nutrición con Mauricio Sánchez',
       description: 'Mauricio Sánchez diseña tu entrenamiento y tu alimentación con tu nombre y los ajusta contigo cada semana. Valoración de 30 minutos sin costo.',
     },
-    nav: { home: 'Inicio', links: [['#metodo', 'Método'], ['historias/', 'Historias'], ['#planes', 'Planes'], ['blog/', 'Blog']], other: ['/en/', 'English'], skip: 'Saltar al contenido' },
+    nav: { home: 'Inicio', links: [['blog/', 'Blog'], ['#metodo', 'Método'], ['historias/', 'Historias'], ['#planes', 'Planes'], ['#pago', 'Pagar']], other: ['/en/', 'English'], skip: 'Saltar al contenido' },
     action: 'Agenda tu valoración',
     actionText: 'Hola, quiero agendar mi valoración gratuita',
     hero: {
@@ -183,8 +183,9 @@ export const strings = {
       title: 'Blog | FitMagra',
       description: 'Artículos de Mauricio Sánchez sobre entrenamiento, nutrición y cómo leer tu plan.',
       heading: ['Blog'],
+      homeHeading: 'Entrena con conocimiento',
+      homeLink: 'Explora el blog',
       empty: 'Mauricio está escribiendo. Los primeros artículos llegan pronto.',
-      rss: 'Suscríbete por RSS',
       published: 'Publicado el',
       back: 'Volver al blog',
       dateLocale: 'es-CO',
@@ -221,7 +222,7 @@ export const strings = {
       items: [
         ['¿Cómo es la valoración?', 'Son 30 minutos por WhatsApp o video, sin costo ni compromiso. Sales sabiendo tu punto de partida y qué puedes lograr.'],
         ['¿Qué recibo y cuándo?', 'Tu plan de entrenamiento, alimentación y suplementación, en 1 a 3 días hábiles después del pago.'],
-        ['¿Cómo pago?', 'Hoy por Nequi, Daviplata, tarjeta con SumUp, Bancolombia, AV Villas, Efecty o Baloto. Desde el exterior, por Remitly, Western Union o MoneyGram. Envías el comprobante por WhatsApp.'],
+        ['¿Cómo pago?', 'Hoy por Wompi, Nequi, Daviplata, Bancolombia, AV Villas, Efecty o Baloto. Desde el exterior, por Remitly, Western Union o MoneyGram. Envías el comprobante por WhatsApp.'],
         ['¿Funciona fuera de Colombia?', 'Sí. Todo es a distancia y hay clientes en 14 países. Los precios están en pesos con referencia en dólares.'],
         ['¿Qué pasa si me estanco?', 'El plan trae un árbol de decisión que dice qué ajustar, y tienes soporte por WhatsApp.'],
         ['¿Qué es MagraMind?', 'Un asistente con inteligencia artificial que aprenderá el método de Mauricio. Está en preparación y todavía no responde consultas.'],
@@ -245,7 +246,7 @@ export const strings = {
       title: 'FitMagra | Your training and nutrition plan with Mauricio Sánchez',
       description: 'Mauricio Sánchez designs your training and nutrition with your name on them and adjusts them with you every week. Free 30-minute assessment.',
     },
-    nav: { home: 'Home', links: [['#metodo', 'Method'], ['stories/', 'Stories'], ['#planes', 'Plans'], ['blog/', 'Blog']], other: ['/', 'Español'], skip: 'Skip to content' },
+    nav: { home: 'Home', links: [['blog/', 'Blog'], ['#metodo', 'Method'], ['stories/', 'Stories'], ['#planes', 'Plans'], ['#pago', 'Pay']], other: ['/', 'Español'], skip: 'Skip to content' },
     action: 'Book your assessment',
     actionText: "Hi, I'd like to book my free assessment",
     hero: {
@@ -297,8 +298,9 @@ export const strings = {
       title: 'Blog | FitMagra',
       description: 'Articles by Mauricio Sánchez on training, nutrition and how to read your plan.',
       heading: ['Blog'],
+      homeHeading: 'Train with knowledge',
+      homeLink: 'Explore the blog',
       empty: 'Mauricio is writing. The first articles arrive soon.',
-      rss: 'Subscribe by RSS',
       published: 'Published on',
       back: 'Back to the blog',
       dateLocale: 'en-US',
@@ -335,7 +337,7 @@ export const strings = {
       items: [
         ['How does the assessment work?', 'It takes 30 minutes on WhatsApp or video, free and with no commitment. You leave knowing where you start and what you can reach.'],
         ['What do I get, and when?', 'Your training, nutrition and supplement plan, 1 to 3 business days after payment.'],
-        ['How do I pay?', 'From Colombia, by Nequi, Daviplata, card through SumUp, Bancolombia, AV Villas, Efecty or Baloto. From abroad, by Remitly, Western Union or MoneyGram. You send the receipt on WhatsApp.'],
+        ['How do I pay?', 'From Colombia, through Wompi, Nequi, Daviplata, Bancolombia, AV Villas, Efecty or Baloto. From abroad, by Remitly, Western Union or MoneyGram. You send the receipt on WhatsApp.'],
         ['Does it work outside Colombia?', 'Yes. Everything is remote, and there are clients in 14 countries. Prices are in Colombian pesos with a dollar reference.'],
         ['What if I stall?', 'The plan comes with a decision tree that says what to adjust, and you have support on WhatsApp.'],
         ['What is MagraMind?', 'An artificial intelligence assistant that will learn Mauricio’s method. It is still in preparation and does not answer questions yet.'],

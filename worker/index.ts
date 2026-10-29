@@ -18,7 +18,6 @@ export interface Env {
   ASSETS: { fetch(request: Request): Promise<Response> };
   FILES: Bucket;
   ENVIRONMENT: string;
-  BILLING_PROVIDER?: string;
 }
 
 // signed: logged in. account: signed and consented to data treatment (spec 12). member: account and billing
@@ -33,7 +32,7 @@ const ROUTES: Route[] = [
   ['GET', /^\/entrar\/clave\/$/, 'public', (c) => auth.setPasswordPage(c.request)],
   ['POST', /^\/entrar\/clave\/$/, 'public', (c) => auth.setPassword(c.request, c.env.DB, c.now)],
   ['POST', /^\/salir\/$/, 'public', (c) => auth.logout(c.request, c.env.DB)],
-  ['GET', /^\/app\/$/, 'member', (c) => app.home(c.env.DB, c.session!)],
+  ['GET', /^\/app\/$/, 'member', (c) => app.home(c.env.DB, c.session!, c.now)],
   ['GET', /^\/app\/consentimiento\/$/, 'signed', (c) => app.consent(c.request, c.env.DB, c.session!, c.now)],
   ['POST', /^\/app\/consentimiento\/$/, 'signed', (c) => app.consent(c.request, c.env.DB, c.session!, c.now)],
   ['GET', /^\/app\/(peso|entrenos)\/$/, 'member', (c) => app.logList(c.env.DB, LOG_KEYS[c.params[0]], c.session!, c.now)],
@@ -43,13 +42,10 @@ const ROUTES: Route[] = [
   ['GET', /^\/app\/fotos\/$/, 'member', (c) => app.photos(c.env.DB, c.session!, c.now)],
   ['POST', /^\/app\/fotos\/$/, 'member', (c) => app.photoAdd(c.request, c.env.DB, c.env.FILES, c.session!, c.now)],
   ['POST', /^\/app\/fotos\/([\w-]+)\/borrar\/$/, 'member', (c) => app.photoDelete(c.env.DB, c.env.FILES, c.session!, c.params[0])],
-  ['GET', /^\/app\/archivos\/([\w-]+)$/, 'signed', (c) => app.file(c.env.DB, c.env.FILES, c.session!, c.params[0])],
+  ['GET', /^\/app\/archivos\/([\w-]+)$/, 'member', (c) => app.file(c.env.DB, c.env.FILES, c.session!, c.params[0])],
   ['GET', /^\/app\/plan\/$/, 'member', (c) => app.plan(c.env.DB, c.session!)],
   ['GET', /^\/app\/coach-ia\/$/, 'member', (c) => app.coach(c.session!)],
   ['GET', /^\/app\/cuenta\/$/, 'account', (c) => app.account(c.env.DB, c.session!, c.now)],
-  ['POST', /^\/app\/pagar\/$/, 'account', (c) => billing.startPayment(c.request, c.env.DB, c.env, c.session!)],
-  ['GET', /^\/api\/billing\/stub\/$/, 'account', (c) => (c.env.ENVIRONMENT === 'production' ? notFound() : billing.stubPage(c.request, c.session!))],
-  ['POST', /^\/api\/billing\/stub\/$/, 'account', (c) => (c.env.ENVIRONMENT === 'production' ? notFound() : billing.stubResult(c.request, c.env.DB, c.session!, app.today(c.now), c.now))],
   ['POST', /^\/app\/cuenta\/clave\/$/, 'account', (c) => app.changePassword(c.request, c.env.DB, c.session!, c.now)],
   ['GET', /^\/admin\/$/, 'admin', (c) => admin.list(c.env.DB, c.session!)],
   ['POST', /^\/admin\/miembros\/$/, 'admin', (c) => admin.create(c.request, c.env.DB, c.session!, c.now)],
@@ -89,7 +85,7 @@ async function route(request: Request, env: Env): Promise<Response> {
   if (level.level === 'billing_only') return redirect('/app/cuenta/');
   const res = await handler(ctx);
   if (level.level === 'full' || !res.headers.get('content-type')?.startsWith('text/html')) return res;
-  // Inside grace every member screen carries the payment warning, added in one place instead of in each handler.
+  // Show a reminder shortly before the paid period ends.
   const body = (await res.text()).replace('<main class="app-main">', `<main class="app-main">\n${billing.warningBanner(level)}`);
   return new Response(body, res);
 }

@@ -1,5 +1,6 @@
 {
   "vercel": { "by": null, "date": null, "decision": null, "liveSiteChecked": null, "note": "Gate 0 in docs/runbooks/cloudflare-cutover.md. decision is \"cloudflare\" or \"keep-vercel\"." },
+  "storyAuthorization": { "by": "Roberto", "date": "2026-10-29", "note": "Roberto confirms written authorization for all 13 photos and 6 testimonials." },
   "secretsSet": null,
   "tasteInspector": null,
   "stagingSmokeTest": null,

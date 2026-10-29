@@ -45,15 +45,14 @@ ${navLinks(t, alts)}
 <a href="${CONTACT.facebook}">Facebook</a>
 <span>${esc(t.footer.place)}</span>
 </address>
-<div class="player">
-<p>${esc(t.footer.music)}</p>
-<audio controls preload="none" src="/media/fitmagra-vibes.mp3"></audio>
-</div>
 <p class="small">${esc(t.footer.rights)}</p>
 </div>
 </footer>`;
 
 export function layout(t, { title = t.meta.title, description = t.meta.description, body, index = true, alts = HOME, head = '' }) {
+  const back = `<nav class="back-home-nav" aria-label="${t.lang === 'es' ? 'Volver al inicio' : 'Back to home'}"><a class="back-home" href="${body.includes('id="hero"') ? '#contenido' : t.path}">${t.lang === 'es' ? 'Volver al inicio' : 'Back to home'} ↑</a></nav>`;
+  body = body.replaceAll('</section>', `${back}</section>`);
+  if (body.startsWith('<article class="blog-post">')) body = body.replace('</article>', `${back}</article>`);
   return `<!doctype html>
 <html lang="${t.lang}">
 <head>
@@ -75,12 +74,14 @@ ${head}
 <nav aria-label="${esc(t.nav.home)}">
 ${navLinks(t, alts)}
 </nav>
+<a class="login-link" href="/entrar/">${t.lang === 'es' ? 'Entrar' : 'Log in'}</a>
 <a class="button" href="${wa(t.actionText)}">${esc(t.action)}</a>
 </header>
 <main id="contenido">
 ${body}
 </main>
 ${footer(t, alts)}
+<script type="module" src="/assets/scroll-motion.js"></script>
 </body>
 </html>
 `;

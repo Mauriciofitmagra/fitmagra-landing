@@ -108,12 +108,12 @@ test('nutrition: targets set by the admin and the day total of the member log', 
   assert.equal((await send(env, '/admin/miembros/ana/metas/', { method: 'POST', cookie: admin, form: { kcal: '50', protein: '1', carbs: '1', fat: '1' } })).status, 400);
 });
 
-test('Coach IA is a labelled demonstration: no script, no form action, the input is disabled', async () => {
+test('Coach IA is a labelled demonstration: only presentation script, no form action, the input is disabled', async () => {
   const env = await setup();
   const body = await (await send(env, '/app/coach-ia/', { cookie: await login(env, 'ana') })).text();
   assert.ok(body.includes('Próximamente'));
   assert.ok(body.includes('Demostración'));
-  assert.ok(!/<script/i.test(body));
+  assert.deepEqual([...body.matchAll(/<script[^>]*src="([^"]+)"/g)].map((m) => m[1]), ['/assets/scroll-motion.js']);
   assert.match(body, /<input[^>]*disabled/);
   assert.ok(!/<form[^>]*coach/i.test(body));
 });

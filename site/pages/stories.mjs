@@ -36,10 +36,6 @@ export function stories(t, data) {
 <section class="stories-grid">
 ${items.join('\n')}
 </section>
-<section class="stories-video">
-<video controls playsinline preload="none" src="/media/${data.video.file}"></video>
-<p class="statement">${esc(data.video.caption[t.lang])}</p>
-</section>
 <section class="closing">
 <p class="statement">${esc(t.stories.closing)}</p>
 <p><a class="button" href="${wa(t.actionText)}">${esc(t.action)}</a></p>

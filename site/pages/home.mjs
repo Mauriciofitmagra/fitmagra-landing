@@ -1,21 +1,25 @@
 import { esc, lines, img } from '../layout.mjs';
 import { wa, USD_RATE } from '../i18n.mjs';
+import { postPath } from './blog.mjs';
 
 const button = (t, text = t.action, message = t.actionText) => `<a class="button" href="${wa(message)}">${esc(text)} →</a>`;
 const cop = (n) => n.toLocaleString('es-CO');
 const EQUATIONS = ['harrisBenedict', 'mifflinStJeor', 'cunningham', 'oxford'];
 
 const hero = (t) => `<section class="hero" id="hero">
-<div class="plate hero-plate" aria-hidden="true"></div>
-<h1 class="display">${lines(t.hero.lines)}</h1>
+<div class="hero-copy"><h1 class="display">${lines(t.hero.lines)}</h1>
 <p class="statement">${esc(t.hero.sentence)}</p>
-<p class="actions">${button(t)} <a href="#planes">${esc(t.hero.link)}</a></p>
+<p class="actions">${button(t)} <a href="#planes">${esc(t.hero.link)}</a></p></div>
+<div class="hero-method">
+<ul><li>${t.lang === 'es' ? 'Entrenamiento' : 'Training'}</li><li>${t.lang === 'es' ? 'Nutrición' : 'Nutrition'}</li><li>${t.lang === 'es' ? 'Seguimiento' : 'Coaching'}</li></ul>
+<a href="#how">${t.lang === 'es' ? 'Así trabajamos' : 'How we work'} ↗</a>
+</div>
 </section>`;
 
 const intro = (t) => `<section class="intro" id="intro">
 <p class="tile tile-slogan rise">${lines(t.intro.slogan)}</p>
 <p class="tile tile-count rise"><span class="display">${esc(t.intro.count)}</span> ${esc(t.intro.countLabel)}</p>
-<figure class="tile tile-photo rise">${img('coach-green-640.jpg', t.intro.photoAlt)}</figure>
+<p class="tile tile-reach rise"><span class="display">14</span> ${t.lang === 'es' ? 'países' : 'countries'}</p>
 <p class="tile tile-text statement rise">${esc(t.intro.text)}</p>
 </section>`;
 
@@ -51,19 +55,31 @@ const proof = (t) => `<section class="proof" id="proof">
 <p class="statement">${esc(t.proof.sentence)} <a href="${t.stories.path}">${esc(t.proof.link)}</a></p>
 </section>`;
 
+const homeBlog = (t, posts) => `<section class="home-blog" id="blog-destacado">
+<div class="home-blog-intro"><h2 class="display">${esc(t.blog.homeHeading)}</h2>
+<p class="statement">${esc(t.blog.description)}</p>
+<a class="button" href="${t.blog.path}">${esc(t.blog.homeLink)} →</a></div>
+<div class="home-blog-stories">${posts.length ? `<ul>${posts.slice(0, 3).map((p) => `<li><a href="${postPath(t, p)}"><h3 class="heading">${esc(p.title)}</h3><p>${esc(p.description)}</p><span aria-hidden="true">↗</span></a></li>`).join('')}</ul>` : `<p class="statement">${esc(t.blog.empty)}</p>`}</div>
+</section>`;
+
 const about = (t) => `<section class="about" id="about">
 <div class="about-panel">
 <h2 class="heading">${lines(t.about.lines)}</h2>
 <figure class="about-photo shutter">${img('coach-pilates-640.jpg', t.about.photoAlt, 'plate-mask')}</figure>
-${t.about.blocks.map(([title, body], i) => `<div class="about-block">${i === 0 ? `<span class="rosario">${img('rosario-400.png', t.about.rosarioAlt)}</span>` : ''}<h3>${esc(title)}</h3><p>${esc(body)}</p></div>`).join('\n')}
+${t.about.blocks.map(([title, body]) => `<div class="about-block"><h3>${esc(title)}</h3><p>${esc(body)}</p></div>`).join('\n')}
 <p>${button(t)}</p>
 </div>
 </section>`;
 
+const symbols = [
+  '<circle cx="32" cy="22" r="9"/><path d="M15 52c0-10 7-16 17-16s17 6 17 16"/><path d="M48 12v10m-5-5h10"/>',
+  '<rect x="15" y="10" width="34" height="44" rx="3"/><path d="M23 22h18M23 31h18M23 40h10"/>',
+  '<path d="M12 50h40M16 43l10-10 8 6 14-19"/><path d="M39 20h9v9"/>'
+];
 const how = (t) => `<section class="how" id="how">
 <h2 class="display">${esc(t.how.heading)}</h2>
 <ol class="how-tiles">
-${t.how.steps.map(([title, body, file, alt]) => `<li class="how-tile rise">${img(file, alt)}<h3 class="heading">${esc(title)}</h3><p>${esc(body)}</p></li>`).join('\n')}
+${t.how.steps.map(([title, body], i) => `<li class="how-tile rise"><svg class="how-symbol" viewBox="0 0 64 64" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${symbols[i]}</svg><h3 class="heading">${esc(title)}</h3><p>${esc(body)}</p></li>`).join('\n')}
 </ol>
 </section>`;
 
@@ -92,6 +108,13 @@ ${t.pricing.plans.map((p) => `<article class="ticket rise">
 </div>
 </section>`;
 
+const payment = (t) => `<section class="payment" id="pago">
+<div><h2 class="display">${t.lang === 'es' ? 'Haz tu pago' : 'Make your payment'}</h2>
+<p class="statement">${t.lang === 'es' ? 'En Wompi, ingresa el valor de tu plan y completa el pago. Después, envía el comprobante por WhatsApp.' : 'On Wompi, enter your plan amount and complete payment. Then send your payment confirmation on WhatsApp.'}</p></div>
+<div class="payment-actions"><a class="button" href="https://checkout.wompi.co/l/VPOS_h9q1ew">${t.lang === 'es' ? 'Pagar con Wompi' : 'Pay with Wompi'} →</a>
+<a href="${wa(t.lang === 'es' ? 'Hola, quiero enviar mi comprobante de pago' : 'Hi, I would like to send my payment confirmation')}">${t.lang === 'es' ? 'Enviar comprobante por WhatsApp' : 'Send payment confirmation on WhatsApp'} →</a></div>
+</section>`;
+
 const faq = (t) => `<section class="faq" id="preguntas">
 <h2 class="display">${esc(t.faq.heading)}</h2>
 ${t.faq.items.map(([q, a], i) => `<div class="faq-band ${i % 2 ? 'faq-green' : 'faq-black'}"><h3 class="heading">${esc(q)}</h3><p>${esc(a)}</p></div>`).join('\n')}
@@ -103,4 +126,4 @@ const closing = (t) => `<section class="closing" id="closing">
 <p>${button(t)}</p>
 </section>`;
 
-export const home = (t) => [hero, intro, equations, proof, about, how, pricing, faq, closing].map((section) => section(t)).join('\n');
+export const home = (t, posts = []) => [hero, intro, proof, homeBlog, how, pricing, payment, about, equations, faq, closing].map((section) => section(t, posts)).join('\n');

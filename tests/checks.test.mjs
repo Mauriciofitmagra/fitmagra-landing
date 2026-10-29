@@ -15,9 +15,8 @@ const fixture = (files) => {
   return dir;
 };
 
-test('brand.css has no gradient, shadow or monospace and at most two font families', () => {
+test('brand.css has no shadow or monospace and at most two font families', () => {
   const css = readFileSync(new URL('../site/assets/brand.css', import.meta.url), 'utf8');
-  assert.doesNotMatch(css, /gradient/);
   assert.doesNotMatch(css, /box-shadow/);
   assert.doesNotMatch(css, /monospace/);
   const generic = new Set(['serif', 'sans-serif', 'system-ui', 'inherit']);

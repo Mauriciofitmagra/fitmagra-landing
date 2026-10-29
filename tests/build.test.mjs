@@ -16,6 +16,14 @@ test('writes both home pages, robots.txt and 404.html', () => {
   }
 });
 
+test('staging public pages include Cloudflare analytics without enabling it on other domains', async () => {
+  const stagingDir = mkdtempSync(join(tmpdir(), 'fitmagra-analytics-'));
+  await build({ outDir: stagingDir, siteUrl: 'https://fitmagra-staging.robertzu43.workers.dev', log: () => {} });
+  assert.match(readFileSync(join(stagingDir, 'index.html'), 'utf8'), /static\.cloudflareinsights\.com\/beacon\.min\.js/);
+  assert.match(readFileSync(join(stagingDir, 'en/blog/index.html'), 'utf8'), /static\.cloudflareinsights\.com\/beacon\.min\.js/);
+  assert.doesNotMatch(es, /static\.cloudflareinsights\.com\/beacon\.min\.js/);
+});
+
 for (const [lang, html, headline] of [['es', es, 'Tu plan,'], ['en', en, 'Your plan,']]) {
   test(`${lang} page has lang, title, description, canonical and hreflang pairs`, () => {
     assert.match(html, new RegExp(`<html lang="${lang}"`));

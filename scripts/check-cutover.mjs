@@ -37,7 +37,7 @@ export function checkCutover({ root, env = process.env }) {
     }),
     item('story-consent', 'Written consent for every person on Historias', () => {
       const s = JSON.parse(read(root, 'content/stories.json'));
-      const pending = [...s.photos, ...s.quotes, s.video].filter((x) => x.consent !== 'written').map((x) => x.id);
+      const pending = [...s.photos, ...s.quotes].filter((x) => x.consent !== 'written').map((x) => x.id);
       return pending.length === 0 || `${pending.length} items without written consent: ${pending.join(', ')}`;
     }),
     item('legal-pages', 'Lawyer-approved Términos and Privacidad', () => {

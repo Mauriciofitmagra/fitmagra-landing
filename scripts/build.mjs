@@ -5,13 +5,13 @@ import { strings } from '../site/i18n.mjs';
 import { layout, esc } from '../site/layout.mjs';
 import { home } from '../site/pages/home.mjs';
 import { stories } from '../site/pages/stories.mjs';
-import { listing, post, postHead, postPath, rss, sitemap } from '../site/pages/blog.mjs';
+import { listing, post, postHead, postPath, sitemap } from '../site/pages/blog.mjs';
 import { parsePost } from '../lib/frontmatter.mjs';
 
 const root = resolve(import.meta.dirname, '..');
 
 // Every story item without written consent; the cutover checklist (spec 14) refuses to launch while any remain.
-export const unverifiedConsent = (data) => [...data.photos, ...data.quotes, data.video].filter((s) => s.consent !== 'written').map((s) => s.id);
+export const unverifiedConsent = (data) => [...data.photos, ...data.quotes].filter((s) => s.consent !== 'written').map((s) => s.id);
 
 // Published posts per language, newest first. Invalid front matter throws with the file and field.
 export function loadPosts(blogDir) {
@@ -41,6 +41,9 @@ export async function build({
   const write = (path, html, { index = true } = {}) => {
     const file = join(outDir, path.endsWith('/') ? `${path}index.html` : path);
     mkdirSync(dirname(file), { recursive: true });
+    if (siteUrl === 'https://fitmagra-staging.robertzu43.workers.dev' && (path.endsWith('/') || path.endsWith('.html'))) {
+      html = html.replace('</body>', `<script type="module" src="https://static.cloudflareinsights.com/beacon.min.js" data-cf-beacon='{"token":"adc60c6e62c64528bea7ec9217ee5825"}'></script>\n</body>`); // gitleaks:allow - public Cloudflare Web Analytics site token
+    }
     writeFileSync(file, html);
     if (index && path.endsWith('/')) indexed.push(path);
   };
@@ -48,15 +51,14 @@ export async function build({
   rmSync(outDir, { recursive: true, force: true });
   mkdirSync(outDir, { recursive: true });
   cpSync(join(root, 'site/assets'), join(outDir, 'assets'), { recursive: true });
-  cpSync(join(root, 'site/media'), join(outDir, 'media'), { recursive: true });
+  cpSync(join(root, 'site/media'), join(outDir, 'media'), { recursive: true, filter: (src) => !src.endsWith('/testimonial-video.mp4') });
   cpSync(join(root, 'lib/equations.mjs'), join(outDir, 'assets/equations.mjs'));
 
   const pair = (key) => ({ es: strings.es[key].path, en: strings.en[key].path });
   for (const t of Object.values(strings)) {
-    write(t.path, layout(t, { body: home(t) }));
+    write(t.path, layout(t, { body: home(t, posts[t.lang]) }));
     write(t.stories.path, layout(t, { title: t.stories.title, description: t.stories.description, alts: pair('stories'), body: stories(t, storyData) }));
     write(t.blog.path, layout(t, { title: t.blog.title, description: t.blog.description, alts: pair('blog'), body: listing(t, posts[t.lang]) }));
-    write(`${t.blog.path}rss.xml`, rss(t, posts[t.lang], siteUrl));
     const other = t.lang === 'es' ? strings.en : strings.es;
     for (const p of posts[t.lang]) {
       const twin = p.translation && posts[other.lang].find((q) => q.slug === p.translation);

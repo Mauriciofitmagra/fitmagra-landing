@@ -38,3 +38,36 @@ body.app { background: var(--white); color: var(--black); }
 .chat-demo { display: grid; gap: var(--s3); max-width: 640px; }
 .chat-line { padding: var(--s3) var(--s4); background: #f2f2f2; }
 .chat-me { background: var(--fit); color: var(--black); justify-self: end; }
+
+/* The member area keeps navigation, progress and payment actions easy to scan. */
+.app-bar { min-height: 76px; padding-block: var(--s3); }
+.app-bar img { width: 150px; }
+.app-bar .link, .app-bar nav a { display: inline-flex; align-items: center; min-height: 44px; }
+.app-main { max-width: 1100px; margin-inline: auto; gap: var(--s4); }
+.app-title { font-size: clamp(36px, 5vw, 60px); letter-spacing: -.035em; }
+.app-kicker { color: #126838; font-size: var(--step-small); font-weight: 800; text-transform: uppercase; letter-spacing: .06em; }
+.login-intro { display: grid; gap: var(--s3); max-width: 35rem; }
+.login-intro + .app-form, .login-intro ~ .app-form { margin-top: var(--s2); }
+.app .button { background: #126838; color: var(--white); font-weight: 800; text-decoration: none; justify-content: center; }
+.app .button:hover { background: #0d4e2a; }
+.app-tabs { gap: var(--s1) var(--s3); border-bottom: 1px solid #c8d5cc; }
+.app-tabs a { display: inline-flex; align-items: center; min-height: 48px; padding: var(--s2); }
+.app-tabs a[aria-current="page"] { color: #126838; text-decoration-thickness: 3px; }
+.app-welcome { display: grid; gap: var(--s3); padding: clamp(24px, 4vw, 48px); background: #edf6f0; }
+.app-welcome p { max-width: 56ch; }
+.app-welcome a { font-weight: 800; }
+.summary { gap: var(--s2); }
+.summary div { background: #edf6f0; border-top: 4px solid var(--fit); min-width: 0; }
+.summary dd { margin-top: var(--s2); overflow-wrap: anywhere; }
+.app-actions, .payment-links { display: flex; flex-wrap: wrap; align-items: center; gap: var(--s3) var(--s4); font-weight: 800; }
+.payment-panel { display: grid; gap: var(--s3); padding: clamp(24px, 4vw, 40px); background: var(--black); color: var(--white); }
+.payment-panel h2 { font-size: var(--step-statement); }
+.payment-panel ul { list-style: none; display: flex; flex-wrap: wrap; gap: var(--s2) var(--s4); }
+.payment-panel .small { max-width: 65ch; }
+.app .table { display: block; overflow-x: auto; }
+@media (max-width: 600px) {
+  .app-main { padding-top: var(--s4); }
+  .app-tabs { flex-wrap: wrap; }
+  .app-tabs a { white-space: nowrap; }
+  .app-actions .button, .payment-links .button { width: 100%; }
+}

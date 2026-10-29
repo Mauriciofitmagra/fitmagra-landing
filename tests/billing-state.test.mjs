@@ -1,33 +1,25 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { transition, addMonths, GRACE_DAYS } from '../worker/billing/state.ts';
+import { transition } from '../worker/billing/state.ts';
 import { access } from '../worker/billing/access.ts';
 
 const sub = (over = {}) => ({ status: 'pending', plan: 'elite', currentPeriodEnd: null, graceUntil: null, cancelAtPeriodEnd: false, ...over });
 const TODAY = '2026-11-10';
 
-test('addMonths keeps the day and clamps to the end of shorter months', () => {
-  assert.equal(addMonths('2026-01-15', 1), '2026-02-15');
-  assert.equal(addMonths('2026-01-31', 1), '2026-02-28');
-  assert.equal(addMonths('2026-11-30', 3), '2027-02-28');
-  assert.equal(addMonths('2028-01-31', 1), '2028-02-29');
-});
-
-test('a successful payment activates for interval_months from today, or extends an unexpired period', () => {
+test('a successful payment adds 30 days per prepaid month', () => {
   const first = transition(sub(), { kind: 'payment_succeeded', months: 1 }, TODAY);
   assert.deepEqual(first, { ok: true, next: sub({ status: 'active', currentPeriodEnd: '2026-12-10' }) });
   const renewed = transition(sub({ status: 'active', currentPeriodEnd: '2026-11-20' }), { kind: 'payment_succeeded', months: 3 }, TODAY);
-  assert.equal(renewed.next.currentPeriodEnd, '2027-02-20', 'prepaid three months stack on the current period');
+  assert.equal(renewed.next.currentPeriodEnd, '2027-02-18', 'prepaid three months stack on the current period');
   const late = transition(sub({ status: 'past_due', currentPeriodEnd: '2026-11-05', graceUntil: '2026-11-12' }), { kind: 'payment_succeeded', months: 1 }, TODAY);
   assert.deepEqual(late.next, sub({ status: 'active', currentPeriodEnd: '2026-12-10', graceUntil: null }), 'a late payment restarts from today');
 });
 
-test('a failed charge on an active subscription starts the grace period', () => {
+test('a failed charge does not extend the paid period', () => {
   const r = transition(sub({ status: 'active', currentPeriodEnd: TODAY }), { kind: 'payment_failed' }, TODAY);
-  assert.equal(GRACE_DAYS, 7);
-  assert.deepEqual(r.next, sub({ status: 'past_due', currentPeriodEnd: TODAY, graceUntil: '2026-11-17' }));
+  assert.deepEqual(r.next, sub({ status: 'past_due', currentPeriodEnd: TODAY }));
   const again = transition(r.next, { kind: 'payment_failed' }, '2026-11-12');
-  assert.equal(again.next.graceUntil, '2026-11-17', 'retries do not extend grace');
+  assert.equal(again.next.currentPeriodEnd, TODAY, 'retries do not extend access');
 });
 
 test('cancelling: a member keeps access to the end of the paid period; an admin can cancel now', () => {
@@ -66,16 +58,16 @@ test('a cancelled member who pays again becomes active', () => {
 test('access is computed from status and dates on every request, so no job is needed', () => {
   const cases = [
     [sub({ status: 'pending' }), 'billing_only'],
-    [sub({ status: 'active', currentPeriodEnd: '2026-11-10' }), 'full', 'the last paid day is included'],
-    [sub({ status: 'active', currentPeriodEnd: '2026-11-09' }), 'full_with_warning', 'period ended, inside the implicit grace'],
-    [sub({ status: 'active', currentPeriodEnd: '2026-11-03' }), 'full_with_warning', 'grace counts 7 days from period end'],
-    [sub({ status: 'active', currentPeriodEnd: '2026-11-02' }), 'billing_only', 'grace over'],
+    [sub({ status: 'active', currentPeriodEnd: '2026-11-10' }), 'full_with_warning', 'the last paid day is included'],
+    [sub({ status: 'active', currentPeriodEnd: '2026-11-09' }), 'billing_only', 'period ended'],
+    [sub({ status: 'active', currentPeriodEnd: '2026-11-03' }), 'billing_only', 'no grace period'],
+    [sub({ status: 'active', currentPeriodEnd: '2026-11-02' }), 'billing_only', 'expired'],
     [sub({ status: 'active', currentPeriodEnd: '2026-11-09', cancelAtPeriodEnd: true }), 'billing_only', 'cancelled at period end gets no grace'],
-    [sub({ status: 'past_due', currentPeriodEnd: '2026-11-05', graceUntil: '2026-11-10' }), 'full_with_warning'],
+    [sub({ status: 'past_due', currentPeriodEnd: '2026-11-05', graceUntil: '2026-11-10' }), 'billing_only'],
     [sub({ status: 'past_due', currentPeriodEnd: '2026-11-01', graceUntil: '2026-11-09' }), 'billing_only'],
     [sub({ status: 'cancelled', currentPeriodEnd: '2026-12-01' }), 'billing_only'],
   ];
   for (const [s, expected, why = ''] of cases) assert.equal(access(s, TODAY).level, expected, `${s.status} ${s.currentPeriodEnd} ${why}`);
-  assert.equal(access(sub({ status: 'past_due', currentPeriodEnd: '2026-11-05', graceUntil: '2026-11-13' }), TODAY).daysLeft, 3);
+  assert.equal(access(sub({ status: 'active', currentPeriodEnd: '2026-11-13' }), TODAY).daysLeft, 3);
   assert.equal(access(null, TODAY).level, 'billing_only', 'no subscription row means no access');
 });

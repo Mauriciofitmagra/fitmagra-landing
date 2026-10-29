@@ -9,7 +9,6 @@ export type BillingEvent =
   | { kind: 'cancel_now' };
 export type Result = { ok: true; next: Subscription } | { ok: false; error: string };
 
-export const GRACE_DAYS = 7;
 export const TERMS = [1, 2, 3]; // months one payment covers (spec Q14)
 
 const day = (d: string): Date => new Date(`${d}T00:00:00Z`);
@@ -17,23 +16,15 @@ const iso = (d: Date): string => d.toISOString().slice(0, 10);
 export const addDays = (d: string, n: number): string => iso(new Date(day(d).getTime() + n * 86_400_000));
 export const daysBetween = (from: string, to: string): number => Math.round((day(to).getTime() - day(from).getTime()) / 86_400_000);
 
-export function addMonths(d: string, months: number): string {
-  const [y, m, dd] = d.split('-').map(Number);
-  const target = new Date(Date.UTC(y, m - 1 + months, 1));
-  const last = new Date(Date.UTC(target.getUTCFullYear(), target.getUTCMonth() + 1, 0)).getUTCDate();
-  target.setUTCDate(Math.min(dd, last));
-  return iso(target);
-}
-
 type Handler = (s: Subscription, e: BillingEvent, today: string) => Subscription | string;
 
 const paid: Handler = (s, e, today) => {
   const months = (e as { months: number }).months;
   if (!TERMS.includes(months)) return `a payment covers ${TERMS.join(', ')} months, not ${months}`;
-  const from = s.status === 'active' && s.currentPeriodEnd && s.currentPeriodEnd >= today ? s.currentPeriodEnd : today;
-  return { ...s, status: 'active', currentPeriodEnd: addMonths(from, months), graceUntil: null, cancelAtPeriodEnd: false };
+  const from = (s.status === 'active' || s.status === 'past_due') && s.currentPeriodEnd && s.currentPeriodEnd >= today ? s.currentPeriodEnd : today;
+  return { ...s, status: 'active', currentPeriodEnd: addDays(from, 30 * months), graceUntil: null, cancelAtPeriodEnd: false };
 };
-const failed: Handler = (s, _e, today) => ({ ...s, status: 'past_due', graceUntil: s.graceUntil ?? addDays(today, GRACE_DAYS) });
+const failed: Handler = (s) => ({ ...s, status: 'past_due', graceUntil: null });
 const cancelAtEnd: Handler = (s) => ({ ...s, cancelAtPeriodEnd: true });
 const cancelNow: Handler = (s) => ({ ...s, status: 'cancelled', graceUntil: null, cancelAtPeriodEnd: false });
 

@@ -1,4 +1,5 @@
 import { esc } from './http.ts';
+import { wa } from '../site/i18n.mjs';
 import type { Session } from './auth/sessions.ts';
 
 // App screens use the brand tokens on white (spec 6.4); the Taste rules for public pages do not apply here.
@@ -20,8 +21,10 @@ export function page(title: string, body: string, session: Session | null = null
 ${session ? `<nav>${session.role === 'admin' ? '<a href="/admin/">Admin</a>' : ''}<form method="post" action="/salir/"><button class="link">Salir</button></form></nav>` : ''}
 </header>
 <main class="app-main">
-${body}
+${body.replaceAll('</section>', '<a class="back-home" href="/">Volver al inicio ↑</a></section>')}
+<a class="back-home" href="/">Volver al inicio ↑</a>
 </main>
+<script type="module" src="/assets/scroll-motion.js"></script>
 </body>
 </html>`;
 }
@@ -29,14 +32,14 @@ ${body}
 const field = (name: string, label: string, type = 'text', extra = ''): string =>
   `<label class="field"><span>${esc(label)}</span><input name="${name}" type="${type}" ${extra}></label>`;
 
-export const loginView = (error = ''): string => page('Entrar', `<h1 class="app-title">Entrar</h1>
+export const loginView = (error = ''): string => page('Entrar', `<div class="login-intro"><p class="app-kicker">Tu espacio FitMagra</p><h1 class="app-title">Bienvenido de nuevo.</h1><p>Entra para consultar tu plan y seguir tu progreso.</p></div>
 ${error ? `<p class="notice" role="alert">${esc(error)}</p>` : ''}
 <form method="post" action="/entrar/" class="app-form">
 ${field('email', 'Correo', 'email', 'required autocomplete="username"')}
 ${field('password', 'Contraseña', 'password', 'required autocomplete="current-password"')}
-<button class="button">Entrar</button>
+<button class="button">Entrar a mi cuenta →</button>
 </form>
-<p>¿Olvidaste tu contraseña o todavía no tienes cuenta? Escríbele a Mauricio por WhatsApp y te envía un enlace.</p>`);
+<p>¿Olvidaste tu contraseña o todavía no tienes cuenta? <a href="${wa('Hola, necesito ayuda para entrar a mi cuenta')}">Escríbele a Mauricio por WhatsApp</a> y te envía un enlace.</p>`);
 
 export const setPasswordView = (t: string, p: string, error = ''): string => page('Crear contraseña', `<h1 class="app-title">Crea tu contraseña</h1>
 ${error ? `<p class="notice" role="alert">${esc(error)}</p>` : ''}

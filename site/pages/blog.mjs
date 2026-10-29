@@ -13,10 +13,10 @@ export function listing(t, posts) {
 </li>`);
   return `<section class="blog-head">
 <h1 class="display">${lines(t.blog.heading)}</h1>
+<p class="statement">${esc(t.blog.description)}</p>
 </section>
 <section class="blog-list">
 ${posts.length ? `<ul>\n${items.join('\n')}\n</ul>` : `<p class="statement">${esc(t.blog.empty)}</p>`}
-<p><a href="${t.blog.path}rss.xml">${esc(t.blog.rss)}</a></p>
 </section>
 ${posts.length ? '' : writer(t)}`;
 }
@@ -70,27 +70,6 @@ export function postHead(t, p, siteUrl) {
 }
 
 const xml = (s) => String(s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&apos;' })[c]);
-
-export function rss(t, posts, siteUrl) {
-  const items = posts.map((p) => `<item>
-<title>${xml(p.title)}</title>
-<link>${siteUrl}${postPath(t, p)}</link>
-<guid>${siteUrl}${postPath(t, p)}</guid>
-<description>${xml(p.description)}</description>
-<pubDate>${new Date(`${p.date}T00:00:00Z`).toUTCString()}</pubDate>
-</item>`);
-  return `<?xml version="1.0" encoding="UTF-8"?>
-<rss version="2.0">
-<channel>
-<title>${xml(t.blog.title)}</title>
-<link>${siteUrl}${t.blog.path}</link>
-<description>${xml(t.blog.description)}</description>
-<language>${t.lang}</language>
-${items.join('\n')}
-</channel>
-</rss>
-`;
-}
 
 export const sitemap = (paths, siteUrl) => `<?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">

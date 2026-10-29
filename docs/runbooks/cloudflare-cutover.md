@@ -41,7 +41,7 @@ The checklist item "Vercel decided before anything merges to main" passes only w
 | D1 database | `fitmagra` | `fitmagra-staging` |
 | R2 bucket (private) | `fitmagra-files` | `fitmagra-files-staging` |
 | `ENVIRONMENT` var | `production` | `staging` |
-| `BILLING_PROVIDER` var | unset (online payment off) | `stub` |
+| Online payment | Wompi link; administrator verifies and records each payment | Same manual confirmation |
 
 ## Step 2. Create the databases and buckets
 
@@ -118,7 +118,7 @@ Do not deploy unless the checklist printed "All 13 items pass." Create the produ
 
 1. If the domain's DNS is not on Cloudflare yet, add the zone to the Cloudflare account and change the nameservers at the registrar. Copy every existing record first. Leave MX and other mail records exactly as they are.
 2. Attach the domain to the `fitmagra` Worker as a Custom Domain (dashboard, or a `routes` entry with `custom_domain: true` in `wrangler.jsonc` through a pull request).
-3. Check HTTPS, the `www` redirect, `/sitemap.xml`, `/blog/rss.xml`, one login and one photo view.
+3. Check HTTPS, the `www` redirect, `/sitemap.xml`, the blog, one login and one photo view.
 4. Keep the old Vercel deployment untouched for 14 days.
 
 ## Rollback

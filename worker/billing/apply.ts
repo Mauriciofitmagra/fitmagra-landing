@@ -1,4 +1,4 @@
-// The one path every billing event takes, whether it comes from a provider webhook, the stub or an admin
+// The one path every billing event takes, whether it comes from a provider webhook or an admin
 // recording a manual payment (spec 13.4). The event row, the subscription change and the payment row are one batch.
 import type { DB } from '../db.ts';
 import { transition, type BillingEvent, type Subscription, type Plan, type Status } from './state.ts';
