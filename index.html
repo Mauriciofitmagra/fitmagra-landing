@@ -1,0 +1,2383 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FitMagra Systems · Coaching Científico · Bogotá</title>
+<meta name="description" content="Coaching de alto rendimiento basado en bioquímica aplicada. +450 clientes transformados en 14 países. Magíster U. Rosario.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<!-- Vibe 1: DM Serif Display + DM Sans · Vibe 2: Space Grotesk + JetBrains Mono · Vibe 3: Newsreader + IBM Plex Sans -->
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600;9..40,700&family=Space+Grotesk:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&family=Newsreader:ital,opsz,wght@0,6..72,300;0,6..72,400;0,6..72,500;1,6..72,400&family=IBM+Plex+Sans:wght@300;400;500;600&family=Playfair+Display:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500;1,600&display=swap" rel="stylesheet">
+<style>
+/* ─────────────────────────────────────────────────────────
+   VIBE TOKENS — switched via data-vibe attribute on <html>
+   ───────────────────────────────────────────────────────── */
+:root,
+html[data-vibe="cream"]{
+  --bg:#F5F0E8; --bg2:#EDEAE0; --bg3:#E5E0D5;
+  --surface:#FFFFFF;
+  --dark:#141414; --dark2:#1C1C1C; --dark3:#242424;
+  --text:#141414; --muted:#7A7568;
+  --accent:#3DBE4A; --accent2:#2da83a; --amber:#D4A853;
+  --light:#F5F0E8;
+  --border:rgba(20,20,20,0.09); --borderL:rgba(245,240,232,0.1);
+  --serif:'DM Serif Display',Georgia,serif;
+  --sans:'DM Sans',system-ui,sans-serif;
+  --mono:'JetBrains Mono',ui-monospace,monospace;
+  --serif-style:normal;
+  --r:20px; --r2:14px; --r3:100px;
+  --max:1240px; --pad:clamp(20px,5vw,80px);
+}
+html[data-vibe="dark"]{
+  --bg:#0A0A0A; --bg2:#121212; --bg3:#181818;
+  --surface:#161616;
+  --dark:#F5F5F5; --dark2:#EDEDED; --dark3:#D8D8D8;
+  --text:#F5F5F5; --muted:#888888;
+  --accent:#B8FF3D; --accent2:#9EE82A; --amber:#FFD27A;
+  --light:#0A0A0A;
+  --border:rgba(245,245,245,0.10); --borderL:rgba(10,10,10,0.4);
+  --serif:'Space Grotesk',sans-serif;
+  --sans:'Space Grotesk',system-ui,sans-serif;
+  --mono:'JetBrains Mono',ui-monospace,monospace;
+  --serif-style:normal;
+}
+html[data-vibe="editorial"]{
+  --bg:#FAFAF6; --bg2:#F1EFE8; --bg3:#E8E5DA;
+  --surface:#FFFFFF;
+  --dark:#1A1A1A; --dark2:#222220; --dark3:#2A2A28;
+  --text:#1A1A1A; --muted:#736D60;
+  --accent:#0F4D2A; --accent2:#0B3D21; --amber:#9C6B1B;
+  --light:#FAFAF6;
+  --border:rgba(26,26,26,0.10); --borderL:rgba(250,250,246,0.12);
+  --serif:'Newsreader',Georgia,serif;
+  --sans:'IBM Plex Sans',system-ui,sans-serif;
+  --mono:'IBM Plex Mono',ui-monospace,monospace;
+  --serif-style:italic;
+}
+
+/* ─────────────────────────────────────────────────────────
+   RESET + BASE
+   ───────────────────────────────────────────────────────── */
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+html{scroll-behavior:smooth;-webkit-tap-highlight-color:transparent;background:var(--bg);transition:background .4s;}
+body{background:var(--bg);color:var(--text);font-family:var(--sans);font-weight:300;overflow-x:hidden;transition:background .4s, color .4s;}
+img{max-width:100%;display:block;}
+button{font-family:inherit;}
+
+/* ─────────────────────────────────────────────────────────
+   VIBE SWITCHER (Tweaks panel)
+   ───────────────────────────────────────────────────────── */
+#vibe-toggle{position:fixed;bottom:1.25rem;left:1.25rem;z-index:600;background:var(--dark);color:var(--bg);border:none;border-radius:var(--r3);padding:.7rem 1.1rem;font-size:.72rem;font-weight:500;letter-spacing:.05em;cursor:pointer;box-shadow:0 4px 20px rgba(0,0,0,.15);display:flex;align-items:center;gap:.5rem;transition:transform .2s, background .3s;font-family:var(--sans);}
+#vibe-toggle:hover{transform:translateY(-2px);}
+#vibe-toggle::before{content:"";width:8px;height:8px;border-radius:50%;background:var(--accent);}
+#vibe-panel{position:fixed;bottom:5rem;left:1.25rem;z-index:601;background:var(--surface);border:1px solid var(--border);border-radius:var(--r2);padding:1.1rem;box-shadow:0 12px 40px rgba(0,0,0,.15);width:280px;display:none;}
+#vibe-panel.open{display:block;animation:vp .25s ease-out;}
+@keyframes vp{from{opacity:0;transform:translateY(8px);}to{opacity:1;transform:none;}}
+.vp-title{font-size:.62rem;letter-spacing:.18em;text-transform:uppercase;color:var(--muted);margin-bottom:.85rem;}
+.vp-option{display:flex;align-items:center;gap:.8rem;padding:.7rem .8rem;border-radius:10px;border:1px solid var(--border);cursor:pointer;transition:background .15s,border-color .15s;margin-bottom:.5rem;background:transparent;width:100%;text-align:left;font-family:inherit;}
+.vp-option:hover{border-color:var(--accent);}
+.vp-option.active{border-color:var(--accent);background:color-mix(in oklab, var(--accent) 8%, transparent);}
+.vp-swatch{display:flex;gap:3px;flex-shrink:0;}
+.vp-swatch span{width:14px;height:14px;border-radius:50%;border:1px solid rgba(0,0,0,.08);}
+.vp-meta{flex:1;min-width:0;}
+.vp-name{font-size:.78rem;font-weight:500;color:var(--text);}
+.vp-desc{font-size:.65rem;color:var(--muted);margin-top:.1rem;}
+
+/* ─────────────────────────────────────────────────────────
+   NAV
+   ───────────────────────────────────────────────────────── */
+nav{position:fixed;top:0;left:0;right:0;z-index:300;padding:1.25rem var(--pad);display:flex;align-items:center;justify-content:space-between;transition:all .3s;gap:1rem;}
+nav.sc{background:color-mix(in oklab, var(--bg) 92%, transparent);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);padding:.85rem var(--pad);box-shadow:0 1px 0 var(--border);}
+.nlogo{display:flex;align-items:center;gap:.5rem;text-decoration:none;color:var(--text);font-family:var(--serif);font-size:1.15rem;font-weight:400;letter-spacing:-.01em;font-style:var(--serif-style);}
+.nlogo-mark{width:30px;height:30px;border-radius:7px;background:var(--text);color:var(--bg);display:flex;align-items:center;justify-content:center;font-family:var(--sans);font-weight:600;font-size:.85rem;letter-spacing:-.02em;}
+html[data-vibe="dark"] .nlogo-mark{background:var(--accent);color:#0A0A0A;}
+.nlinks{display:flex;gap:1.75rem;list-style:none;}
+.nlinks a{color:var(--muted);text-decoration:none;font-size:.78rem;letter-spacing:.04em;transition:color .2s;white-space:nowrap;}
+.nlinks a:hover{color:var(--text);}
+@media(max-width:840px){.nlinks{display:none;}}
+.ncta{background:var(--text);color:var(--bg);padding:.6rem 1.3rem;border-radius:var(--r3);font-size:.74rem;font-weight:500;text-decoration:none;transition:background .2s,transform .2s;white-space:nowrap;cursor:pointer;border:none;font-family:inherit;}
+.ncta:hover{background:var(--accent);color:#fff;transform:translateY(-1px);}
+html[data-vibe="dark"] .ncta:hover{color:#0A0A0A;}
+
+/* ─────────────────────────────────────────────────────────
+   HERO — bigger, more impactful
+   ───────────────────────────────────────────────────────── */
+#hero{min-height:100svh;padding:8rem var(--pad) 3rem;max-width:calc(var(--max) + var(--pad)*2);margin:0 auto;position:relative;}
+.hero-grid{display:grid;grid-template-columns:1.15fr 1fr;gap:3.5rem;align-items:end;min-height:calc(100svh - 12rem);}
+@media(max-width:960px){.hero-grid{grid-template-columns:1fr;gap:2.5rem;align-items:start;}}
+.hero-left{z-index:2;}
+.h-trust{display:inline-flex;align-items:center;gap:.55rem;padding:.4rem .8rem .4rem .5rem;background:var(--surface);border:1px solid var(--border);border-radius:var(--r3);font-size:.7rem;color:var(--muted);margin-bottom:1.5rem;}
+.h-trust-dot{width:6px;height:6px;border-radius:50%;background:var(--accent);box-shadow:0 0 0 4px color-mix(in oklab, var(--accent) 20%, transparent);}
+.h-trust b{color:var(--text);font-weight:500;}
+.htitle{font-family:var(--serif);font-size:clamp(2.6rem,6.5vw,5.4rem);font-weight:400;line-height:1;letter-spacing:-.025em;font-style:var(--serif-style);}
+.htitle .ln{overflow:hidden;display:block;}
+.htitle .li{display:block;transform:translateY(105%);animation:lu .9s cubic-bezier(.16,1,.3,1) forwards;}
+.htitle .ln:nth-child(1) .li{animation-delay:.05s;}
+.htitle .ln:nth-child(2) .li{animation-delay:.18s;}
+.htitle .ln:nth-child(3) .li{animation-delay:.31s;}
+.htitle em{font-style:italic;color:var(--accent);}
+html[data-vibe="dark"] .htitle em{font-style:normal;color:var(--accent);}
+html[data-vibe="dark"] .htitle{font-weight:600;letter-spacing:-.04em;}
+@keyframes lu{to{transform:translateY(0);}}
+.hsub{margin-top:1.75rem;font-size:1rem;line-height:1.7;color:var(--muted);max-width:480px;opacity:0;animation:fup .8s .6s forwards;}
+.hacts{margin-top:2.25rem;display:flex;gap:.9rem;flex-wrap:wrap;align-items:center;opacity:0;animation:fup .8s .8s forwards;}
+@keyframes fup{from{opacity:0;transform:translateY(18px);}to{opacity:1;transform:none;}}
+.btn-d{background:var(--text);color:var(--bg);padding:1rem 1.85rem;border-radius:var(--r3);font-size:.8rem;font-weight:500;text-decoration:none;transition:all .25s;cursor:pointer;display:inline-flex;align-items:center;gap:.55rem;border:none;font-family:inherit;}
+.btn-d:hover{background:var(--accent);color:#fff;transform:translateY(-2px);box-shadow:0 8px 24px color-mix(in oklab, var(--accent) 40%, transparent);}
+html[data-vibe="dark"] .btn-d:hover{color:#0A0A0A;}
+.btn-d svg{width:14px;height:14px;}
+.btn-o{color:var(--text);font-size:.8rem;text-decoration:none;border-bottom:1px solid var(--border);padding-bottom:3px;transition:color .2s,border-color .2s;cursor:pointer;font-family:inherit;background:none;border-left:none;border-right:none;border-top:none;}
+.btn-o:hover{color:var(--accent);border-color:var(--accent);}
+
+/* Hero right: stacked image + floating stat chips */
+.hero-right{position:relative;opacity:0;animation:fup .9s .4s forwards;}
+@media(max-width:960px){.hero-right{order:-1;}}
+.h-img-wrap{position:relative;border-radius:var(--r);overflow:hidden;background:var(--bg2);aspect-ratio:4/5;}
+@media(max-width:960px){.h-img-wrap{aspect-ratio:16/10;}}
+.h-img-wrap image-slot{width:100%;height:100%;display:block;}
+.h-img-wrap::after{content:"";position:absolute;inset:0;background:linear-gradient(180deg, transparent 50%, color-mix(in oklab, var(--dark) 50%, transparent) 100%);pointer-events:none;}
+
+.h-chip{position:absolute;background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:.7rem 1rem;display:flex;align-items:center;gap:.7rem;box-shadow:0 10px 30px rgba(0,0,0,.12);animation:float 6s ease-in-out infinite;}
+@keyframes float{0%,100%{transform:translateY(0);}50%{transform:translateY(-6px);}}
+.h-chip.c1{top:14%;left:-30px;animation-delay:0s;}
+.h-chip.c2{bottom:18%;right:-30px;animation-delay:1.5s;}
+.h-chip.c3{bottom:38%;left:-40px;animation-delay:3s;}
+@media(max-width:960px){.h-chip.c1{left:8px;top:8px;}.h-chip.c2{right:8px;bottom:8px;}.h-chip.c3{display:none;}}
+.h-chip-num{font-family:var(--serif);font-size:1.5rem;font-weight:400;color:var(--text);line-height:1;font-style:var(--serif-style);}
+html[data-vibe="dark"] .h-chip-num{font-weight:600;}
+.h-chip-lbl{font-size:.62rem;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);line-height:1.3;}
+
+/* Hero meta strip */
+.h-meta{margin-top:3rem;display:grid;grid-template-columns:repeat(3,auto);gap:2.5rem;border-top:1px solid var(--border);padding-top:1.75rem;opacity:0;animation:fup .8s 1s forwards;}
+@media(max-width:600px){.h-meta{grid-template-columns:1fr 1fr;gap:1.25rem;}}
+.h-meta-item .v{font-family:var(--serif);font-size:1.5rem;color:var(--text);line-height:1;font-style:var(--serif-style);}
+html[data-vibe="dark"] .h-meta-item .v{font-weight:600;}
+.h-meta-item .l{font-size:.62rem;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);margin-top:.4rem;}
+
+/* ─────────────────────────────────────────────────────────
+   COUNTRIES MARQUEE (kept as compact sub-strip)
+   ───────────────────────────────────────────────────────── */
+.ctry{background:var(--dark);padding:.85rem 0;overflow:hidden;}
+.ctry-track{display:flex;animation:mq 30s linear infinite;width:max-content;}
+.ctry-track:hover{animation-play-state:paused;}
+.ci{display:flex;align-items:center;gap:.6rem;padding:0 1.5rem;white-space:nowrap;}
+.ci-flag{width:24px;height:17px;border-radius:3px;overflow:hidden;flex-shrink:0;box-shadow:0 1px 4px rgba(0,0,0,.3);background:var(--bg);}
+.ci-name{font-size:.68rem;font-weight:500;letter-spacing:.05em;color:var(--bg);text-transform:uppercase;}
+.ci-sep{color:var(--accent);opacity:.6;font-size:.85rem;}
+@keyframes mq{0%{transform:translateX(0);}100%{transform:translateX(-50%);}}
+
+/* ─────────────────────────────────────────────────────────
+   GLOBE SECTION — visual reach showcase
+   ───────────────────────────────────────────────────────── */
+#globe-sec{padding:5.5rem var(--pad) 4rem;max-width:calc(var(--max) + var(--pad)*2);margin:0 auto;position:relative;overflow:hidden;}
+.globe-head{text-align:center;margin-bottom:3rem;}
+.globe-head .stitle{margin-left:auto;margin-right:auto;}
+.globe-head .sdiv{margin-left:auto;margin-right:auto;}
+.globe-head p{font-size:.92rem;color:var(--muted);max-width:520px;margin:0 auto;line-height:1.65;}
+.globe-wrap{display:grid;grid-template-columns:1.1fr 1fr;gap:3.5rem;align-items:center;}
+@media(max-width:900px){.globe-wrap{grid-template-columns:1fr;gap:2.5rem;}}
+.globe-stage{position:relative;width:100%;aspect-ratio:1;max-width:540px;margin:0 auto;}
+.globe-bg{
+  position:absolute;inset:0;border-radius:50%;
+  background:
+    radial-gradient(circle at 32% 28%, rgba(126,217,87,.16), transparent 50%),
+    radial-gradient(circle at 50% 50%, #0d1c0e 0%, #050b06 78%);
+  box-shadow:
+    inset -30px -30px 90px rgba(0,0,0,.75),
+    inset 30px 30px 60px rgba(126,217,87,.06),
+    0 0 80px rgba(126,217,87,.18),
+    0 40px 120px rgba(0,0,0,.55);
+}
+html[data-theme="light"] .globe-bg{
+  background:
+    radial-gradient(circle at 32% 28%, rgba(15,77,42,.12), transparent 50%),
+    radial-gradient(circle at 50% 50%, #FAFAF6 0%, #E8E5DA 80%);
+  box-shadow:
+    inset -30px -30px 80px rgba(0,0,0,.08),
+    inset 30px 30px 60px rgba(15,77,42,.04),
+    0 0 60px rgba(15,77,42,.1),
+    0 30px 80px rgba(0,0,0,.12);
+}
+.globe-dots{
+  position:absolute;inset:0;border-radius:50%;
+  background-image:radial-gradient(circle, rgba(126,217,87,.32) 1px, transparent 1.6px);
+  background-size:12px 12px;
+  -webkit-mask:radial-gradient(circle at 50% 50%, #000 38%, transparent 72%);
+  mask:radial-gradient(circle at 50% 50%, #000 38%, transparent 72%);
+  opacity:.6;
+  animation:globe-shift 60s linear infinite;
+}
+html[data-theme="light"] .globe-dots{
+  background-image:radial-gradient(circle, rgba(15,77,42,.28) 1px, transparent 1.6px);
+  opacity:.55;
+}
+@keyframes globe-shift{from{background-position:0 0;}to{background-position:144px 0;}}
+.globe-rings{position:absolute;inset:0;pointer-events:none;}
+.globe-rings span{position:absolute;border:1px dashed rgba(126,217,87,.22);border-radius:50%;}
+.globe-rings span:nth-child(1){inset:-22px;}
+.globe-rings span:nth-child(2){inset:-50px;opacity:.5;}
+.globe-rings span:nth-child(3){inset:-80px;opacity:.22;}
+html[data-theme="light"] .globe-rings span{border-color:rgba(15,77,42,.2);}
+
+.gpin{
+  position:absolute;
+  width:12px;height:12px;
+  background:none;border:none;padding:0;
+  cursor:pointer;
+  z-index:3;
+  transform:translate(-50%,-50%);
+  font-family:inherit;
+}
+.gpin-dot{
+  display:block;width:100%;height:100%;
+  border-radius:50%;
+  background:#7ed957;
+  box-shadow:0 0 0 0 rgba(126,217,87,.65), 0 0 14px rgba(126,217,87,.8);
+  animation:gpulse 2.2s ease-out infinite;
+  animation-delay:var(--d, 0s);
+  position:relative;
+}
+@keyframes gpulse{
+  0%{box-shadow:0 0 0 0 rgba(126,217,87,.75), 0 0 14px rgba(126,217,87,.8);}
+  70%{box-shadow:0 0 0 18px rgba(126,217,87,0), 0 0 14px rgba(126,217,87,.8);}
+  100%{box-shadow:0 0 0 0 rgba(126,217,87,0), 0 0 14px rgba(126,217,87,.5);}
+}
+.gpin-tip{
+  position:absolute;
+  bottom:calc(100% + 10px);
+  left:50%;
+  transform:translateX(-50%) translateY(6px);
+  background:#fff;
+  color:#080f08;
+  padding:.45rem .7rem;
+  border-radius:8px;
+  display:flex;
+  align-items:center;
+  gap:.5rem;
+  font-family:'DM Sans',sans-serif;
+  font-size:.74rem;
+  font-weight:600;
+  letter-spacing:.01em;
+  white-space:nowrap;
+  opacity:0;
+  pointer-events:none;
+  transition:all .25s cubic-bezier(.34,1.5,.64,1);
+  box-shadow:0 10px 28px rgba(0,0,0,.55), 0 0 0 1px rgba(0,0,0,.05);
+  z-index:5;
+}
+.gpin-tip::after{
+  content:'';position:absolute;top:100%;left:50%;
+  transform:translateX(-50%);
+  border:6px solid transparent;
+  border-top-color:#fff;
+}
+.gpin:hover .gpin-tip,
+.gpin:focus .gpin-tip,
+.gpin.is-active .gpin-tip{
+  opacity:1;
+  transform:translateX(-50%) translateY(0);
+}
+.gpin:hover .gpin-dot,
+.gpin.is-active .gpin-dot{
+  background:#fff;
+  box-shadow:0 0 0 4px rgba(126,217,87,.5), 0 0 18px rgba(126,217,87,1);
+  animation:none;
+  transform:scale(1.4);
+}
+.gpin-flag{
+  width:18px;height:13px;border-radius:2px;
+  overflow:hidden;display:inline-block;flex-shrink:0;
+  box-shadow:0 1px 3px rgba(0,0,0,.3);
+}
+.gpin-flag svg{width:100%;height:100%;display:block;}
+
+/* Globe section reorganized: title → marquee → 3D globe (centered) */
+.globe-3d-center{display:flex;flex-direction:column;align-items:center;gap:1.5rem;}
+.globe-stage{position:relative;width:100%;aspect-ratio:1;max-width:560px;margin:0 auto;perspective:1400px;perspective-origin:50% 45%;cursor:grab;user-select:none;-webkit-user-select:none;touch-action:none;}
+.globe-stage:active{cursor:grabbing;}
+
+/* The rotating 3D layer holds all pins */
+.globe-3d{
+  position:absolute;inset:0;
+  transform-style:preserve-3d;
+  transform:rotateX(var(--rx,-12deg)) rotateY(var(--ry,-60deg));
+  pointer-events:none;
+}
+
+/* Pins positioned in 3D space on the sphere */
+.gpin{
+  position:absolute;top:50%;left:50%;
+  width:14px;height:14px;
+  margin:-7px 0 0 -7px;
+  padding:0;border:none;background:none;
+  transform-style:preserve-3d;
+  transform:rotateY(var(--lon,0deg)) rotateX(calc(-1 * var(--lat,0deg))) translateZ(var(--r,200px));
+  backface-visibility:hidden;
+  -webkit-backface-visibility:hidden;
+  pointer-events:none;
+}
+.gpin-dot{
+  display:block;width:100%;height:100%;
+  border-radius:50%;
+  background:#7ed957;
+  box-shadow:0 0 0 0 rgba(126,217,87,.7), 0 0 14px rgba(126,217,87,.85);
+  animation:gpulse 2.4s ease-out infinite;
+  animation-delay:var(--d, 0s);
+}
+.gpin-tip{display:none !important;}
+
+html[data-theme="light"] .gpin-dot{
+  background:#0F4D2A;
+  box-shadow:0 0 0 0 rgba(15,77,42,.7), 0 0 12px rgba(15,77,42,.7);
+}
+html[data-theme="light"] @keyframes gpulse{}
+
+.globe-hint{
+  font-family:'DM Sans',sans-serif;
+  font-size:.7rem;color:var(--muted);
+  text-align:center;letter-spacing:.04em;
+  display:flex;align-items:center;gap:.5rem;
+  margin-top:.5rem;
+}
+.globe-hint::before{
+  content:"";width:18px;height:18px;
+  background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%237ed957' stroke-width='1.8' stroke-linecap='round'%3E%3Cpath d='M5 9l-3 3 3 3M19 9l3 3-3 3M9 5l3-3 3 3M9 19l3 3 3-3'/%3E%3C/svg%3E") center/contain no-repeat;
+}
+
+/* Inner marquee variant */
+.ctry-inner{background:#0a120a;border-radius:60px;margin:0 auto 0;max-width:920px;}
+html[data-theme="light"] .ctry-inner{background:#1A1A1A;}
+.ctry-inner::before, .ctry-inner::after{background:linear-gradient(90deg, #0a120a, transparent);}
+.ctry-inner::after{background:linear-gradient(270deg, #0a120a, transparent);}
+html[data-theme="light"] .ctry-inner::before{background:linear-gradient(90deg, #1A1A1A, transparent);}
+html[data-theme="light"] .ctry-inner::after{background:linear-gradient(270deg, #1A1A1A, transparent);}
+
+/* Country list */
+.globe-list{display:grid;grid-template-columns:repeat(2,1fr);gap:.5rem;}
+@media(max-width:520px){.globe-list{grid-template-columns:1fr;}}
+.gli{
+  display:flex;align-items:center;gap:.7rem;
+  background:var(--surface);
+  border:1px solid var(--border);
+  border-radius:10px;
+  padding:.6rem .85rem;
+  font-family:'DM Sans',sans-serif;
+  font-size:.82rem;
+  color:var(--text);
+  transition:all .25s;
+  cursor:pointer;
+}
+.gli:hover, .gli.is-active{
+  border-color:var(--accent);
+  background:color-mix(in oklab, var(--accent) 8%, var(--surface));
+  transform:translateX(3px);
+}
+.gli-flag{
+  width:24px;height:17px;border-radius:3px;
+  overflow:hidden;display:inline-block;flex-shrink:0;
+  box-shadow:0 1px 4px rgba(0,0,0,.35);
+}
+.gli-flag svg{width:100%;height:100%;display:block;}
+.gli-name{flex:1;font-weight:500;}
+.gli-code{font-family:'JetBrains Mono',monospace;font-size:.62rem;color:var(--muted);letter-spacing:.08em;}
+
+.globe-stats{
+  display:flex;justify-content:center;gap:2.5rem;
+  margin-top:3rem;
+  padding-top:2rem;
+  border-top:1px solid var(--border);
+  flex-wrap:wrap;
+}
+.gs-item{text-align:center;}
+.gs-num{font-family:'Playfair Display',serif;font-size:2rem;color:var(--accent);font-weight:600;line-height:1;}
+.gs-lbl{font-size:.65rem;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);margin-top:.4rem;font-weight:500;}
+
+/* ─────────────────────────────────────────────────────────
+   STATS COUNTER — NEW
+   ───────────────────────────────────────────────────────── */
+#stats{padding:6rem var(--pad);max-width:calc(var(--max) + var(--pad)*2);margin:0 auto;}
+.stats-head{margin-bottom:3rem;max-width:680px;}
+.stats-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:0;border-top:1px solid var(--border);border-bottom:1px solid var(--border);}
+@media(max-width:800px){.stats-grid{grid-template-columns:1fr 1fr;}}
+.stat{padding:2.25rem 1.5rem;border-right:1px solid var(--border);position:relative;}
+.stat:last-child{border-right:none;}
+@media(max-width:800px){.stat{border-right:none;border-bottom:1px solid var(--border);}.stat:nth-child(2){border-right:none;}.stat:nth-child(1),.stat:nth-child(2){border-right:1px solid var(--border);}.stat:nth-last-child(-n+2){border-bottom:none;}}
+.stat-num{font-family:var(--serif);font-size:clamp(3rem,6vw,4.5rem);font-weight:400;line-height:1;letter-spacing:-.03em;color:var(--text);font-style:var(--serif-style);display:flex;align-items:baseline;gap:.1em;}
+html[data-vibe="dark"] .stat-num{font-weight:600;}
+.stat-num .suffix{font-size:.5em;color:var(--accent);}
+.stat-lbl{font-size:.72rem;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);margin-top:1rem;font-weight:500;}
+.stat-desc{font-size:.78rem;color:var(--muted);margin-top:.5rem;line-height:1.5;}
+
+/* ─────────────────────────────────────────────────────────
+   ABOUT + CREDENTIALS — combined, reinforced
+   ───────────────────────────────────────────────────────── */
+#about{padding:5rem var(--pad);max-width:calc(var(--max) + var(--pad)*2);margin:0 auto;}
+.about-wrap{display:grid;grid-template-columns:.85fr 1fr;gap:4rem;align-items:start;}
+@media(max-width:900px){.about-wrap{grid-template-columns:1fr;gap:2.5rem;}}
+.aph{position:relative;position:sticky;top:6rem;}
+@media(max-width:900px){.aph{position:relative;top:0;}}
+.aphoto{border-radius:var(--r);overflow:hidden;aspect-ratio:3/4;background:var(--bg2);}
+.aphoto image-slot{width:100%;height:100%;display:block;}
+.acaption{margin-top:1rem;font-size:.7rem;color:var(--muted);letter-spacing:.06em;display:flex;justify-content:space-between;align-items:center;}
+.acaption a{color:var(--text);text-decoration:none;border-bottom:1px solid var(--border);}
+.acaption a:hover{color:var(--accent);border-color:var(--accent);}
+.atext .slabel{font-size:.65rem;letter-spacing:.22em;text-transform:uppercase;color:var(--muted);margin-bottom:.75rem;}
+.atext .stitle{font-family:var(--serif);font-size:clamp(2rem,4.2vw,3.3rem);font-weight:400;line-height:1.05;letter-spacing:-.02em;margin-bottom:1.25rem;font-style:var(--serif-style);}
+html[data-vibe="dark"] .atext .stitle{font-weight:600;}
+.atext .stitle em{font-style:italic;color:var(--muted);}
+.atext .sdiv{width:48px;height:2px;background:var(--accent);border-radius:2px;margin-bottom:2rem;}
+.atext p{font-size:.95rem;line-height:1.75;color:var(--muted);margin-bottom:1.1rem;}
+.atext p strong{color:var(--text);font-weight:500;}
+
+/* Credentials cards */
+.creds{display:grid;grid-template-columns:1fr 1fr;gap:.7rem;margin-top:2rem;}
+@media(max-width:520px){.creds{grid-template-columns:1fr;}}
+.cred{border:1px solid var(--border);border-radius:var(--r2);padding:1.1rem 1.2rem;background:var(--surface);transition:border-color .2s,transform .2s;}
+.cred:hover{border-color:var(--accent);transform:translateY(-2px);}
+.cred-inst{font-size:.6rem;letter-spacing:.15em;text-transform:uppercase;color:var(--accent);font-weight:500;margin-bottom:.4rem;}
+.cred-title{font-size:.86rem;font-weight:500;color:var(--text);line-height:1.3;margin-bottom:.3rem;}
+.cred-meta{font-size:.7rem;color:var(--muted);}
+.cred-logo{padding-top:1rem;}
+.cred-logoslot{width:48px;height:48px;margin-bottom:.75rem;border-radius:10px;overflow:hidden;background:var(--bg2);}
+.cred-logoslot image-slot{width:100%;height:100%;display:block;}
+
+/* Visual CV timeline */
+.timeline{margin-top:2.5rem;position:relative;}
+.timeline::before{content:"";position:absolute;left:7px;top:8px;bottom:8px;width:1px;background:var(--border);}
+.tl-item{position:relative;padding-left:2rem;padding-bottom:1.5rem;}
+.tl-item:last-child{padding-bottom:0;}
+.tl-item::before{content:"";position:absolute;left:3px;top:6px;width:9px;height:9px;border-radius:50%;background:var(--bg);border:2px solid var(--accent);z-index:1;}
+.tl-year{font-family:var(--mono);font-size:.7rem;color:var(--accent);letter-spacing:.05em;margin-bottom:.25rem;}
+.tl-title{font-size:.88rem;font-weight:500;color:var(--text);margin-bottom:.25rem;}
+.tl-desc{font-size:.78rem;color:var(--muted);line-height:1.55;}
+
+/* ─────────────────────────────────────────────────────────
+   METHOD (kept, refined)
+   ───────────────────────────────────────────────────────── */
+#method{background:var(--bg2);border-radius:var(--r);margin:2rem var(--pad);padding:4.5rem clamp(1.5rem,4vw,4rem);}
+.method-inner{max-width:var(--max);margin:0 auto;}
+.slabel{font-size:.65rem;letter-spacing:.22em;text-transform:uppercase;color:var(--muted);margin-bottom:.75rem;}
+.stitle{font-family:var(--serif);font-size:clamp(2rem,4vw,3.2rem);font-weight:400;line-height:1.1;letter-spacing:-.015em;margin-bottom:1.25rem;font-style:var(--serif-style);}
+html[data-vibe="dark"] .stitle{font-weight:600;}
+.stitle em{font-style:italic;color:var(--muted);}
+.sdiv{width:48px;height:2px;background:var(--accent);border-radius:2px;margin-bottom:2.5rem;}
+.mgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:var(--border);border-radius:var(--r2);overflow:hidden;margin-top:2rem;}
+@media(max-width:780px){.mgrid{grid-template-columns:1fr 1fr;}}
+@media(max-width:520px){.mgrid{grid-template-columns:1fr;}}
+.mcard{background:var(--bg);padding:2rem;position:relative;overflow:hidden;transition:background .25s;}
+.mcard:hover{background:var(--surface);}
+.mnum{font-family:var(--mono);font-size:.72rem;color:var(--accent);letter-spacing:.1em;margin-bottom:1.25rem;}
+.mtitle{font-family:var(--serif);font-size:1.15rem;font-weight:400;letter-spacing:-.01em;color:var(--text);margin-bottom:.6rem;font-style:var(--serif-style);}
+html[data-vibe="dark"] .mtitle{font-weight:500;}
+.mdesc{font-size:.82rem;line-height:1.65;color:var(--muted);}
+.mbar{position:absolute;bottom:0;left:0;width:0;height:2px;background:var(--accent);transition:width .35s;}
+.mcard:hover .mbar{width:100%;}
+
+/* ─────────────────────────────────────────────────────────
+   TRANSFORMATIONS (kept with image-slots)
+   ───────────────────────────────────────────────────────── */
+#transforms{padding:5rem var(--pad);max-width:calc(var(--max) + var(--pad)*2);margin:0 auto;}
+.tr-head{display:flex;justify-content:space-between;align-items:end;flex-wrap:wrap;gap:1rem;margin-bottom:2.5rem;}
+.tr-head-left{flex:1;min-width:260px;}
+.tr-disclaimer{font-size:.68rem;color:var(--muted);max-width:280px;line-height:1.5;}
+.trgrid{display:grid;grid-template-columns:repeat(4,1fr);gap:.6rem;}
+@media(max-width:900px){.trgrid{grid-template-columns:repeat(3,1fr);}}
+@media(max-width:600px){.trgrid{grid-template-columns:repeat(2,1fr);}}
+.tri{border-radius:var(--r2);overflow:hidden;aspect-ratio:3/4;position:relative;background:var(--bg2);}
+.tri img,.tri video{width:100%;height:100%;object-fit:cover;object-position:center top;display:block;transition:transform .5s;}
+.tri:hover img,.tri:hover video{transform:scale(1.04);}
+.tri image-slot{width:100%;height:100%;display:block;}
+.tri.wide{grid-column:span 2;aspect-ratio:3/2;}
+.tri.wide img,.tri.wide video{object-position:center center;}
+.tri-lbl{position:absolute;bottom:.6rem;left:.7rem;font-size:.6rem;letter-spacing:.1em;text-transform:uppercase;color:#fff;background:rgba(0,0,0,.55);padding:.3rem .6rem;border-radius:var(--r3);backdrop-filter:blur(6px);pointer-events:none;z-index:2;}
+
+/* ─────────────────────────────────────────────────────────
+   TESTIMONIALS (kept, refined)
+   ───────────────────────────────────────────────────────── */
+#testi{padding:5rem var(--pad);background:var(--bg2);}
+.testi-inner{max-width:var(--max);margin:0 auto;}
+.tgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:1rem;margin-top:2.5rem;}
+@media(max-width:900px){.tgrid{grid-template-columns:1fr 1fr;}}
+@media(max-width:600px){.tgrid{grid-template-columns:1fr;}}
+.tcard{background:var(--surface);border-radius:var(--r2);padding:1.75rem;position:relative;border:1px solid var(--border);transition:transform .25s,border-color .25s;}
+.tcard:hover{transform:translateY(-3px);border-color:var(--accent);}
+.tcard::before{content:'"';position:absolute;top:.5rem;right:1.25rem;font-family:var(--serif);font-size:4rem;color:var(--accent);opacity:.15;line-height:1;font-style:var(--serif-style);}
+.thead{display:flex;align-items:center;gap:.7rem;margin-bottom:1.1rem;}
+.tav{width:42px;height:42px;border-radius:50%;background:var(--accent);display:flex;align-items:center;justify-content:center;font-size:.82rem;font-weight:500;color:#fff;flex-shrink:0;font-family:var(--sans);}
+.tname{font-size:.82rem;font-weight:500;color:var(--text);}
+.trole{font-size:.66rem;color:var(--muted);}
+.tstars{color:var(--amber);font-size:.72rem;letter-spacing:1px;margin-bottom:.7rem;}
+.ttxt{font-size:.83rem;line-height:1.7;color:var(--muted);}
+
+/* ─────────────────────────────────────────────────────────
+   PRICING v2 — full bleed dark zone
+   ───────────────────────────────────────────────────────── */
+#pricing{
+  background:#080f08;
+  color:#fff;
+  padding:6rem var(--pad) 5rem;
+  margin:0;
+  max-width:none;
+  position:relative;
+  overflow:hidden;
+}
+#pricing::before{
+  content:"";position:absolute;inset:0;
+  background:
+    radial-gradient(800px 400px at 20% -10%, rgba(126,217,87,.08), transparent 60%),
+    radial-gradient(600px 300px at 90% 110%, rgba(126,217,87,.06), transparent 60%);
+  pointer-events:none;
+}
+#pricing .pr-inner{max-width:1240px;margin:0 auto;position:relative;z-index:1;}
+
+/* Header centered */
+.pr-head-v2{text-align:center;margin-bottom:3rem;}
+.pr-head-v2 .slabel{color:#7ed957;letter-spacing:.22em;text-transform:uppercase;font-size:.7rem;font-weight:500;font-family:'DM Sans',sans-serif;margin-bottom:1rem;}
+.pr-head-v2 h2{
+  font-family:'Playfair Display',Georgia,serif;
+  font-weight:500;
+  font-size:clamp(2.2rem,4.5vw,3.6rem);
+  line-height:1.1;
+  letter-spacing:-.02em;
+  color:#fff;
+  margin-bottom:1.25rem;
+}
+.pr-head-v2 h2 em{font-style:italic;color:#7ed957;font-weight:400;}
+.pr-head-v2 p{
+  font-family:'DM Sans',sans-serif;
+  font-size:1rem;
+  line-height:1.65;
+  color:rgba(255,255,255,.55);
+  max-width:580px;
+  margin:0 auto;
+}
+
+/* Currency toggle — COMPACT (40% reduction) */
+.curr-wrap{display:flex;flex-direction:column;align-items:center;gap:.45rem;margin-bottom:1rem;}
+.curr-toggle{
+  display:flex;
+  background:#101810;
+  border:1px solid rgba(126,217,87,.15);
+  border-radius:60px;
+  padding:.22rem;
+  position:relative;
+  box-shadow:0 4px 16px rgba(0,0,0,.4);
+}
+.curr-btn{
+  display:flex;align-items:center;gap:.4rem;
+  padding:.42rem .95rem;
+  border-radius:60px;
+  background:transparent;border:none;
+  color:rgba(255,255,255,.5);
+  font-family:'DM Sans',sans-serif;
+  font-weight:600;
+  font-size:.72rem;
+  letter-spacing:.04em;
+  cursor:pointer;
+  transition:all .3s cubic-bezier(.4,0,.2,1);
+  position:relative;z-index:1;
+}
+.curr-btn.on{
+  background:#7ed957;
+  color:#080f08;
+  box-shadow:0 3px 12px rgba(126,217,87,.35);
+}
+.curr-flag{
+  width:18px;height:13px;
+  border-radius:2px;
+  overflow:hidden;
+  display:inline-block;
+  box-shadow:0 1px 3px rgba(0,0,0,.35);
+  transition:transform .35s cubic-bezier(.5,1.8,.5,1);
+  flex-shrink:0;
+}
+.curr-flag svg{width:100%;height:100%;display:block;}
+.curr-btn:hover .curr-flag{transform:translateY(-2px) rotate(-8deg) scale(1.15);}
+.curr-btn.on .curr-flag{transform:scale(1.08);}
+.curr-note{
+  font-family:'DM Sans',sans-serif;
+  font-size:.66rem;
+  color:rgba(255,255,255,.35);
+  text-align:center;
+  display:none;
+  letter-spacing:.02em;
+}
+.curr-note.show{display:block;}
+
+/* Duration pills — COMPACT (40% reduction) */
+.term-wrap{display:flex;justify-content:center;margin-bottom:2.25rem;}
+.term-pills{
+  display:flex;
+  gap:.55rem;
+  flex-wrap:wrap;
+  justify-content:center;
+}
+.term-pill{
+  background:#101810;
+  border:1.5px solid rgba(126,217,87,.12);
+  color:rgba(255,255,255,.7);
+  padding:.6rem 1.1rem;
+  border-radius:60px;
+  font-family:'DM Sans',sans-serif;
+  font-weight:600;
+  font-size:.78rem;
+  letter-spacing:.02em;
+  cursor:pointer;
+  transition:all .35s cubic-bezier(.4,0,.2,1);
+  display:flex;
+  align-items:center;
+  gap:.45rem;
+  position:relative;
+  white-space:nowrap;
+}
+.term-pill:hover{
+  border-color:rgba(126,217,87,.4);
+  transform:translateY(-1px);
+}
+.term-pill.on{
+  background:linear-gradient(135deg, rgba(126,217,87,.12), rgba(126,217,87,.06));
+  border-color:#7ed957;
+  color:#fff;
+  box-shadow:
+    0 0 0 3px rgba(126,217,87,.08),
+    0 0 22px rgba(126,217,87,.32),
+    inset 0 0 14px rgba(126,217,87,.08);
+}
+.term-pill .save-badge{
+  background:#7ed957;
+  color:#080f08;
+  font-weight:700;
+  font-size:.62rem;
+  padding:.12rem .4rem;
+  border-radius:5px;
+  letter-spacing:.04em;
+  display:inline-flex;
+  align-items:center;
+  gap:.2rem;
+}
+.term-pill:not(.on) .save-badge{
+  background:rgba(126,217,87,.18);
+  color:#7ed957;
+}
+
+/* Cards stack — overlapping with active in center, sides peek out */
+.pstack-v2{
+  position:relative;
+  margin:0 auto;
+  max-width:920px;
+  --card-w:clamp(280px, 32vw, 380px);
+  --shift:calc(var(--card-w) * 0.55);
+  min-height:980px;
+}
+@media(max-width:560px){
+  .pstack-v2{
+    --card-w:74vw;
+    --shift:calc(var(--card-w) * 0.78);
+    min-height:1100px;
+  }
+}
+
+.pcard-v2{
+  position:absolute;
+  top:0;
+  left:50%;
+  width:var(--card-w);
+  background:#0d150d;
+  border:1.5px solid rgba(255,255,255,.06);
+  border-radius:22px;
+  padding:2.25rem 1.7rem;
+  display:flex;
+  flex-direction:column;
+  transition:transform .55s cubic-bezier(.34,1.25,.64,1), opacity .5s, filter .5s, box-shadow .5s;
+  transform:translateX(-50%) scale(1);
+  z-index:5;
+  opacity:1;
+}
+.pcard-v2:hover{
+  box-shadow:0 24px 48px rgba(0,0,0,.4);
+}
+.pcard-v2.is-left{
+  transform:translate(calc(-50% - var(--shift)), 35px) scale(.82);
+  z-index:1;
+  opacity:.45;
+  filter:saturate(.55) brightness(.7);
+  cursor:pointer;
+}
+.pcard-v2.is-right{
+  transform:translate(calc(-50% + var(--shift)), 35px) scale(.82);
+  z-index:1;
+  opacity:.45;
+  filter:saturate(.55) brightness(.7);
+  cursor:pointer;
+}
+.pcard-v2.is-left:hover,
+.pcard-v2.is-right:hover{
+  opacity:.75;
+  filter:saturate(.85) brightness(.9);
+}
+.pcard-v2.is-active.feat{
+  background:linear-gradient(180deg, #0f1c0f 0%, #0a140a 100%);
+  border-color:#7ed957;
+  box-shadow:
+    0 0 0 1px #7ed957,
+    0 0 60px rgba(126,217,87,.25),
+    inset 0 1px 0 rgba(126,217,87,.15);
+}
+.pcard-v2.is-active.feat:hover{
+  box-shadow:
+    0 0 0 1px #7ed957,
+    0 24px 60px rgba(126,217,87,.35),
+    inset 0 1px 0 rgba(126,217,87,.2);
+}
+.pcard-v2 .pbadge-v2{display:none;}
+.pcard-v2.is-active.feat .pbadge-v2{display:inline-block;}
+
+@media(max-width:560px){
+  .pcard-v2{padding:1.85rem 1.35rem;}
+  .pcard-v2.is-left,
+  .pcard-v2.is-right{filter:saturate(.4) brightness(.55);opacity:.35;}
+  .pcard-v2.is-left:hover,
+  .pcard-v2.is-right:hover{opacity:.6;filter:saturate(.7) brightness(.8);}
+}
+
+.pbadge-v2{
+  position:absolute;
+  top:-14px;
+  left:50%;
+  transform:translateX(-50%);
+  background:#7ed957;
+  color:#080f08;
+  font-family:'DM Sans',sans-serif;
+  font-weight:700;
+  font-size:.7rem;
+  letter-spacing:.14em;
+  text-transform:uppercase;
+  padding:.45rem 1rem;
+  border-radius:60px;
+  white-space:nowrap;
+  box-shadow:0 4px 16px rgba(126,217,87,.4);
+}
+
+.pplan-v2{
+  font-family:'DM Sans',sans-serif;
+  font-size:.65rem;
+  letter-spacing:.24em;
+  text-transform:uppercase;
+  color:rgba(126,217,87,.7);
+  font-weight:600;
+  margin-bottom:.5rem;
+}
+.pname-v2{
+  font-family:'Playfair Display',Georgia,serif;
+  font-size:1.95rem;
+  font-weight:500;
+  color:#fff;
+  line-height:1.1;
+  letter-spacing:-.015em;
+  margin-bottom:1rem;
+}
+.pheadline-v2{
+  font-family:'Playfair Display',Georgia,serif;
+  font-style:italic;
+  font-weight:400;
+  font-size:1.05rem;
+  color:#7ed957;
+  line-height:1.35;
+  margin-bottom:1.1rem;
+  letter-spacing:-.005em;
+}
+.ptag-v2{
+  font-family:'DM Sans',sans-serif;
+  font-size:.86rem;
+  color:rgba(255,255,255,.6);
+  line-height:1.65;
+  margin-bottom:1.75rem;
+}
+
+/* Price block */
+.pprice-block{position:relative;margin-bottom:.6rem;}
+.pprice-old-v2{
+  display:none;
+  position:relative;
+  width:fit-content;
+  font-family:'DM Sans',sans-serif;
+  font-weight:600;
+  font-size:1.35rem;
+  color:rgba(255,255,255,.45);
+  margin-bottom:.5rem;
+  padding:0 .25rem;
+}
+.pprice-old-v2.show{display:block;}
+.pprice-old-v2::after{
+  content:'';
+  position:absolute;
+  left:-6px;
+  right:-6px;
+  top:52%;
+  height:3px;
+  background:#ff4d4d;
+  transform:rotate(-7deg);
+  border-radius:3px;
+  box-shadow:0 1px 4px rgba(255,77,77,.45);
+}
+.pprice-v2{
+  font-family:'Playfair Display',Georgia,serif;
+  font-weight:600;
+  font-size:3rem;
+  color:#fff;
+  line-height:1;
+  letter-spacing:-.025em;
+  transition:color .3s;
+}
+.pprice-v2.discounted{color:#7ed957;}
+.pper-v2{
+  font-family:'DM Sans',sans-serif;
+  font-size:.78rem;
+  color:rgba(255,255,255,.5);
+  margin-top:.6rem;
+  margin-bottom:1.5rem;
+  letter-spacing:.02em;
+}
+.psavings{
+  position:absolute;
+  top:-14px;
+  right:-14px;
+  background:#7ed957;
+  color:#080f08;
+  font-family:'DM Sans',sans-serif;
+  font-weight:700;
+  font-size:.7rem;
+  padding:.55rem .75rem;
+  border-radius:10px;
+  letter-spacing:.02em;
+  transform:rotate(7deg);
+  display:none;
+  box-shadow:0 6px 18px rgba(126,217,87,.5);
+  z-index:2;
+  white-space:nowrap;
+  animation:savings-pop .5s cubic-bezier(.34,1.56,.64,1);
+}
+.pcard-v2.has-discount .psavings{display:block;}
+@keyframes savings-pop{0%{transform:rotate(7deg) scale(0);}100%{transform:rotate(7deg) scale(1);}}
+
+.pdiv-v2{
+  height:1px;
+  background:linear-gradient(90deg, transparent, rgba(255,255,255,.1), transparent);
+  margin-bottom:1.5rem;
+}
+
+.pfeat-v2{
+  list-style:none;
+  margin:0 0 1.75rem;
+  padding:0;
+  flex:1;
+}
+.pfeat-v2 li{
+  font-family:'DM Sans',sans-serif;
+  font-size:.84rem;
+  color:rgba(255,255,255,.78);
+  padding:.55rem 0;
+  display:flex;
+  gap:.7rem;
+  align-items:flex-start;
+  line-height:1.55;
+  letter-spacing:.005em;
+}
+.pfeat-v2 li::before{
+  content:'✓';
+  color:#7ed957;
+  background:rgba(126,217,87,.13);
+  width:20px;
+  height:20px;
+  min-width:20px;
+  border-radius:50%;
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  font-size:.72rem;
+  font-weight:700;
+  margin-top:1px;
+  flex-shrink:0;
+}
+.pfeat-v2 li.sub{
+  padding-left:2rem;
+  padding-top:.15rem;
+  padding-bottom:.15rem;
+  font-size:.78rem;
+  color:rgba(255,255,255,.55);
+}
+.pfeat-v2 li.sub::before{
+  content:'';
+  width:6px;
+  height:6px;
+  min-width:6px;
+  background:#7ed957;
+  border-radius:50%;
+  margin-top:.55rem;
+  margin-right:0;
+  border:none;
+}
+
+.pcta-v2{
+  display:block;
+  text-align:center;
+  padding:1rem 1.25rem;
+  border-radius:60px;
+  font-family:'DM Sans',sans-serif;
+  font-weight:600;
+  font-size:.86rem;
+  letter-spacing:.02em;
+  text-decoration:none;
+  transition:all .25s cubic-bezier(.4,0,.2,1);
+  cursor:pointer;
+}
+.pcta-v2.outline{
+  border:2px solid rgba(255,255,255,.15);
+  color:#fff;
+  background:transparent;
+}
+.pcta-v2.outline:hover{
+  border-color:#7ed957;
+  color:#7ed957;
+  background:rgba(126,217,87,.06);
+}
+.pcta-v2.solid{
+  background:#7ed957;
+  color:#080f08;
+  border:2px solid #7ed957;
+  box-shadow:0 8px 24px rgba(126,217,87,.3);
+}
+.pcta-v2.solid:hover{
+  background:#9ee476;
+  border-color:#9ee476;
+  box-shadow:0 12px 32px rgba(126,217,87,.5);
+  transform:translateY(-2px);
+}
+
+.pnote-v2{
+  margin-top:2.5rem;
+  text-align:center;
+  font-family:'DM Sans',sans-serif;
+  font-size:.78rem;
+  color:rgba(255,255,255,.45);
+  letter-spacing:.02em;
+  line-height:1.6;
+}
+.pnote-v2 b{color:#7ed957;font-weight:600;}
+
+/* ─────────────────────────────────────────────────────────
+   PAYMENT METHODS (kept)
+   ───────────────────────────────────────────────────────── */
+#payment{background:var(--dark);color:var(--bg);border-radius:var(--r);margin:2rem var(--pad);padding:4rem clamp(1.5rem,4vw,4rem);}
+.pay-inner{max-width:var(--max);margin:0 auto;}
+#payment .slabel{color:color-mix(in oklab, var(--bg) 35%, transparent);}
+#payment .stitle{color:var(--bg);}
+#payment .sdiv{margin-bottom:1.5rem;}
+.pay-tabs{display:flex;gap:.4rem;flex-wrap:wrap;margin-bottom:2rem;}
+.ptab{padding:.5rem 1.1rem;border-radius:var(--r3);font-size:.7rem;background:transparent;border:1px solid color-mix(in oklab, var(--bg) 12%, transparent);color:color-mix(in oklab, var(--bg) 40%, transparent);cursor:pointer;transition:all .2s;font-family:inherit;}
+.ptab.on{background:color-mix(in oklab, var(--bg) 12%, transparent);color:var(--bg);border-color:color-mix(in oklab, var(--bg) 25%, transparent);}
+.ppanel{display:none;}
+.ppanel.on{display:block;}
+.paygrid{display:grid;grid-template-columns:repeat(3,1fr);gap:.75rem;}
+@media(max-width:680px){.paygrid{grid-template-columns:1fr 1fr;}}
+@media(max-width:440px){.paygrid{grid-template-columns:1fr;}}
+.pmethod{background:color-mix(in oklab, var(--bg) 6%, transparent);border-radius:var(--r2);padding:1rem;display:flex;align-items:flex-start;gap:.75rem;border:1px solid color-mix(in oklab, var(--bg) 6%, transparent);transition:border-color .2s,background .2s;}
+.pmethod:hover{border-color:color-mix(in oklab, var(--accent) 30%, transparent);background:color-mix(in oklab, var(--bg) 10%, transparent);}
+.pmlogo{width:40px;height:40px;background:var(--surface);border-radius:10px;display:flex;align-items:center;justify-content:center;flex-shrink:0;overflow:hidden;position:relative;}
+.pmlogo svg{width:100%;height:100%;display:block;}
+.pmlogo img{width:100%;height:100%;object-fit:contain;padding:4px;display:block;}
+.pml-text{font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:.75rem;letter-spacing:-.02em;line-height:1;}
+.pmname{font-size:.78rem;color:var(--bg);margin-bottom:.2rem;font-weight:500;}
+.pmdetail{font-size:.66rem;color:color-mix(in oklab, var(--bg) 38%, transparent);line-height:1.5;}
+.pmbadge{display:inline-block;font-size:.54rem;letter-spacing:.08em;text-transform:uppercase;background:color-mix(in oklab, var(--accent) 18%, transparent);color:var(--accent);border-radius:var(--r3);padding:.15rem .55rem;margin-top:.3rem;font-family:var(--sans);}
+.psteps{display:grid;grid-template-columns:repeat(4,1fr);gap:.75rem;margin-top:1rem;}
+@media(max-width:680px){.psteps{grid-template-columns:1fr 1fr;}}
+.pstep{background:color-mix(in oklab, var(--bg) 6%, transparent);border-radius:var(--r2);padding:1.25rem;border:1px solid color-mix(in oklab, var(--bg) 6%, transparent);}
+.psnum{font-family:var(--mono);font-size:.78rem;color:var(--accent);margin-bottom:.7rem;letter-spacing:.05em;}
+.pstitle{font-size:.78rem;font-weight:500;color:var(--bg);margin-bottom:.35rem;}
+.psdesc{font-size:.7rem;color:color-mix(in oklab, var(--bg) 38%, transparent);line-height:1.55;}
+
+/* ─────────────────────────────────────────────────────────
+   CONTACT
+   ───────────────────────────────────────────────────────── */
+#contact{padding:5.5rem var(--pad);max-width:calc(var(--max) + var(--pad)*2);margin:0 auto;}
+.contact-wrap{display:grid;grid-template-columns:1fr 1fr;gap:5rem;align-items:start;}
+@media(max-width:800px){.contact-wrap{grid-template-columns:1fr;gap:2.5rem;}}
+.cctitle{font-family:var(--serif);font-size:clamp(2rem,5vw,3.5rem);font-weight:400;line-height:1.05;letter-spacing:-.02em;margin-bottom:1.25rem;font-style:var(--serif-style);}
+html[data-vibe="dark"] .cctitle{font-weight:600;}
+.cctitle em{font-style:italic;color:var(--muted);}
+.ccsub{font-size:.95rem;line-height:1.7;color:var(--muted);margin-bottom:2rem;max-width:440px;}
+.wa-btn{display:inline-flex;align-items:center;gap:.7rem;background:var(--accent);color:#fff;padding:1rem 1.85rem;border-radius:var(--r3);font-size:.82rem;font-weight:500;text-decoration:none;transition:all .2s;}
+.wa-btn:hover{background:var(--accent2);transform:translateY(-2px);}
+.cdetails{display:flex;flex-direction:column;}
+.citem{display:flex;gap:1rem;padding:1.1rem 0;border-bottom:1px solid var(--border);}
+.clabel{font-size:.6rem;letter-spacing:.15em;text-transform:uppercase;color:var(--accent);min-width:90px;padding-top:.15rem;font-weight:500;flex-shrink:0;}
+.cval{font-size:.85rem;color:var(--muted);line-height:1.5;}
+.cval a{color:var(--text);text-decoration:none;border-bottom:1px solid var(--border);transition:color .2s,border-color .2s;}
+.cval a:hover{color:var(--accent);border-color:var(--accent);}
+
+/* ─────────────────────────────────────────────────────────
+   MARQUEE CTA + FOOTER
+   ───────────────────────────────────────────────────────── */
+.mqcta{background:var(--dark);border-radius:var(--r);margin:2rem var(--pad);overflow:hidden;padding:2.5rem 0;}
+.mqtrack{display:flex;animation:mq 22s linear infinite;width:max-content;}
+.mqitem{font-family:var(--serif);font-size:clamp(1.6rem,3vw,2.5rem);font-weight:400;padding:0 1.75rem;color:color-mix(in oklab, var(--bg) 12%, transparent);white-space:nowrap;letter-spacing:-.01em;font-style:var(--serif-style);}
+html[data-vibe="dark"] .mqitem{font-weight:600;color:color-mix(in oklab, var(--dark) 12%, transparent);}
+.mqitem.sep{color:var(--accent);font-size:1.5rem;opacity:.5;}
+
+footer{padding:2.5rem var(--pad);border-top:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:1rem;}
+.flogo{display:flex;align-items:center;gap:.5rem;font-family:var(--serif);font-size:1rem;color:var(--text);font-style:var(--serif-style);}
+.flogo-mark{width:24px;height:24px;border-radius:6px;background:var(--text);color:var(--bg);display:flex;align-items:center;justify-content:center;font-family:var(--sans);font-weight:600;font-size:.72rem;}
+html[data-vibe="dark"] .flogo-mark{background:var(--accent);color:#0A0A0A;}
+.fcopy{font-size:.7rem;color:var(--muted);}
+.flinks{display:flex;gap:1.25rem;}
+.flinks a{font-size:.7rem;color:var(--muted);text-decoration:none;transition:color .2s;}
+.flinks a:hover{color:var(--accent);}
+
+/* ─────────────────────────────────────────────────────────
+   REVEAL ANIMATIONS
+   ───────────────────────────────────────────────────────── */
+.rv{opacity:0;transform:translateY(28px);transition:opacity .7s cubic-bezier(.16,1,.3,1),transform .7s cubic-bezier(.16,1,.3,1);}
+.rv.vis{opacity:1;transform:none;}
+.d1{transition-delay:.08s;}.d2{transition-delay:.16s;}.d3{transition-delay:.24s;}.d4{transition-delay:.32s;}
+
+/* ─────────────────────────────────────────────────────────
+   LIGHT THEME OVERRIDES (sun toggle) — elegant editorial palette
+   ───────────────────────────────────────────────────────── */
+html[data-theme="light"]{
+  --bg:#FAFAF6; --bg2:#F1EFE8; --bg3:#E8E5DA;
+  --surface:#FFFFFF;
+  --dark:#1A1A1A; --dark2:#222220; --dark3:#2A2A28;
+  --text:#1A1A1A; --muted:#736D60;
+  --accent:#0F4D2A; --accent2:#0B3D21; --amber:#9C6B1B;
+  --light:#FAFAF6;
+  --border:rgba(26,26,26,0.10); --borderL:rgba(250,250,246,0.12);
+  /* Unified with dark theme fonts */
+  --serif:'Space Grotesk',sans-serif;
+  --sans:'Space Grotesk',system-ui,sans-serif;
+  --mono:'JetBrains Mono',ui-monospace,monospace;
+  --serif-style:normal;
+  --htitle-font:'Space Grotesk',sans-serif;
+}
+
+html[data-theme="light"] .htitle{font-family:'Space Grotesk',sans-serif!important;font-style:normal!important;}
+html[data-theme="light"] .htitle em{font-family:'Space Grotesk',sans-serif!important;font-style:normal!important;}
+html[data-theme="light"] .stitle{font-family:'Space Grotesk',sans-serif!important;}
+html[data-theme="light"] .htitle,
+html[data-theme="light"] .stitle,
+html[data-theme="light"] .pname-v2,
+html[data-theme="light"] .cctitle,
+html[data-theme="light"] .pprice-v2,
+html[data-theme="light"] .pr-head-v2 h2,
+html[data-theme="light"] .mtitle,
+html[data-theme="light"] .stat-num,
+html[data-theme="light"] .h-chip-num,
+html[data-theme="light"] .h-meta-item .v{
+  font-weight:600;letter-spacing:-.025em;
+}
+html[data-theme="light"] body{background:var(--bg);color:var(--text);}
+html[data-theme="light"] .nlogo-mark{background:var(--text);color:var(--bg);}
+html[data-theme="light"] .ncta{background:var(--text);color:var(--bg);}
+html[data-theme="light"] .ncta:hover{background:var(--accent);color:#fff;}
+html[data-theme="light"] .htitle em,
+html[data-theme="light"] .stitle em{color:var(--accent);font-style:italic;}
+
+html[data-theme="light"] .htitle{font-family:'Space Grotesk',sans-serif!important;font-style:normal!important;}
+html[data-theme="light"] .htitle em{font-family:'Space Grotesk',sans-serif!important;font-style:normal!important;}
+html[data-theme="light"] .stitle{font-family:'Space Grotesk',sans-serif!important;}
+html[data-theme="light"] .htitle,
+html[data-theme="light"] .stitle,
+html[data-theme="light"] .pr-head-v2 h2,
+html[data-theme="light"] .cctitle,
+html[data-theme="light"] .pname-v2{font-weight:400;}
+html[data-theme="light"] .ctry,
+html[data-theme="light"] #payment,
+html[data-theme="light"] .mqcta{background:var(--dark);}
+html[data-theme="light"] #pricing{background:#0c1a0c;}
+html[data-theme="light"] .flogo-mark{background:var(--text);color:var(--bg);}
+html[data-theme="light"] #mpill{background:var(--text);color:var(--bg);}
+html[data-theme="light"] .h-trust{background:var(--surface);}
+
+/* ─────────────────────────────────────────────────────────
+   NAV CONTROLS (theme + lang)
+   ───────────────────────────────────────────────────────── */
+.nav-controls{display:flex;align-items:center;gap:.5rem;}
+.nbtn-icon{
+  width:34px;height:34px;
+  border-radius:50%;
+  border:1px solid var(--border);
+  background:var(--surface);
+  color:var(--text);
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  cursor:pointer;
+  transition:all .25s;
+  padding:0;
+  font-family:inherit;
+}
+.nbtn-icon:hover{border-color:var(--accent);color:var(--accent);transform:translateY(-1px);}
+.nbtn-icon svg{width:16px;height:16px;}
+.nbtn-icon.sun-icon{display:none;}
+html[data-theme="light"] .nbtn-icon.sun-icon{display:none;}
+html[data-theme="light"] .nbtn-icon.moon-icon{display:inline-flex;}
+html:not([data-theme="light"]) .nbtn-icon.sun-icon{display:inline-flex;}
+html:not([data-theme="light"]) .nbtn-icon.moon-icon{display:none;}
+.nlang{
+  display:inline-flex;
+  align-items:center;
+  background:var(--surface);
+  border:1px solid var(--border);
+  border-radius:60px;
+  padding:2px;
+  font-family:inherit;
+}
+.nlang-btn{
+  background:transparent;
+  border:none;
+  color:var(--muted);
+  font-size:.66rem;
+  font-weight:600;
+  letter-spacing:.05em;
+  padding:.32rem .55rem;
+  border-radius:60px;
+  cursor:pointer;
+  transition:all .2s;
+  font-family:inherit;
+}
+.nlang-btn.on{background:var(--accent);color:#fff;}
+@media(max-width:560px){
+  .nav-controls{gap:.35rem;}
+  .nbtn-icon{width:30px;height:30px;}
+  .nbtn-icon svg{width:14px;height:14px;}
+  .nlang-btn{font-size:.6rem;padding:.28rem .45rem;}
+}
+
+/* ─────────────────────────────────────────────────────────
+   MUSIC PLAYER (restored from v3, themed)
+   ───────────────────────────────────────────────────────── */
+#aud{display:none;}
+.mpill{
+  position:fixed;
+  bottom:1.25rem;right:1.25rem;
+  z-index:500;
+  background:#101810;
+  border:1px solid rgba(126,217,87,.18);
+  border-radius:60px;
+  padding:.55rem .95rem .55rem .55rem;
+  display:flex;align-items:center;gap:.6rem;
+  box-shadow:0 6px 22px rgba(0,0,0,.35);
+  cursor:pointer;
+  transition:transform .2s, box-shadow .2s;
+  user-select:none;
+}
+.mpill:hover{transform:translateY(-2px);box-shadow:0 10px 28px rgba(126,217,87,.22);}
+.mplay{
+  width:28px;height:28px;
+  border-radius:50%;
+  background:#7ed957;
+  border:none;
+  color:#080f08;
+  font-size:.62rem;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  cursor:pointer;
+  flex-shrink:0;
+  font-weight:700;
+}
+.mlabel{
+  font-size:.7rem;
+  color:rgba(255,255,255,.7);
+  white-space:nowrap;
+  font-family:'DM Sans',sans-serif;
+  letter-spacing:.02em;
+}
+.mbars{display:flex;gap:2px;align-items:flex-end;height:14px;}
+.mbars span{
+  width:2.5px;
+  background:#7ed957;
+  border-radius:1px;
+  animation:mb .8s ease-in-out infinite alternate;
+}
+.mbars span:nth-child(1){height:5px;animation-delay:0s;}
+.mbars span:nth-child(2){height:11px;animation-delay:.15s;}
+.mbars span:nth-child(3){height:7px;animation-delay:.3s;}
+.mbars span:nth-child(4){height:13px;animation-delay:.45s;}
+.mbars.off span{animation-play-state:paused;opacity:.3;}
+@keyframes mb{from{transform:scaleY(.3);}to{transform:scaleY(1);}}
+@media(max-width:560px){
+  .mpill{padding:.45rem .75rem .45rem .45rem;gap:.5rem;}
+  .mlabel{font-size:.65rem;}
+  .mplay{width:24px;height:24px;}
+}
+
+/* Testimonial video card */
+.tcard.video-card{padding:0;overflow:hidden;display:flex;flex-direction:column;transition:all .35s cubic-bezier(.4,0,.2,1);}
+.tcard.video-card::before{display:none;}
+.vid-thumb-wrap{position:relative;width:100%;aspect-ratio:9/16;overflow:hidden;background:#000;cursor:pointer;}
+.vid-thumb-wrap video{width:100%;height:100%;object-fit:cover;display:block;background:#000;}
+.vid-play-btn{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,.15);transition:opacity .25s,background .2s;pointer-events:none;}
+.tcard.video-card:hover .vid-play-btn{background:rgba(0,0,0,.25);}
+.tcard.video-card.playing .vid-play-btn{opacity:0;}
+.tcard.video-card.playing .vid-fullscreen-btn{display:flex!important;position:absolute;top:.75rem;right:.75rem;background:rgba(0,0,0,.55);border:none;border-radius:8px;padding:.4rem;cursor:pointer;align-items:center;justify-content:center;z-index:5;}
+.tcard.video-card.playing{grid-column:span 2;}
+@media(max-width:900px){.tcard.video-card.playing{grid-column:span 2;}}
+@media(max-width:600px){.tcard.video-card.playing{grid-column:span 1;}}
+.tcard.video-card.playing .vid-thumb-wrap{aspect-ratio:auto;max-height:75vh;}
+.tcard.video-card.playing .vid-thumb-wrap video{height:75vh;max-height:75vh;object-fit:contain;}
+
+/* DELIGHT — extra polish + animations */
+#scroll-prog{position:fixed;top:0;left:0;height:2px;width:0;z-index:400;pointer-events:none;background:linear-gradient(90deg, var(--accent), color-mix(in oklab, var(--accent) 60%, #fff));transition:width .1s linear;}
+.nlinks a{position:relative;}
+.nlinks a::after{content:"";position:absolute;left:0;right:100%;bottom:-6px;height:1.5px;background:var(--accent);transition:right .35s cubic-bezier(.4,0,.2,1);}
+.nlinks a:hover::after{right:0;}
+.nlogo-mark{transition:transform .3s cubic-bezier(.34,1.5,.64,1);}
+.nlogo:hover .nlogo-mark{transform:rotate(-8deg) scale(1.08);}
+.htitle em,.stitle em,.pr-head-v2 h2 em,.cctitle em{background:linear-gradient(100deg,#7ed957 0%,#c2ff9c 45%,#7ed957 75%);background-size:200% 100%;-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;animation:shimmer 5.5s ease-in-out infinite;}
+html[data-theme="light"] .htitle em,html[data-theme="light"] .stitle em,html[data-theme="light"] .pr-head-v2 h2 em,html[data-theme="light"] .cctitle em{background:linear-gradient(100deg,#0F4D2A 0%,#4a9c6e 45%,#0F4D2A 75%);background-size:200% 100%;-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;}
+@keyframes shimmer{0%,100%{background-position:0% 50%;}50%{background-position:100% 50%;}}
+.h-img-wrap img{transition:transform .6s ease-out;}
+.hero-right:hover .h-img-wrap img{transform:scale(1.04);}
+.h-chip{transition:transform .3s, box-shadow .3s;}
+.h-chip:hover{transform:translateY(-4px) scale(1.04);box-shadow:0 20px 40px rgba(126,217,87,.25);}
+.stat::before{content:"";position:absolute;bottom:0;left:50%;width:0;height:2px;background:var(--accent);transform:translateX(-50%);transition:width .35s cubic-bezier(.4,0,.2,1);}
+.stat:hover::before{width:60%;}
+.stat-num{transition:transform .3s;}
+.stat:hover .stat-num{transform:scale(1.05);}
+.mcard .mnum{transition:letter-spacing .3s, color .3s;}
+.mcard:hover .mnum{letter-spacing:.2em;color:var(--accent2);}
+.cred{position:relative;overflow:hidden;}
+.cred::after{content:"";position:absolute;inset:0;background:linear-gradient(135deg, transparent 40%, rgba(126,217,87,.08) 50%, transparent 60%);background-size:200% 200%;background-position:200% 200%;transition:background-position .7s cubic-bezier(.4,0,.2,1);pointer-events:none;border-radius:inherit;}
+.cred:hover::after{background-position:-50% -50%;}
+.h-trust-dot{position:relative;}
+.h-trust-dot::after{content:"";position:absolute;inset:-3px;border-radius:50%;background:var(--accent);opacity:.4;animation:trustpulse 2.2s ease-out infinite;}
+@keyframes trustpulse{0%{transform:scale(.8);opacity:.5;}100%{transform:scale(2.4);opacity:0;}}
+.slabel{display:inline-flex;align-items:center;gap:.55rem;}
+.slabel::before{content:"";width:18px;height:1px;background:var(--accent);display:inline-block;}
+.term-pill.on::before{content:"";position:absolute;inset:0;border-radius:inherit;background:linear-gradient(90deg, transparent, rgba(126,217,87,.2), transparent);background-size:200% 100%;background-position:200% 0;animation:term-sweep 2.8s linear infinite;pointer-events:none;}
+@keyframes term-sweep{to{background-position:-200% 0;}}
+.ctry::before,.ctry::after{content:"";position:absolute;top:0;bottom:0;width:60px;z-index:2;pointer-events:none;}
+.ctry::before{left:0;background:linear-gradient(90deg, var(--dark), transparent);}
+.ctry::after{right:0;background:linear-gradient(270deg, var(--dark), transparent);}
+.pcta-v2.solid{position:relative;overflow:hidden;}
+.pcta-v2.solid::before{content:"";position:absolute;top:-50%;left:-30%;width:60%;height:200%;background:linear-gradient(75deg, transparent, rgba(255,255,255,.4), transparent);transform:skewX(-25deg);transition:transform .8s cubic-bezier(.4,0,.2,1);}
+.pcta-v2.solid:hover::before{transform:skewX(-25deg) translateX(450%);}
+.tri-lbl{transition:transform .3s, background .3s, color .3s;}
+.tri:hover .tri-lbl{transform:translateY(-2px);background:rgba(126,217,87,.9);color:#080f08;}
+.flogo-mark{transition:transform .3s cubic-bezier(.34,1.5,.64,1);}
+.flogo:hover .flogo-mark{transform:rotate(8deg) scale(1.1);}
+body{animation:bodyFade .8s ease-out;}
+@keyframes bodyFade{from{opacity:.4;}to{opacity:1;}}
+image-slot{--is-bg:var(--bg2);--is-border:var(--border);}
+
+/* ═══════════════════════════════════════════════
+   MOBILE-FIRST OPTIMIZATION
+   ═══════════════════════════════════════════════ */
+@media(max-width:480px){
+  /* Nav */
+  .nav-links{display:none;}
+  .ncta{padding:.55rem 1rem;font-size:.72rem;}
+  /* Hero */
+  .htitle{font-size:clamp(2.4rem,11vw,3.8rem)!important;}
+  .h-meta{flex-direction:column;gap:.75rem;}
+  /* Payments */
+  .paygrid{grid-template-columns:1fr 1fr!important;}
+  /* Pricing cards */
+  .pcards-v2{grid-template-columns:1fr!important;}
+  /* Transforms grid */
+  .trgrid{grid-template-columns:1fr 1fr!important;}
+  /* Testimonials */
+  .tgrid{grid-template-columns:1fr!important;}
+  /* Globe */
+  .globe-stage{max-width:300px!important;}
+  .globe-stats{grid-template-columns:1fr 1fr!important;}
+  /* Stats */
+  .stats-grid{grid-template-columns:1fr 1fr!important;}
+  /* About */
+  .about-wrap{grid-template-columns:1fr!important;}
+  /* Contact */
+  .contact-wrap{grid-template-columns:1fr!important;}
+  /* Method cards */
+  .mgrid{grid-template-columns:1fr!important;}
+  /* Padding global */
+  section, #globe-sec, #about, #stats, #pricing, #contact{padding-left:1rem!important;padding-right:1rem!important;}
+}
+@media(max-width:360px){
+  .htitle{font-size:2.1rem!important;}
+  .paygrid{grid-template-columns:1fr!important;}
+}
+
+
+/* Pricing steps numbers visibility fix */
+.psnum{color:#0a0a0a!important;background:var(--accent);padding:.25rem .6rem;border-radius:8px;display:inline-block;font-weight:700;}
+html[data-theme="light"] .psnum{color:#0a0a0a!important;background:var(--accent);}
+
+/* Header logos — metal (left) + oficial (right) */
+.nlogo{display:flex;align-items:center;gap:.6rem;text-decoration:none;}
+.nlogo-img-left{height:38px;width:auto;display:block;object-fit:contain;}
+.nlogo-img-right{height:28px;width:auto;display:block;object-fit:contain;}
+@media(max-width:520px){
+  .nlogo-img-left{height:30px;}
+  .nlogo-img-right{height:22px;}
+}
+
+
+/* ─── FOOTER REDESIGNED ─── */
+footer.footer-redesigned{padding:0;border-top:1px solid var(--border);display:block;}
+.footer-neon-wrap{background:#fff;padding:2rem var(--pad);display:flex;flex-direction:column;align-items:center;gap:1.25rem;border-bottom:1px solid rgba(0,0,0,.08);overflow:hidden;}
+html[data-theme="light"] .footer-neon-wrap{background:#0a0a0a;border-bottom-color:rgba(255,255,255,.08);}
+.footer-neon-logo{max-width:340px;width:60%;height:auto;display:block;object-fit:contain;filter:drop-shadow(0 0 18px rgba(126,217,87,.45));}
+@media(max-width:520px){.footer-neon-logo{max-width:240px;width:75%;}}
+.footer-marquee{width:100%;overflow:hidden;position:relative;mask-image:linear-gradient(90deg,transparent,#000 8%,#000 92%,transparent);-webkit-mask-image:linear-gradient(90deg,transparent,#000 8%,#000 92%,transparent);}
+.footer-marquee-track{display:flex;gap:1.5rem;white-space:nowrap;animation:footerMq 28s linear infinite;width:max-content;}
+@keyframes footerMq{from{transform:translateX(0);}to{transform:translateX(-50%);}}
+.fm-item{font-family:'Space Grotesk',sans-serif;font-size:1rem;font-weight:600;color:#080f08;letter-spacing:.04em;text-transform:uppercase;}
+.fm-sep{color:#7ed957;font-size:1rem;font-weight:700;}
+html[data-theme="light"] .fm-item{color:#fff;}
+html[data-theme="light"] .fm-sep{color:#0F4D2A;}
+.footer-bottom{padding:1.5rem var(--pad);display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:1rem;}
+.footer-bottom .flinks{display:flex;gap:1.25rem;flex-wrap:wrap;}
+.footer-bottom .flinks a{font-size:.7rem;color:var(--muted);text-decoration:none;transition:color .2s;}
+.footer-bottom .flinks a:hover{color:var(--accent);}
+.footer-bottom .fcopy{font-size:.62rem;color:var(--muted);max-width:520px;line-height:1.6;text-align:right;}
+@media(max-width:680px){.footer-bottom{flex-direction:column;text-align:center;}.footer-bottom .fcopy{text-align:center;font-size:.6rem;}}
+
+</style>
+</head>
+<body>
+
+<!-- Vibe locked to Premium Dark; switcher removed -->
+
+<!-- Scroll progress bar -->
+<div id="scroll-prog"></div>
+
+<!-- MUSIC PLAYER -->
+<audio id="aud" loop preload="auto">
+  <source src="fitmagra-vibes.mp3" type="audio/mpeg">
+</audio>
+<div class="mpill" id="mpill" onclick="toggleMus()" title="FitMagra Vibes">
+  <button class="mplay" id="mBtn" aria-label="Play">▶</button>
+  <span class="mlabel">FitMagra Vibes</span>
+  <div class="mbars off" id="mBars"><span></span><span></span><span></span><span></span></div>
+</div>
+
+<!-- NAV -->
+<nav id="nav">
+  <a href="#hero" class="nlogo">
+    <img src="img/logo-metal.png" alt="FitMagra" class="nlogo-img-left">
+    <img src="img/logo-oficial.png" alt="FitMagra Systems" class="nlogo-img-right">
+  </a>
+  <ul class="nlinks">
+    <li><a href="#about" data-i18n="nav.about">Sobre mí</a></li>
+    <li><a href="#method" data-i18n="nav.method">Método</a></li>
+    <li><a href="#transforms" data-i18n="nav.results">Resultados</a></li>
+    <li><a href="#pricing" data-i18n="nav.plans">Planes</a></li>
+    <li><a href="#contact" data-i18n="nav.contact">Contacto</a></li>
+  </ul>
+  <a href="https://wa.me/573153614260" class="ncta" target="_blank" data-i18n="nav.cta">Valoración gratuita →</a>
+  <div class="nav-controls">
+    <button class="nbtn-icon sun-icon" onclick="toggleTheme()" title="Modo claro" aria-label="Modo claro">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"/></svg>
+    </button>
+    <button class="nbtn-icon moon-icon" onclick="toggleTheme()" title="Modo oscuro" aria-label="Modo oscuro">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+    </button>
+    <div class="nlang" role="tablist" aria-label="Idioma">
+      <button class="nlang-btn on" data-lang="es" onclick="setLang('es', this)">ES</button>
+      <button class="nlang-btn" data-lang="en" onclick="setLang('en', this)">EN</button>
+    </div>
+  </div>
+</nav>
+
+<!-- HERO -->
+<section id="hero">
+  <div class="hero-grid">
+    <div class="hero-left">
+      <div class="h-trust">
+        <span class="h-trust-dot"></span>
+        <span data-i18n="hero.trust"><b>Mg. Universidad del Rosario</b> · +450 clientes · 14 países</span>
+      </div>
+      <h1 class="htitle">
+        <span class="ln"><span class="li" data-i18n="hero.title.l1">Tu cuerpo cambia</span></span>
+        <span class="ln"><span class="li" data-i18n="hero.title.l2">cuando tu mente</span></span>
+        <span class="ln"><span class="li" data-i18n="hero.title.l3"><em>entiende el porqué.</em></span></span>
+      </h1>
+      <p class="hsub" data-i18n="hero.sub">FitMagra Systems integra bioquímica aplicada, nutrición clínica y entrenamiento periodizado. No es una rutina genérica — es un protocolo diseñado para tu fisiología.</p>
+      <div class="hacts">
+        <a href="https://wa.me/573153614260" class="btn-d" target="_blank">
+          <span data-i18n="hero.cta">Agenda tu valoración gratuita</span>
+          <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M3 8h10M9 4l4 4-4 4"/></svg>
+        </a>
+        <a href="#method" class="btn-o" data-i18n="hero.cta2">Ver el método</a>
+      </div>
+      <div class="h-meta">
+        <div class="h-meta-item"><div class="v">+8 años</div><div class="l">Coaching de élite</div></div>
+        <div class="h-meta-item"><div class="v">Oxford CEBM</div><div class="l">Evidencia clínica</div></div>
+        <div class="h-meta-item"><div class="v">24/7</div><div class="l">MagraMind AI</div></div>
+      </div>
+    </div>
+    <div class="hero-right">
+      <div class="h-img-wrap">
+        <img src="img/coach-black.jpg" alt="Mauricio Sánchez · FitMagra" style="width:100%;height:100%;object-fit:cover;object-position:top center;display:block;">
+      </div>
+      <div class="h-chip c1">
+        <div>
+          <div class="h-chip-num">450<span style="color:var(--accent)">+</span></div>
+          <div class="h-chip-lbl">Clientes<br>transformados</div>
+        </div>
+      </div>
+      <div class="h-chip c2">
+        <div>
+          <div class="h-chip-num">14</div>
+          <div class="h-chip-lbl">Países<br>asesorados</div>
+        </div>
+      </div>
+      <div class="h-chip c3">
+        <div>
+          <div class="h-chip-num">4.8<span style="color:#FFD27A;font-size:.7em;margin-left:.1em;">★</span></div>
+          <div class="h-chip-lbl">Calificación<br>promedio</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- COUNTRIES MARQUEE (compact) -->
+<div class="ctry">
+  <div class="ctry-track" id="ctrack"></div>
+</div>
+
+<!-- GLOBE SECTION (reorganized: title → marquee → 3D globe) -->
+<section id="globe-sec">
+  <div class="globe-head rv">
+    <div class="slabel" data-i18n="globe.label">Alcance global</div>
+    <h2 class="stitle" data-i18n="globe.title">14 países,<br><em>un solo sistema.</em></h2>
+    <div class="sdiv"></div>
+    <p>Coaching científico aplicado en personas reales. Arrastra el globo para explorar.</p>
+  </div>
+
+  <!-- Inner animated marquee (matches dots on globe) -->
+  <div class="ctry ctry-inner rv">
+    <div class="ctry-track" id="ctrack2"></div>
+  </div>
+
+  <div class="globe-3d-center rv">
+    <div class="globe-stage" id="globe-stage">
+      <div class="globe-bg"></div>
+      <div class="globe-dots"></div>
+      <div class="globe-rings"><span></span><span></span><span></span></div>
+      <div class="globe-3d" id="globe-3d">
+        <!-- pins injected by JS as 3D children -->
+      </div>
+    </div>
+    <div class="globe-hint">Toca y arrastra para rotar el mundo</div>
+  </div>
+
+  <div class="globe-stats rv">
+    <div class="gs-item"><div class="gs-num">14</div><div class="gs-lbl">Países</div></div>
+    <div class="gs-item"><div class="gs-num">+450</div><div class="gs-lbl">Clientes</div></div>
+    <div class="gs-item"><div class="gs-num">+8 años</div><div class="gs-lbl">Experiencia</div></div>
+    <div class="gs-item"><div class="gs-num">4</div><div class="gs-lbl">Continentes</div></div>
+  </div>
+</section>
+
+<!-- STATS COUNTER -->
+<section id="stats">
+  <div class="stats-head rv">
+    <div class="slabel" data-i18n="stats.label">Por los números</div>
+    <h2 class="stitle" data-i18n="stats.title">Ciencia + experiencia,<br><em>medida en personas reales.</em></h2>
+  </div>
+  <div class="stats-grid">
+    <div class="stat rv d1">
+      <div class="stat-num"><span class="counter" data-target="450">0</span><span class="suffix">+</span></div>
+      <div class="stat-lbl">Clientes</div>
+      <div class="stat-desc">Asesorados con protocolo doctoral, desde post-operatorios hasta atletas de élite.</div>
+    </div>
+    <div class="stat rv d2">
+      <div class="stat-num"><span class="counter" data-target="14">0</span></div>
+      <div class="stat-lbl">Países</div>
+      <div class="stat-desc">Colombia, México, USA, España, Argentina, Chile, Ecuador y más.</div>
+    </div>
+    <div class="stat rv d3">
+      <div class="stat-num"><span class="counter" data-target="8">0</span><span class="suffix">+</span></div>
+      <div class="stat-lbl">Años de coaching</div>
+      <div class="stat-desc">Más de 8 años aplicando bioquímica + nutrición clínica + entrenamiento periodizado.</div>
+    </div>
+    <div class="stat rv d4">
+      <div class="stat-num"><span class="counter" data-target="4">0</span></div>
+      <div class="stat-lbl">Ecuaciones TMB</div>
+      <div class="stat-desc">Harris-Benedict, Mifflin-St Jeor, Cunningham y Oxford — cruce científico.</div>
+    </div>
+  </div>
+</section>
+
+<!-- ABOUT + CREDENTIALS -->
+<section id="about">
+  <div class="about-wrap">
+    <div class="aph rv">
+      <div class="aphoto">
+        <img src="img/coach-pilates.jpg" alt="Mauricio Sánchez · Coach FitMagra" style="width:100%;height:100%;object-fit:cover;object-position:center top;display:block;">
+      </div>
+      <div class="acaption">
+        <span>Mauricio Sánchez · CEO FitMagra</span>
+        <a href="https://www.linkedin.com/in/mauriciofitmagra/" target="_blank">LinkedIn →</a>
+      </div>
+    </div>
+    <div class="atext rv d1">
+      <div class="slabel" data-i18n="about.label">Sobre el coach</div>
+      <h2 class="stitle" data-i18n="about.title">No soy un entrenador más.<br><em>Soy tu sistema.</em></h2>
+      <div class="sdiv"></div>
+      <p>Soy <strong>Mauricio Sánchez</strong>, Magíster en Actividad Física y Salud por la Universidad del Rosario, entrenador certificado y creador de <strong>FitMagra Systems</strong> — un método que simula un equipo multidisciplinario real: fisiólogo, dietista clínico y bioquímico, todo en un solo protocolo.</p>
+      <p>He asesorado a <strong>+450 personas en 14 países</strong> — desde clientes post-operatorios hasta médicos preparando OceanMan. Cada caso recibe el mismo rigor: ecuaciones científicas reales, evidencia Oxford CEBM y ajuste clínico semanal.</p>
+
+      <div class="creds">
+        <div class="cred cred-logo">
+          <div class="cred-logoslot"><img src="img/logo-rosario.png.png" alt="Universidad del Rosario" style="width:100%;height:100%;object-fit:contain;border-radius:8px;"></div>
+          <div class="cred-inst">Universidad del Rosario</div>
+          <div class="cred-title">Magíster en Actividad Física y Salud</div>
+          <div class="cred-meta">Bogotá, Colombia · 2021</div>
+        </div>
+        <div class="cred">
+          <div class="cred-inst">Certificación profesional</div>
+          <div class="cred-title">Personal Trainer + Nutrición Deportiva</div>
+          <div class="cred-meta">Acreditación internacional</div>
+        </div>
+        <div class="cred">
+          <div class="cred-inst">Especialización</div>
+          <div class="cred-title">Bioquímica aplicada al ejercicio</div>
+          <div class="cred-meta">Cronobiología + micronutrición</div>
+        </div>
+        <div class="cred">
+          <div class="cred-inst">Sistema propio</div>
+          <div class="cred-title">FitMagra Systems · método doctoral</div>
+          <div class="cred-meta">4 ecuaciones · Oxford CEBM · IA</div>
+        </div>
+      </div>
+
+      <div class="timeline">
+        <div class="tl-item">
+          <div class="tl-year">2017</div>
+          <div class="tl-title">Inicio en entrenamiento personal</div>
+          <div class="tl-desc">Primeros clientes presenciales en Bogotá. Aprendizaje empírico + autoformación.</div>
+        </div>
+        <div class="tl-item">
+          <div class="tl-year">2019</div>
+          <div class="tl-title">Certificación + nutrición deportiva</div>
+          <div class="tl-desc">Formalización académica. Primeros casos clínicos: post-operatorios y atletas.</div>
+        </div>
+        <div class="tl-item">
+          <div class="tl-year">2021</div>
+          <div class="tl-title">Magíster · Universidad del Rosario</div>
+          <div class="tl-desc">Maestría en Actividad Física y Salud. Base científica formal para FitMagra Systems.</div>
+        </div>
+        <div class="tl-item">
+          <div class="tl-year">2023</div>
+          <div class="tl-title">Escalado internacional · 14 países</div>
+          <div class="tl-desc">Coaching remoto con protocolo doctoral. +200 clientes nuevos por año.</div>
+        </div>
+        <div class="tl-item">
+          <div class="tl-year">2026</div>
+          <div class="tl-title">FitMagra Systems · MagraMind AI</div>
+          <div class="tl-desc">Sistema científico + asistente de IA 24/7. La siguiente generación del coaching.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- METHOD -->
+<div id="method">
+  <div class="method-inner rv">
+    <div class="slabel" data-i18n="method.label">El método</div>
+    <h2 class="stitle" data-i18n="method.title">FitMagra Systems —<br><em>seis pilares, un protocolo.</em></h2>
+    <div class="sdiv"></div>
+    <div class="mgrid">
+      <div class="mcard"><div class="mnum">01 · Bioquímica</div><div class="mtitle">Bioquímica aplicada</div><div class="mdesc">4 ecuaciones científicas cruzan tu metabolismo real: Harris-Benedict, Mifflin-St Jeor, Cunningham y Oxford. Sin estimaciones de internet.</div><div class="mbar"></div></div>
+      <div class="mcard"><div class="mnum">02 · Nutrición</div><div class="mtitle">Nutrición clínica</div><div class="mdesc">Cronobiología + micronutriente por alimento. Tus comidas en el momento exacto para máxima absorción.</div><div class="mbar"></div></div>
+      <div class="mcard"><div class="mnum">03 · Suplementación</div><div class="mtitle">Suplementación evidenciada</div><div class="mdesc">Mecanismo de acción, dosis exacta y nivel de evidencia Oxford CEBM. Sin modas, sin riesgo.</div><div class="mbar"></div></div>
+      <div class="mcard"><div class="mnum">04 · Entrenamiento</div><div class="mtitle">Entrenamiento periodizado</div><div class="mdesc">Fuerza, HIIT y cardio en ciclos progresivos según tu capacidad real y objetivos concretos.</div><div class="mbar"></div></div>
+      <div class="mcard"><div class="mnum">05 · Decisión clínica</div><div class="mtitle">Árbol de decisión clínico</div><div class="mdesc">Ajuste semanal según tus respuestas fisiológicas reales. El plan evoluciona contigo, no al revés.</div><div class="mbar"></div></div>
+      <div class="mcard"><div class="mnum">06 · IA</div><div class="mtitle">MagraMind AI</div><div class="mdesc">Asistente de coaching con IA disponible 24/7. Soporte ilimitado durante todo el plan.</div><div class="mbar"></div></div>
+    </div>
+  </div>
+</div>
+
+<!-- TRANSFORMATIONS -->
+<section id="transforms">
+  <div class="tr-head rv">
+    <div class="tr-head-left">
+      <div class="slabel" data-i18n="transforms.label">Evidencia visual</div>
+      <h2 class="stitle" data-i18n="transforms.title">Transformaciones <em>reales.</em></h2>
+      <div class="sdiv"></div>
+    </div>
+    <p class="tr-disclaimer">Resultados reales. Los resultados individuales varían según adherencia y condición inicial.</p>
+  </div>
+  <div class="trgrid rv">
+    <div class="tri"><img src="img/t-01.jpg" alt="Transformación" loading="lazy"><div class="tri-lbl">Recomposición</div></div>
+    <div class="tri"><img src="img/t-02.jpg" alt="Transformación" loading="lazy" style="width:100%;height:100%;object-fit:contain;background:#0a0a0a;"><div class="tri-lbl">Glúteos</div></div>
+    <div class="tri wide"><img src="img/t-mes.jpg" alt="Transformación Mes 0 · 1 · 2" loading="lazy" style="width:100%;height:100%;object-fit:cover;"><div class="tri-lbl">Recomposición</div></div>
+    <div class="tri"><img src="img/t-03.jpg" alt="Transformación" loading="lazy" style="width:100%;height:100%;object-fit:contain;background:#0a0a0a;"><div class="tri-lbl">Recomposición</div></div>
+    <div class="tri"><img src="img/t-04.jpg" alt="Transformación" loading="lazy" style="width:100%;height:100%;object-fit:cover;"><div class="tri-lbl">Pérdida</div></div>
+    <div class="tri"><img src="img/t-05.jpg" alt="Transformación" loading="lazy" style="width:100%;height:100%;object-fit:cover;"><div class="tri-lbl">Adelgazar</div></div>
+    <div class="tri"><img src="img/t-06.jpg" alt="Transformación" loading="lazy" style="width:100%;height:100%;object-fit:cover;"><div class="tri-lbl">Tonificación</div></div>
+    <div class="tri"><img src="img/t-07.jpg" alt="Transformación" loading="lazy"><div class="tri-lbl">90 días</div></div>
+    <div class="tri"><img src="img/t-08.jpg" alt="Transformación" loading="lazy"><div class="tri-lbl">Tonificación</div></div>
+    <div class="tri"><img src="img/t-09.jpg" alt="Transformación" loading="lazy" style="width:100%;height:100%;object-fit:cover;"><div class="tri-lbl">Adelgazar</div></div>
+    <div class="tri"><img src="img/t-angela.png" alt="Ángela · Transformación" loading="lazy"><div class="tri-lbl">Adelgazar</div></div>
+    <div class="tri"><img src="img/t-hernan.png" alt="Hernán · Transformación" loading="lazy" style="width:100%;height:100%;object-fit:contain;background:#0a0a0a;"><div class="tri-lbl">Recomposición</div></div>
+  </div>
+</section>
+
+<!-- TESTIMONIALS -->
+<section id="testi">
+  <div class="testi-inner">
+    <div class="rv">
+      <div class="slabel" data-i18n="testi.label">Voces de clientes</div>
+      <h2 class="stitle" data-i18n="testi.title">Clientes reales,<br><em>resultados reales.</em></h2>
+      <div class="sdiv"></div>
+    </div>
+    <div class="tgrid rv">
+      <div class="tcard">
+        <div class="thead"><div class="tav">AB</div><div><div class="tname">Ángela Babilonia</div><div class="trole">Post-operatoria · Cliente desde 2021</div></div></div>
+        <div class="tstars">★★★★★</div>
+        <p class="ttxt">Llegué buscando recuperarme de una cirugía y encontré un sistema que transformó mi relación con el cuerpo. Mauricio no improvisa: cada decisión tiene un porqué científico.</p>
+      </div>
+      <div class="tcard">
+        <div class="thead"><div class="tav">JZ</div><div><div class="tname">Juan Zaraza</div><div class="trole">Médico · OceanMan 2026</div></div></div>
+        <div class="tstars">★★★★★</div>
+        <p class="ttxt">Como médico soy muy escéptico. Lo que me convenció fue la profundidad científica: bibliografía y niveles de evidencia Oxford que yo mismo revisé y validé.</p>
+      </div>
+      <div class="tcard">
+        <div class="thead"><div class="tav">AD</div><div><div class="tname">Adriana Díaz</div><div class="trole">Transformación estética</div></div></div>
+        <div class="tstars">★★★★★</div>
+        <p class="ttxt">Había probado todo. FitMagra fue diferente desde el primer día: un plan con mi nombre, mis exámenes y mis objetivos. No una plantilla con mi foto.</p>
+      </div>
+      <div class="tcard">
+        <div class="thead"><div class="tav">CM</div><div><div class="tname">Carlos M.</div><div class="trole">Pérdida de grasa · 90 días</div></div></div>
+        <div class="tstars">★★★★★</div>
+        <p class="ttxt">En 90 días logré lo que en 3 años de gym solo no pude. El plan de nutrición fue clave — entendí por qué comía lo que comía y en qué momento exacto.</p>
+      </div>
+      <div class="tcard">
+        <div class="thead"><div class="tav">LG</div><div><div class="tname">Laura G.</div><div class="trole">Plan Platinum · España</div></div></div>
+        <div class="tstars">★★★★★</div>
+        <p class="ttxt">Me impactó el nivel del plan — bibliografía científica, justificación de cada suplemento. Esto no es coaching genérico, es medicina aplicada al fitness.</p>
+      </div>
+      <div class="tcard video-card" id="video-testimonial">
+        <div class="vid-thumb-wrap" onclick="playInlineVideo(event)">
+          <video src="img/testimonial-video.mp4" muted playsinline preload="metadata" id="vid-thumb" poster=""></video>
+          <div class="vid-play-btn" id="vid-play-btn"><svg viewBox="0 0 24 24" width="48" height="48"><circle cx="12" cy="12" r="12" fill="rgba(0,0,0,0.6)"/><polygon points="10,8 18,12 10,16" fill="white"/></svg></div>
+          <button class="vid-fullscreen-btn" onclick="goFullscreenVideo(event)" title="Pantalla completa" style="display:none;"><svg viewBox="0 0 24 24" width="20" height="20" fill="white"><path d="M3 3h7v2H5v5H3V3zm11 0h7v7h-2V5h-5V3zM3 14h2v5h5v2H3v-7zm16 0h2v7h-7v-2h5v-5z"/></svg></button>
+        </div>
+        <div class="thead" style="margin-top:1rem;padding:0 1.25rem;"><div class="tav">CL</div><div><div class="tname">Asesorada FitMagra</div><div class="trole">Video testimonial · transformación real</div></div></div>
+        <div class="tstars" style="padding:0 1.25rem;">★★★★★</div>
+        <p class="ttxt" style="padding:0 1.25rem 1.25rem;">Toca para reproducir.</p>
+      </div>
+      <div class="tcard">
+        <div class="thead"><div class="tav">RP</div><div><div class="tname">Roberto P.</div><div class="trole">CEO · México</div></div></div>
+        <div class="tstars">★★★★★</div>
+        <p class="ttxt">Lo que me dio Mauricio no fue una rutina — fue un sistema para entender mi cuerpo. Después de 6 meses ya no necesito que me diga qué hacer.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- PRICING v2 -->
+<section id="pricing">
+  <div class="pr-inner">
+    <div class="pr-head-v2 rv">
+      <div class="slabel" data-i18n="pricing.label">Inversión</div>
+      <h2 data-i18n="pricing.title">Un sistema de<br><em>transformación guiada.</em></h2>
+      <p data-i18n="pricing.sub">No compras una rutina. Accedes a un sistema de acompañamiento estratégico con base científica real, ajuste clínico semanal y resultados auditables.</p>
+    </div>
+
+    <!-- Currency toggle -->
+    <div class="curr-wrap rv">
+      <div class="curr-toggle" role="tablist" aria-label="Moneda">
+        <button class="curr-btn on" data-curr="cop" onclick="setCurrency('cop', this)">
+          <span class="curr-flag"><svg viewBox="0 0 6 4" preserveAspectRatio="none"><rect width="6" height="2" fill="#FCD116"/><rect y="2" width="6" height="1" fill="#003893"/><rect y="3" width="6" height="1" fill="#CE1126"/></svg></span> COP
+        </button>
+        <button class="curr-btn" data-curr="usd" onclick="setCurrency('usd', this)">
+          <span class="curr-flag"><svg viewBox="0 0 19 10" preserveAspectRatio="none"><rect width="19" height="10" fill="#B22234"/><path d="M0 1.15h19M0 2.3h19M0 3.46h19M0 4.61h19M0 5.77h19M0 6.92h19M0 8.08h19M0 9.23h19" stroke="#fff" stroke-width=".77"/><rect width="7.6" height="5.38" fill="#3C3B6E"/></svg></span> USD
+        </button>
+      </div>
+      <div class="curr-note" id="curr-note">Conversión estimada: 1 USD = $4.000 COP (tasa referencial)</div>
+    </div>
+
+    <!-- Duration pills -->
+    <div class="term-wrap rv">
+      <div class="term-pills" role="tablist" aria-label="Duración">
+        <button class="term-pill on" data-term="1m" onclick="setTerm('1m', this)">1 mes</button>
+        <button class="term-pill" data-term="2m" onclick="setTerm('2m', this)">2 meses <span class="save-badge">−10% 🔥</span></button>
+        <button class="term-pill" data-term="3m" onclick="setTerm('3m', this)">3 meses <span class="save-badge">−15% ⚡</span></button>
+      </div>
+    </div>
+
+    <div class="pstack-v2" id="pstack">
+
+      <!-- STANDARD -->
+      <div class="pcard-v2 is-left" data-base-cop="250000" data-pos="left" id="pc-standard">
+        <div class="pplan-v2">Standard</div>
+        <div class="pname-v2">Standard</div>
+        <div class="pheadline-v2">"Tú ya sabes. Solo necesitas dirección."</div>
+        <div class="ptag-v2">Vienes porque sabes que necesitas ayuda. Yo te doy el mapa. Tú caminas. No es coaching de mano sostenida — es arquitectura real de fitness para que entiendas qué hacer y lo hagas.</div>
+
+        <div class="pprice-block">
+          <div class="psavings"></div>
+          <div class="pprice-old-v2"></div>
+          <div class="pprice-v2">$250.000</div>
+          <div class="pper-v2">COP · por mes · 30 días</div>
+        </div>
+        <div class="pdiv-v2"></div>
+        <ul class="pfeat-v2">
+          <li>Plan de alimentación personalizado con base científica real</li>
+          <li>Rutina de entrenamiento periodizada</li>
+          <li>Cálculos calóricos con 4 ecuaciones científicas según lo que tu cuerpo más requiera</li>
+          <li>Plan de suplementación dosificado</li>
+          <li>Árbol de decisión clínico (qué ajustar si te atascas)</li>
+          <li>Soporte WhatsApp</li>
+          <li>Prioridad de respuesta &lt; 12 h</li>
+          <li>1 sesión/mes de retroalimentación y Q&amp;A · 1 h</li>
+        </ul>
+        <a href="https://wa.me/573153614260?text=Hola%2C%20me%20interesa%20el%20Plan%20Standard" class="pcta-v2 outline" target="_blank">Comenzar con Standard</a>
+      </div>
+
+      <!-- ELITE (featured — starts in center) -->
+      <div class="pcard-v2 is-active feat" data-base-cop="400000" data-pos="center" id="pc-elite">
+        <div class="pbadge-v2">⭐ Más popular</div>
+        <div class="pplan-v2">Elite</div>
+        <div class="pname-v2">Elite</div>
+        <div class="pheadline-v2">"Cuando decides que esta vez sí."</div>
+        <div class="ptag-v2">Acceso prioritario. 4 sesiones al mes contigo. Cada semana revisamos progreso, ajustamos protocolos y optimizamos en tiempo real. No es solo un plan — es un acompañamiento donde tus avances tienen mi atención real. Tus resultados importan.</div>
+
+        <div class="pprice-block">
+          <div class="psavings"></div>
+          <div class="pprice-old-v2"></div>
+          <div class="pprice-v2">$400.000</div>
+          <div class="pper-v2">COP · por mes · 30 días</div>
+        </div>
+        <div class="pdiv-v2"></div>
+        <ul class="pfeat-v2">
+          <li>Todo lo del Plan Standard</li>
+          <li>4 sesiones/mes presencial o video</li>
+          <li>Perfil nutricional por alimento (prescripción adaptada por tipo de sangre)</li>
+          <li>Cronobiología aplicada (timing óptimo de macros)</li>
+          <li>Biofeedback semanal con ajuste en tiempo real</li>
+          <li>Ebook "Biohacking FitMagra" (exclusivo)</li>
+          <li>Acceso a Portal FitMagra (biblioteca de protocolos, skills Claude, videos exclusivos)</li>
+          <li>Dashboard interactivo de progreso mes a mes</li>
+          <li>Prioridad de respuesta &lt; 1 h</li>
+        </ul>
+        <a href="https://wa.me/573153614260?text=Hola%2C%20me%20interesa%20el%20Plan%20Elite" class="pcta-v2 solid" target="_blank">Comenzar con Elite</a>
+      </div>
+
+      <!-- PLATINO -->
+      <div class="pcard-v2 is-right" data-base-cop="600000" data-pos="right" id="pc-platino">
+        <div class="pplan-v2">Platino</div>
+        <div class="pname-v2">Platino</div>
+        <div class="pheadline-v2">"Turbo desde el día uno. Mi atención, sin reservas."</div>
+        <div class="ptag-v2">Este plan es para quien entiende que el cuerpo necesita ser escuchado antes de ser entrenado. Inicio con un protocolo de choque metabólico real — limpieza de órganos vitales, reset hormonal, base nutracéutica. Luego construimos juntos, con herramientas que no encontrarás en ningún otro lugar. Estoy contigo. De verdad.</div>
+
+        <div class="pprice-block">
+          <div class="psavings"></div>
+          <div class="pprice-old-v2"></div>
+          <div class="pprice-v2">$600.000</div>
+          <div class="pper-v2">COP · por mes · 30 días</div>
+        </div>
+        <div class="pdiv-v2"></div>
+        <ul class="pfeat-v2">
+          <li>Todo lo del Plan Elite</li>
+          <li>6–8 sesiones mes 1 (protocolo de choque inicial)</li>
+          <li>Protocolo de limpieza corporal mes 1:</li>
+          <li class="sub">Drenaje linfático + movilidad articular</li>
+          <li class="sub">Reset de ejes hormonales (cortisol, insulina)</li>
+          <li class="sub">"Clean slate" nutricional · protocolo 72 h de reset</li>
+          <li>Alimentación nutracéutica de alto impacto (aplicada en países avanzados, base funcional real)</li>
+          <li>Prescripción desde múltiples ángulos clínicos:</li>
+          <li class="sub">Por tipo de sangre</li>
+          <li class="sub">Por perfil nutracéutico</li>
+          <li class="sub">Por biodecomposición genética (tecnología alemana)</li>
+          <li class="sub">Por ritmos circadianos y eje hormonal</li>
+          <li>Protocolos de Medicina Tradicional China (diagnóstico funcional profundo)</li>
+          <li>Árbol de decisión doctoral multidisciplinario (fisiólogo · dietista clínico · bioquímico)</li>
+          <li>Suplementación basada en evidencia Oxford CEBM</li>
+          <li>Videos de entrenamiento grabados personalizados</li>
+          <li>Acceso a investigaciones científicas clasificadas por sistema corporal</li>
+          <li>Prioridad máxima — acceso directo</li>
+        </ul>
+        <a href="https://wa.me/573153614260?text=Hola%2C%20me%20interesa%20el%20Plan%20Platino" class="pcta-v2 outline" target="_blank">Comenzar con Platino</a>
+      </div>
+
+    </div>
+
+    <p class="pnote-v2 rv" data-i18n="pricing.note"><b>¿No sabes cuál elegir?</b> Toca cualquier card lateral para verla en detalle. Todos los planes incluyen <b>charla inicial gratuita</b>, plan personalizado en PDF, entrega en 1-3 días, soporte WhatsApp y dudas ilimitadas.</p>
+  </div>
+</section>
+
+<!-- PAYMENT -->
+<div id="payment">
+  <div class="pay-inner rv">
+    <div class="slabel" data-i18n="pay.label">Formas de pago</div>
+    <h2 class="stitle" data-i18n="pay.title">Pago simple, <em>seguro.</em></h2>
+    <div class="sdiv"></div>
+    <div class="pay-tabs">
+      <button class="ptab on" onclick="switchPay('co',this)">Colombia</button>
+      <button class="ptab" onclick="switchPay('int',this)">Internacional</button>
+      <button class="ptab" onclick="switchPay('how',this)">¿Cómo funciona?</button>
+    </div>
+    <div class="ppanel on" id="pp-co">
+      <div class="paygrid">
+        <div class="pmethod"><div class="pmlogo" style="background:#fff;"><img src="img/logo-nequi.png.png" alt="Nequi"></div><div><div class="pmname">Nequi / Daviplata</div><div class="pmdetail">+57 316 5754416<br><span class="pmbadge">Digital · Inmediato</span></div></div></div>
+        <div class="pmethod"><div class="pmlogo" style="background:#1A1F71;"><img src="img/logo-visa.png" alt="Visa"></div><div><div class="pmname">Tarjeta D·C</div><div class="pmdetail">Visa · Mastercard · SUMUP<br><span class="pmbadge">Datáfono o link</span></div></div></div>
+        <div class="pmethod"><div class="pmlogo" style="background:#fff;"><img src="img/logo-baloto.png.png" alt="Baloto"></div><div><div class="pmname">MOVII · Baloto</div><div class="pmdetail">Convenio 969696<br>Tel: 316 5754416</div></div></div>
+        <div class="pmethod"><div class="pmlogo" style="background:#fff;"><img src="img/logo-avvillas.png.png" alt="AV Villas"></div><div><div class="pmname">Av Villas</div><div class="pmdetail">Cta: 05-48-74-172<br>M. Sánchez · CC 1.016.013.376</div></div></div>
+        <div class="pmethod"><div class="pmlogo" style="background:#fff;"><img src="img/logo-bancolombia.png.png" alt="Bancolombia"></div><div><div class="pmname">BCSC · Bancolombia</div><div class="pmdetail">Cta: 240-2386-5307<br>M. Sánchez · CC 1.016.013.376</div></div></div>
+        <div class="pmethod"><div class="pmlogo" style="background:#FFD200;"><img src="img/logo-exito.png.png" alt="Éxito"></div><div><div class="pmname">Efecty · Baloto · Éxito</div><div class="pmdetail">Toda Colombia<br>A nombre de Mauricio Sánchez</div></div></div>
+      </div>
+    </div>
+    <div class="ppanel" id="pp-int">
+      <div class="paygrid">
+        <div class="pmethod"><div class="pmlogo" style="background:#fff;"><img src="img/logo-remitly.png.png" alt="Remitly"></div><div><div class="pmname">Remitly</div><div class="pmdetail">Transferencia internacional<br><span class="pmbadge">Recomendado</span></div></div></div>
+        <div class="pmethod"><div class="pmlogo" style="background:#000;"><img src="img/logo-western.png.png" alt="Western Union"></div><div><div class="pmname">Western Union</div><div class="pmdetail">Disponible mundialmente</div></div></div>
+        <div class="pmethod"><div class="pmlogo" style="background:#fff;"><img src="img/logo-moneygram.png.png" alt="MoneyGram"></div><div><div class="pmname">MoneyGram</div><div class="pmdetail">Convenio Bancolombia</div></div></div>
+      </div>
+      <p style="margin-top:1.25rem;font-size:.72rem;color:color-mix(in oklab, var(--bg) 40%, transparent);line-height:1.65;">Valor libre de comisiones. Envía comprobante a Fitmagrasystems@gmail.com o WhatsApp +57 316 5754416.</p>
+    </div>
+    <div class="ppanel" id="pp-how">
+      <div class="psteps">
+        <div class="pstep"><div class="psnum">01</div><div class="pstitle">Elige tu plan</div><div class="psdesc">Contáctanos por WhatsApp y confirmamos disponibilidad.</div></div>
+        <div class="pstep"><div class="psnum">02</div><div class="pstitle">Realiza el pago</div><div class="psdesc">Por cualquier método. Libre de comisiones del ente recaudador.</div></div>
+        <div class="pstep"><div class="psnum">03</div><div class="pstitle">Envía comprobante</div><div class="psdesc">WhatsApp o Fitmagrasystems@gmail.com</div></div>
+        <div class="pstep"><div class="psnum">04</div><div class="pstitle">Plan en 1-3 días</div><div class="psdesc">Agendamos charla inicial y construimos tu protocolo.</div></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- CONTACT -->
+<section id="contact">
+  <div class="contact-wrap">
+    <div class="rv">
+      <h2 class="cctitle" data-i18n="contact.title">Da el primer paso<br>hacia tu mejor<br><em>versión.</em></h2>
+      <p class="ccsub" data-i18n="contact.sub">Agenda una valoración gratuita de 30 minutos. Sin compromiso — solo claridad sobre tu punto de partida y lo que puedes lograr con FitMagra Systems.</p>
+      <a href="https://wa.me/573153614260?text=Hola%2C%20quiero%20agendar%20mi%20valoraci%C3%B3n%20gratuita" class="wa-btn" target="_blank">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor"><path d="M8 0a8 8 0 00-6.93 11.99L0 16l4.16-1.05A8 8 0 108 0zm4.69 11.31c-.2.56-1.18 1.07-1.62 1.13-.41.06-.93.08-1.5-.09-.34-.1-.79-.25-1.36-.5-2.4-1.04-3.96-3.46-4.08-3.62-.12-.16-.97-1.29-.97-2.46 0-1.17.62-1.75.84-1.99.22-.24.48-.3.64-.3l.46.01c.15.01.35-.06.55.42.2.49.7 1.69.76 1.81.06.12.1.26.02.42-.08.16-.12.26-.24.4-.12.14-.25.31-.36.42-.12.12-.24.25-.1.49.14.24.61 1 1.31 1.62.9.8 1.66 1.05 1.9 1.17.24.12.38.1.52-.06.14-.16.6-.7.76-.94.16-.24.32-.2.54-.12.22.08 1.41.66 1.65.78.24.12.4.18.46.28.06.1.06.58-.14 1.14z"/></svg>
+        <span data-i18n="contact.cta">Agendar valoración gratuita</span>
+      </a>
+    </div>
+    <div class="cdetails rv d2">
+      <div class="citem"><span class="clabel">WhatsApp</span><span class="cval"><a href="https://wa.me/573153614260" target="_blank">+57 315 361 4260</a></span></div>
+      <div class="citem"><span class="clabel">Email</span><span class="cval"><a href="mailto:Fitmagrasystems@gmail.com">Fitmagrasystems@gmail.com</a></span></div>
+      <div class="citem"><span class="clabel">LinkedIn</span><span class="cval"><a href="https://www.linkedin.com/in/mauriciofitmagra/" target="_blank">https://www.linkedin.com/in/mauriciofitmagra/</a></span></div>
+      <div class="citem"><span class="clabel">FACEBOOK</span><span class="cval"><a href="https://instagram.com" target="_blank">https://www.facebook.com/FitmagraOficial/</a></span></div>
+      <div class="citem"><span class="clabel">Ubicación</span><span class="cval">Bogotá, Colombia ·</span></div>
+      <div class="citem"><span class="clabel">Entrega</span><span class="cval">Plan en 1-3 días hábiles</span></div>
+    </div>
+  </div>
+</section>
+
+<!-- MARQUEE CTA -->
+<div class="mqcta">
+  <div class="mqtrack">
+    <span class="mqitem">Renueva tu mente</span><span class="mqitem sep">✦</span>
+    <span class="mqitem">Cambia tu destino</span><span class="mqitem sep">✦</span>
+    <span class="mqitem">FitMagra Systems</span><span class="mqitem sep">✦</span>
+    <span class="mqitem">+450 clientes</span><span class="mqitem sep">✦</span>
+    <span class="mqitem">14 países</span><span class="mqitem sep">✦</span>
+    <span class="mqitem">Ciencia real</span><span class="mqitem sep">✦</span>
+    <span class="mqitem">Renueva tu mente</span><span class="mqitem sep">✦</span>
+    <span class="mqitem">Cambia tu destino</span><span class="mqitem sep">✦</span>
+    <span class="mqitem">FitMagra Systems</span><span class="mqitem sep">✦</span>
+    <span class="mqitem">+450 clientes</span><span class="mqitem sep">✦</span>
+  </div>
+</div>
+
+<!-- FOOTER -->
+<footer class="footer-redesigned">
+  <div class="footer-neon-wrap">
+    <img src="img/logo-neon.jpeg" alt="FitMagra Neon" class="footer-neon-logo">
+    <div class="footer-marquee">
+      <div class="footer-marquee-track">
+        <span class="fm-item">Renueva tu mente</span><span class="fm-sep">·</span>
+        <span class="fm-item">Cambia tu destino</span><span class="fm-sep">·</span>
+        <span class="fm-item">Renueva tu mente</span><span class="fm-sep">·</span>
+        <span class="fm-item">Cambia tu destino</span><span class="fm-sep">·</span>
+        <span class="fm-item">Renueva tu mente</span><span class="fm-sep">·</span>
+        <span class="fm-item">Cambia tu destino</span><span class="fm-sep">·</span>
+        <span class="fm-item">Renueva tu mente</span><span class="fm-sep">·</span>
+        <span class="fm-item">Cambia tu destino</span><span class="fm-sep">·</span>
+      </div>
+    </div>
+  </div>
+  <div class="footer-bottom">
+    <div class="flinks">
+      <a href="https://wa.me/573153614260" target="_blank">WhatsApp</a>
+      <a href="mailto:Fitmagrasystems@gmail.com">Email</a>
+      <a href="https://www.linkedin.com/in/mauriciofitmagra/" target="_blank">LinkedIn</a>
+      <a href="https://www.facebook.com/FitmagraOficial/" target="_blank">Facebook</a>
+    </div>
+    <div class="fcopy">© 2026 FitMagra Systems · Bogotá, Colombia · M.Sc. Mauricio Sánchez · Todos los derechos reservados · Términos y condiciones · Política de privacidad</div>
+  </div>
+</footer>
+
+<script src="image-slot.js"></script>
+<script>
+// ─── VIBE LOCKED TO DARK ───
+document.documentElement.setAttribute('data-vibe', 'dark');
+
+// ─── THEME (sun / moon) ───
+function applyTheme(t){
+  if(t === 'light') document.documentElement.setAttribute('data-theme', 'light');
+  else document.documentElement.removeAttribute('data-theme');
+  try{ localStorage.setItem('fitmagra-theme', t); }catch(e){}
+}
+function toggleTheme(){
+  const cur = document.documentElement.getAttribute('data-theme') === 'light' ? 'light' : 'dark';
+  applyTheme(cur === 'light' ? 'dark' : 'light');
+}
+try{ const t = localStorage.getItem('fitmagra-theme'); if(t === 'light') applyTheme('light'); }catch(e){}
+
+// ─── MUSIC PLAYER ───
+function toggleMus(){
+  const aud = document.getElementById('aud');
+  const btn = document.getElementById('mBtn');
+  const bars = document.getElementById('mBars');
+  if(!aud) return;
+  if(aud.paused){
+    const p = aud.play();
+    if(p && p.catch) p.catch(()=>{});
+    btn.textContent = '⏸';
+    bars.classList.remove('off');
+  } else {
+    aud.pause();
+    btn.textContent = '▶';
+    bars.classList.add('off');
+  }
+}
+
+// ─── i18n (ES / EN) ───
+const TR = {
+  es: {
+    'nav.about':'Sobre mí', 'nav.method':'Método', 'nav.results':'Resultados',
+    'nav.plans':'Planes', 'nav.contact':'Contacto',
+    'nav.cta':'Valoración gratuita →',
+    'hero.trust':'<b>Mg. Universidad del Rosario</b> · +450 clientes · 14 países',
+    'hero.title.l1':'Tu cuerpo cambia',
+    'hero.title.l2':'cuando tu mente',
+    'hero.title.l3':'<em>entiende el porqué.</em>',
+    'hero.sub':'FitMagra Systems integra bioquímica aplicada, nutrición clínica y entrenamiento periodizado. No es una rutina genérica — es un protocolo diseñado para tu fisiología.',
+    'hero.cta':'Agenda tu valoración gratuita',
+    'hero.cta2':'Ver el método',
+    'stats.label':'Por los números',
+    'stats.title':'Ciencia + experiencia,<br><em>medida en personas reales.</em>',
+    'about.label':'Sobre el coach',
+    'about.title':'No soy un entrenador más.<br><em>Soy tu sistema.</em>',
+    'method.label':'El método',
+    'method.title':'FitMagra Systems —<br><em>seis pilares, un protocolo.</em>',
+    'transforms.label':'Evidencia visual',
+    'transforms.title':'Transformaciones <em>reales.</em>',
+    'testi.label':'Voces de clientes',
+    'testi.title':'Clientes reales,<br><em>resultados reales.</em>',
+    'pricing.label':'Inversión',
+    'pricing.title':'Un sistema de<br><em>transformación guiada.</em>',
+    'pricing.sub':'No compras una rutina. Accedes a un sistema de acompañamiento estratégico con base científica real, ajuste clínico semanal y resultados auditables.',
+    'pay.label':'Formas de pago',
+    'pay.title':'Pago simple, <em>seguro.</em>',
+    'contact.title':'Da el primer paso<br>hacia tu mejor<br><em>versión.</em>',
+    'contact.sub':'Agenda una valoración gratuita de 30 minutos. Sin compromiso — solo claridad sobre tu punto de partida y lo que puedes lograr con FitMagra Systems.',
+    'contact.cta':'Agendar valoración gratuita',
+    'globe.label':'Alcance global',
+    'globe.title':'14 países,<br><em>un solo sistema.</em>'
+  },
+  en: {
+    'nav.about':'About', 'nav.method':'Method', 'nav.results':'Results',
+    'nav.plans':'Plans', 'nav.contact':'Contact',
+    'nav.cta':'Free assessment →',
+    'hero.trust':'<b>M.Sc. Universidad del Rosario</b> · +450 clients · 14 countries',
+    'hero.title.l1':'Your body changes',
+    'hero.title.l2':'when your mind',
+    'hero.title.l3':'<em>understands why.</em>',
+    'hero.sub':'FitMagra Systems integrates applied biochemistry, clinical nutrition and periodized training. Not a generic routine — a protocol designed for your physiology.',
+    'hero.cta':'Book your free assessment',
+    'hero.cta2':'See the method',
+    'stats.label':'By the numbers',
+    'stats.title':'Science + experience,<br><em>measured in real people.</em>',
+    'about.label':'About the coach',
+    'about.title':'Not just another trainer.<br><em>I am your system.</em>',
+    'method.label':'The method',
+    'method.title':'FitMagra Systems —<br><em>six pillars, one protocol.</em>',
+    'transforms.label':'Visual evidence',
+    'transforms.title':'Real <em>transformations.</em>',
+    'testi.label':'Client voices',
+    'testi.title':'Real clients,<br><em>real results.</em>',
+    'pricing.label':'Investment',
+    'pricing.title':'A guided<br><em>transformation system.</em>',
+    'pricing.sub':"You don't buy a routine. You access a strategic coaching system with real scientific base, weekly clinical adjustments and auditable results.",
+    'pay.label':'Payment methods',
+    'pay.title':'Simple, <em>secure</em> payment.',
+    'contact.title':'Take the first step<br>toward your best<br><em>version.</em>',
+    'contact.sub':'Book a free 30-minute assessment. No commitment — just clarity on your starting point and what you can achieve with FitMagra Systems.',
+    'contact.cta':'Book free assessment',
+    'globe.label':'Global reach',
+    'globe.title':'14 countries,<br><em>one system.</em>'
+  }
+};
+function setLang(lang, btn){
+  document.querySelectorAll('[data-i18n]').forEach(el => {
+    const key = el.dataset.i18n;
+    const txt = TR[lang] && TR[lang][key];
+    if(txt !== undefined) el.innerHTML = txt;
+  });
+  document.documentElement.lang = lang;
+  document.querySelectorAll('.nlang-btn').forEach(b => b.classList.toggle('on', b.dataset.lang === lang));
+  if(typeof refreshGlobeLang === 'function') refreshGlobeLang(lang);
+  try{ localStorage.setItem('fitmagra-lang', lang); }catch(e){}
+}
+try{
+  const l = localStorage.getItem('fitmagra-lang');
+  if(l === 'en') window.addEventListener('DOMContentLoaded', () => setLang('en'));
+}catch(e){}
+
+// ─── NAV SCROLL ───
+const nav = document.getElementById('nav');
+window.addEventListener('scroll', ()=>{
+  nav.classList.toggle('sc', window.scrollY > 60);
+});
+
+// Scroll progress bar
+const sprog = document.getElementById('scroll-prog');
+window.addEventListener('scroll', () => {
+  const h = document.documentElement;
+  const scrolled = (h.scrollTop) / Math.max(1, h.scrollHeight - h.clientHeight);
+  if(sprog) sprog.style.width = Math.min(100, scrolled * 100) + '%';
+}, {passive:true});
+
+// ─── COUNTRIES + GLOBE ───
+const flags = {
+  CO:'#FCD116,#003893,#CE1126',
+  US:'#3C3B6E,#FFFFFF,#B22234',
+  MX:'#006847,#FFFFFF,#CE1126',
+  AR:'#74ACDF,#FFFFFF,#74ACDF',
+  CL:'#FFFFFF,#0039A6,#D52B1E',
+  EC:'#FFDD00,#0033A0,#CE1126',
+  ES:'#AA151B,#F1BF00,#AA151B',
+  PE:'#D91023,#FFFFFF,#D91023',
+  VE:'#FFCC00,#00247D,#CF142B',
+  BR:'#009B3A,#FEDF00,#009B3A',
+  UY:'#FFFFFF,#0038A8,#FFFFFF',
+  CR:'#0033A0,#FFFFFF,#CE1126',
+  PA:'#FFFFFF,#D52B1E,#005AA7',
+  GT:'#4997D0,#FFFFFF,#4997D0'
+};
+const countryNames = {CO:'Colombia',US:'Estados Unidos',MX:'México',AR:'Argentina',CL:'Chile',EC:'Ecuador',ES:'España',PE:'Perú',VE:'Venezuela',BR:'Brasil',UY:'Uruguay',CR:'Costa Rica',PA:'Panamá',GT:'Guatemala'};
+const countryNamesEN = {CO:'Colombia',US:'United States',MX:'Mexico',AR:'Argentina',CL:'Chile',EC:'Ecuador',ES:'Spain',PE:'Peru',VE:'Venezuela',BR:'Brazil',UY:'Uruguay',CR:'Costa Rica',PA:'Panama',GT:'Guatemala'};
+
+function flagSVG(code, opts){
+  const variant = (opts && opts.variant) || 'horizontal';
+  if(code === 'US'){
+    return `<svg viewBox="0 0 19 10" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="none"><rect width="19" height="10" fill="#B22234"/><path d="M0 1.15h19M0 2.3h19M0 3.46h19M0 4.61h19M0 5.77h19M0 6.92h19M0 8.08h19M0 9.23h19" stroke="#fff" stroke-width=".77"/><rect width="7.6" height="5.38" fill="#3C3B6E"/></svg>`;
+  }
+  if(code === 'ES'){
+    return `<svg viewBox="0 0 6 4" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="none"><rect width="6" height="4" fill="#AA151B"/><rect y="1" width="6" height="2" fill="#F1BF00"/></svg>`;
+  }
+  if(code === 'CO'){
+    return `<svg viewBox="0 0 6 4" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="none"><rect width="6" height="2" fill="#FCD116"/><rect y="2" width="6" height="1" fill="#003893"/><rect y="3" width="6" height="1" fill="#CE1126"/></svg>`;
+  }
+  if(code === 'AR'){
+    return `<svg viewBox="0 0 6 4" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="none"><rect width="6" height="4" fill="#74ACDF"/><rect y="1.33" width="6" height="1.34" fill="#fff"/><circle cx="3" cy="2" r=".42" fill="#F6B40E"/></svg>`;
+  }
+  if(code === 'CL'){
+    return `<svg viewBox="0 0 6 4" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="none"><rect width="6" height="2" fill="#fff"/><rect y="2" width="6" height="2" fill="#D52B1E"/><rect width="2" height="2" fill="#0039A6"/><polygon points="1,.4 1.18,.85 1.62,.85 1.27,1.13 1.4,1.6 1,1.3 .6,1.6 .73,1.13 .38,.85 .82,.85" fill="#fff"/></svg>`;
+  }
+  if(code === 'UY'){
+    return `<svg viewBox="0 0 18 12" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="none"><rect width="18" height="12" fill="#fff"/><path d="M0 1.5h18M0 4.5h18M0 7.5h18M0 10.5h18" stroke="#0038A8" stroke-width="1.2"/><rect width="9" height="6" fill="#fff"/><circle cx="4.5" cy="3" r="1.5" fill="#FCD116"/></svg>`;
+  }
+  if(code === 'CR'){
+    return `<svg viewBox="0 0 6 4" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="none"><rect width="6" height=".67" fill="#0033A0"/><rect y=".67" width="6" height=".67" fill="#fff"/><rect y="1.34" width="6" height="1.32" fill="#CE1126"/><rect y="2.66" width="6" height=".67" fill="#fff"/><rect y="3.33" width="6" height=".67" fill="#0033A0"/></svg>`;
+  }
+  if(code === 'PA'){
+    return `<svg viewBox="0 0 6 4" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="none"><rect width="3" height="2" fill="#fff"/><rect x="3" width="3" height="2" fill="#D52B1E"/><rect y="2" width="3" height="2" fill="#005AA7"/><rect x="3" y="2" width="3" height="2" fill="#fff"/><polygon points="1.5,.5 1.6,.85 2,.85 1.68,1.05 1.8,1.4 1.5,1.2 1.2,1.4 1.32,1.05 1,.85 1.4,.85" fill="#005AA7"/><polygon points="4.5,2.5 4.6,2.85 5,2.85 4.68,3.05 4.8,3.4 4.5,3.2 4.2,3.4 4.32,3.05 4,2.85 4.4,2.85" fill="#D52B1E"/></svg>`;
+  }
+  if(code === 'BR'){
+    return `<svg viewBox="0 0 14 10" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="none"><rect width="14" height="10" fill="#009B3A"/><polygon points="7,1.5 12.5,5 7,8.5 1.5,5" fill="#FEDF00"/><circle cx="7" cy="5" r="2" fill="#002776"/></svg>`;
+  }
+  if(code === 'VE'){
+    return `<svg viewBox="0 0 6 4" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="none"><rect width="6" height="1.33" fill="#FFCC00"/><rect y="1.33" width="6" height="1.34" fill="#00247D"/><rect y="2.67" width="6" height="1.33" fill="#CF142B"/></svg>`;
+  }
+  if(code === 'EC'){
+    return `<svg viewBox="0 0 6 4" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="none"><rect width="6" height="2" fill="#FFDD00"/><rect y="2" width="6" height="1" fill="#0033A0"/><rect y="3" width="6" height="1" fill="#CE1126"/></svg>`;
+  }
+  if(code === 'PE'){
+    return `<svg viewBox="0 0 6 4" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="none"><rect width="2" height="4" fill="#D91023"/><rect x="2" width="2" height="4" fill="#fff"/><rect x="4" width="2" height="4" fill="#D91023"/></svg>`;
+  }
+  if(code === 'MX'){
+    return `<svg viewBox="0 0 7 4" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="none"><rect width="7" height="4" fill="#fff"/><rect width="2.33" height="4" fill="#006847"/><rect x="4.67" width="2.33" height="4" fill="#CE1126"/><circle cx="3.5" cy="2" r=".55" fill="none" stroke="#5C2C0A" stroke-width=".12"/></svg>`;
+  }
+  if(code === 'GT'){
+    return `<svg viewBox="0 0 5 3" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="none"><rect width="5" height="3" fill="#fff"/><rect width="1.67" height="3" fill="#4997D0"/><rect x="3.33" width="1.67" height="3" fill="#4997D0"/></svg>`;
+  }
+  // Fallback: 3-stripe horizontal
+  const [c1,c2,c3] = (flags[code]||'#888,#bbb,#444').split(',');
+  return `<svg viewBox="0 0 6 4" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="none"><rect width="6" height="1.33" fill="${c1}"/><rect y="1.33" width="6" height="1.33" fill="${c2}"/><rect y="2.66" width="6" height="1.34" fill="${c3}"/></svg>`;
+}
+
+// Marquee strip (top)
+const ctrack = document.getElementById('ctrack');
+const ctryHTML = Object.keys(countryNames).map(code =>
+  `<div class="ci"><span class="ci-flag">${flagSVG(code)}</span><span class="ci-name">${countryNames[code]}</span><span class="ci-sep">✦</span></div>`
+).join('');
+ctrack.innerHTML = ctryHTML + ctryHTML;
+
+// Marquee strip (inner — below title)
+const ctrack2 = document.getElementById('ctrack2');
+if(ctrack2) ctrack2.innerHTML = ctryHTML + ctryHTML;
+
+// ─── 3D GLOBE ───
+const countryCoords = {
+  CO:[4.7,-74.1], US:[38,-97], MX:[23.6,-102.5],
+  AR:[-38.4,-63.6], CL:[-35.7,-71.5], EC:[-1.8,-78.2],
+  ES:[40.5,-3.7], PE:[-9.2,-75], VE:[6.4,-66.6],
+  BR:[-14.2,-51.9], UY:[-32.5,-55.8], CR:[9.7,-83.8],
+  PA:[8.5,-80.8], GT:[15.8,-90.2]
+};
+const stage = document.getElementById('globe-stage');
+const globe3d = document.getElementById('globe-3d');
+
+function getGlobeR(){
+  return (stage ? stage.offsetWidth * 0.42 : 220);
+}
+
+if(globe3d && stage){
+  // Build pins (no tooltips, no list)
+  Object.keys(countryCoords).forEach((code, i) => {
+    const [lat, lon] = countryCoords[code];
+    const pin = document.createElement('div');
+    pin.className = 'gpin';
+    pin.dataset.c = code;
+    pin.style.setProperty('--lat', lat + 'deg');
+    pin.style.setProperty('--lon', lon + 'deg');
+    pin.style.setProperty('--r', getGlobeR() + 'px');
+    pin.style.setProperty('--d', (i*0.17) + 's');
+    pin.innerHTML = '<span class="gpin-dot"></span>';
+    globe3d.appendChild(pin);
+  });
+
+  // Rotation state
+  let ry = -60, rx = -12;
+  let isDragging = false;
+  let lastX = 0, lastY = 0;
+  let resumeTimer = null;
+  let rafId = null;
+
+  function applyRotation(){
+    globe3d.style.transform = `rotateX(${rx}deg) rotateY(${ry}deg)`;
+  }
+  function tick(){
+    if(!isDragging) ry += 0.10;
+    applyRotation();
+    rafId = requestAnimationFrame(tick);
+  }
+  applyRotation();
+  rafId = requestAnimationFrame(tick);
+
+  stage.addEventListener('pointerdown', e => {
+    isDragging = true;
+    lastX = e.clientX;
+    lastY = e.clientY;
+    try{ stage.setPointerCapture(e.pointerId); }catch(_){}
+    clearTimeout(resumeTimer);
+    e.preventDefault();
+  });
+  stage.addEventListener('pointermove', e => {
+    if(!isDragging) return;
+    const dx = e.clientX - lastX;
+    const dy = e.clientY - lastY;
+    ry += dx * 0.45;
+    rx -= dy * 0.40;
+    rx = Math.max(-65, Math.min(65, rx));
+    lastX = e.clientX;
+    lastY = e.clientY;
+  });
+  function endDrag(e){
+    if(!isDragging) return;
+    isDragging = false;
+    try{ stage.releasePointerCapture(e.pointerId); }catch(_){}
+  }
+  stage.addEventListener('pointerup', endDrag);
+  stage.addEventListener('pointercancel', endDrag);
+  stage.addEventListener('pointerleave', endDrag);
+
+  // Re-place pins on resize so radius matches new size
+  window.addEventListener('resize', () => {
+    const r = getGlobeR();
+    document.querySelectorAll('.gpin').forEach(p => p.style.setProperty('--r', r + 'px'));
+  });
+}
+
+// Re-render flag/name labels when language changes (marquees only)
+function refreshGlobeLang(lang){
+  const names = lang === 'en' ? countryNamesEN : countryNames;
+  const html = Object.keys(names).map(code =>
+    `<div class="ci"><span class="ci-flag">${flagSVG(code)}</span><span class="ci-name">${names[code]}</span><span class="ci-sep">✦</span></div>`
+  ).join('');
+  if(ctrack) ctrack.innerHTML = html + html;
+  if(ctrack2) ctrack2.innerHTML = html + html;
+}
+
+// ─── REVEAL ON SCROLL ───
+const io = new IntersectionObserver((entries)=>{
+  entries.forEach(e=>{ if(e.isIntersecting){ e.target.classList.add('vis'); io.unobserve(e.target); }});
+}, {threshold:0.12, rootMargin:'0px 0px -40px 0px'});
+document.querySelectorAll('.rv').forEach(el=>io.observe(el));
+
+// ─── STAT COUNTERS ───
+const countIO = new IntersectionObserver((entries)=>{
+  entries.forEach(e=>{
+    if(!e.isIntersecting) return;
+    const el = e.target;
+    const target = parseInt(el.dataset.target, 10);
+    const dur = 1400;
+    const start = performance.now();
+    function tick(now){
+      const t = Math.min(1, (now-start)/dur);
+      const eased = 1 - Math.pow(1-t, 3);
+      el.textContent = Math.floor(eased*target);
+      if(t<1) requestAnimationFrame(tick);
+      else el.textContent = target;
+    }
+    requestAnimationFrame(tick);
+    countIO.unobserve(el);
+  });
+}, {threshold:0.4});
+document.querySelectorAll('.counter').forEach(el=>countIO.observe(el));
+
+// ─── PRICING v2: CURRENCY + TERM ───
+const USD_RATE = 4000;
+const TERMS_V2 = {
+  '1m': {months:1, d:0},
+  '2m': {months:2, d:0.10},
+  '3m': {months:3, d:0.15}
+};
+let curCurr = 'cop';
+let curTerm = '1m';
+
+function fmtCOP(n){ return '$' + Math.round(n).toLocaleString('es-CO'); }
+function fmtUSD(n){ return '$' + Math.round(n).toLocaleString('en-US') + ' USD'; }
+
+function updatePricingV2(){
+  const t = TERMS_V2[curTerm];
+  const fmt = curCurr === 'cop' ? fmtCOP : fmtUSD;
+  const suffix = curCurr === 'cop' ? 'COP' : 'USD';
+
+  document.querySelectorAll('.pcard-v2').forEach(card => {
+    const baseCOP = parseFloat(card.dataset.baseCop);
+    const monthly = curCurr === 'cop' ? baseCOP : baseCOP / USD_RATE;
+    const total = monthly * t.months;
+    const discounted = total * (1 - t.d);
+    const savings = total - discounted;
+
+    const priceEl = card.querySelector('.pprice-v2');
+    const oldEl = card.querySelector('.pprice-old-v2');
+    const perEl = card.querySelector('.pper-v2');
+    const saveEl = card.querySelector('.psavings');
+
+    if(t.d > 0){
+      priceEl.textContent = fmt(discounted);
+      priceEl.classList.add('discounted');
+      oldEl.textContent = fmt(total);
+      oldEl.classList.add('show');
+      perEl.textContent = `${suffix} · ${t.months} meses · pago único`;
+      saveEl.textContent = `Ahorras ${fmt(savings)}`;
+      card.classList.add('has-discount');
+    } else {
+      priceEl.textContent = fmt(monthly);
+      priceEl.classList.remove('discounted');
+      oldEl.classList.remove('show');
+      perEl.textContent = `${suffix} · por mes · 30 días`;
+      card.classList.remove('has-discount');
+    }
+  });
+
+  // Conversion note only in USD
+  const note = document.getElementById('curr-note');
+  if(note) note.classList.toggle('show', curCurr === 'usd');
+}
+function setCurrency(c, btn){
+  curCurr = c;
+  document.querySelectorAll('.curr-btn').forEach(b => b.classList.toggle('on', b.dataset.curr === c));
+  updatePricingV2();
+}
+function setTerm(term, btn){
+  curTerm = term;
+  document.querySelectorAll('.term-pill').forEach(b => b.classList.toggle('on', b.dataset.term === term));
+  updatePricingV2();
+}
+
+// Stack swap on click of side cards
+function setActiveCard(id){
+  const cards = document.querySelectorAll('.pcard-v2');
+  const order = ['pc-standard','pc-elite','pc-platino'];
+  const idx = order.indexOf(id);
+  if(idx<0) return;
+  // Active center; the others split left/right
+  cards.forEach(c => c.classList.remove('is-active','is-left','is-right'));
+  const left = order[(idx + order.length - 1) % order.length];
+  const right = order[(idx + 1) % order.length];
+  document.getElementById(id).classList.add('is-active');
+  document.getElementById(left).classList.add('is-left');
+  document.getElementById(right).classList.add('is-right');
+}
+document.querySelectorAll('.pcard-v2').forEach(card => {
+  card.addEventListener('click', e => {
+    if(card.classList.contains('is-active')) return;
+    // Ignore clicks on the CTA link itself (let it navigate)
+    if(e.target.closest('a')) return;
+    setActiveCard(card.id);
+  });
+});
+
+// ─── PAYMENT TABS ───
+function switchPay(p, btn){
+  document.querySelectorAll('.pay-tabs .ptab').forEach(b=>b.classList.remove('on'));
+  btn.classList.add('on');
+  document.querySelectorAll('.ppanel').forEach(p=>p.classList.remove('on'));
+  document.getElementById('pp-'+p).classList.add('on');
+}
+
+// ─── VIDEO TESTIMONIAL (inline expand + fullscreen) ───
+function playInlineVideo(ev){
+  ev && ev.stopPropagation();
+  var card=document.getElementById('video-testimonial');
+  var vid=document.getElementById('vid-thumb');
+  if(!card||!vid)return;
+  if(vid.paused){
+    card.classList.add('playing');
+    vid.muted=false;
+    vid.controls=true;
+    var p=vid.play();
+    if(p&&p.catch)p.catch(function(){vid.muted=true;vid.play();});
+  } else {
+    vid.pause();
+  }
+}
+function goFullscreenVideo(ev){
+  ev && ev.stopPropagation();
+  var vid=document.getElementById('vid-thumb');
+  if(!vid)return;
+  if(vid.requestFullscreen)vid.requestFullscreen();
+  else if(vid.webkitRequestFullscreen)vid.webkitRequestFullscreen();
+  else if(vid.webkitEnterFullscreen)vid.webkitEnterFullscreen();
+}
+// Generate poster from first frame
+document.addEventListener('DOMContentLoaded',function(){
+  var vid=document.getElementById('vid-thumb');
+  if(!vid)return;
+  vid.addEventListener('loadeddata',function(){
+    try{vid.currentTime=0.1;}catch(e){}
+  });
+});
+</script>
+
+</body>
+</html>
